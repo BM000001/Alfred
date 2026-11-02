@@ -3,6 +3,7 @@ import type { Appointment, AppointmentType } from './agenda/types';
 import { findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agendaRules';
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
+import { ICalendarImport } from './ICalendarImport';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
@@ -165,6 +166,8 @@ export function Agenda() {
           {showForm ? 'Fechar' : '+ Novo compromisso'}
         </button>
       </div>
+
+      <ICalendarImport existing={items} onImported={refresh} />
 
       <div className="agenda-controls">
         <label className="agenda-date-label">Data de referência<input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></label>
