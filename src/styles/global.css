@@ -456,3 +456,17 @@ button, input, textarea { font: inherit; }
 .focus-mini-history span { padding: 5px 8px; border-radius: 6px; color: #526078; background: #F3F5F8; font-size: 10px; }
 .dashboard-insight .dashboard-link { align-self: flex-start; margin-top: auto; }
 @media (max-width: 600px) { .dashboard-insights { grid-template-columns: 1fr; gap: 10px; } }
+
+
+.daily-briefing { margin: 18px 0; }
+.briefing-count { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.briefing-list { margin: 0; padding: 0; list-style: none; }
+.briefing-list li { min-width: 0; padding: 13px 0; display: flex; align-items: center; gap: 12px; border-top: 1px solid #EDF0F4; }
+.briefing-indicator { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: #C5A059; }
+.briefing-indicator.urgency-0 { background: #C64B4B; }
+.briefing-indicator.urgency-1 { background: #D58B35; }
+.briefing-indicator.urgency-2 { background: #C5A059; }
+.briefing-list li > div { min-width: 0; flex: 1; display: grid; gap: 4px; }
+.briefing-list li strong { color: var(--navy); font-size: 13px; overflow-wrap: anywhere; }
+.briefing-list li span:not(.briefing-indicator) { color: var(--muted); font-size: 11px; }
+.briefing-note { margin: 14px 0 0; color: #929BA8; font-size: 10px; line-height: 1.5; }
