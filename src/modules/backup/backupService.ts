@@ -84,8 +84,8 @@ export function inspectBackup(raw: string): { createdAt: string; counts: Record<
   if (typeof parsed.createdAt !== 'string') throw new Error('Data de criação do backup inválida.');
   return {
     createdAt: parsed.createdAt,
-    counts: { tasks: data.tasks.length, projects: data.projects.length, appointments: data.appointments.length,
-      disciplines: data.disciplines.length, studyTopics: data.studyTopics.length, files: data.files.length },
+    counts: { tasks: (data.tasks as unknown[]).length, projects: (data.projects as unknown[]).length, appointments: (data.appointments as unknown[]).length,
+      disciplines: (data.disciplines as unknown[]).length, studyTopics: (data.studyTopics as unknown[]).length, files: (data.files as unknown[]).length },
     payload: parsed as unknown as BackupPayload,
   };
 }
@@ -109,7 +109,7 @@ export async function restoreBackup(payload: BackupPayload): Promise<void> {
       [STORE_NAMES.files]: payload.data.files.map((file) => {
         const { contentBase64, ...metadata } = file;
         const bytes = fromBase64(contentBase64);
-        return { ...metadata, blob: new Blob([bytes], { type: file.type }) };
+        return { ...metadata, blob: new Blob([bytes.buffer as ArrayBuffer], { type: file.type }) };
       }),
     };
     for (const name of names) {
