@@ -71,6 +71,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
     fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática' } });
     fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Matemática/ }));
     fireEvent.change(await screen.findByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Funções' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Funções')).toBeInTheDocument();
