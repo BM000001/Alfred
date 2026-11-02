@@ -7,7 +7,7 @@ O roadmap representa uma sequência de trabalho, não uma promessa de prazo. Cad
 - [ ] Definir estrutura de pastas e convenções.
 - [ ] Configurar Vitest.
 - [ ] Criar tokens de design e temas claro/escuro.
-- [ ] Criar layout responsivo e navegação inicial.
+- [x] Criar layout responsivo e navegação inicial.
 - [ ] Validar build e testes.
 
 **Critério de saída:** aplicação inicia localmente, possui navegação-base e passa nas verificações configuradas.
