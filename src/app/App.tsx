@@ -4,6 +4,7 @@ import { Agenda } from '../modules/Agenda';
 import { Overview } from '../modules/Overview';
 import { Studies } from '../modules/Studies';
 import { Files } from '../modules/Files';
+import { BackupSettings } from '../modules/BackupSettings';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
@@ -69,6 +70,8 @@ function App() {
             <Studies />
           ) : activeSection === 'arquivos' ? (
             <Files />
+          ) : activeSection === 'configuracoes' ? (
+            <BackupSettings />
           ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (
             <PersonalOrganization section={activeSection} />
           ) : (
