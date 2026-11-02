@@ -32,6 +32,9 @@ function toBase64(bytes: Uint8Array): string {
 }
 
 function fromBase64(value: string): Uint8Array {
+  if (value.length % 4 !== 0 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) {
+    throw new Error('Conteúdo Base64 inválido.');
+  }
   const binary = atob(value);
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
@@ -78,19 +81,39 @@ export function inspectBackup(raw: string): { createdAt: string; counts: Record<
   }
   const data = parsed.data;
   for (const name of ['tasks', 'projects', 'appointments', 'disciplines', 'studyTopics', 'files']) assertEntities(data[name], name);
-  if (!(data.files as unknown[]).every((file) => isRecord(file) && typeof file.contentBase64 === 'string' && typeof file.name === 'string' && typeof file.type === 'string' && typeof file.size === 'number' && typeof file.createdAt === 'string')) {
-    throw new Error('O backup contém arquivos inválidos.');
+  const files = data.files as unknown[];
+  for (const file of files) {
+    if (!isRecord(file) || typeof file.contentBase64 !== 'string' || typeof file.name !== 'string'
+      || typeof file.type !== 'string' || !Number.isSafeInteger(file.size) || (file.size as number) < 0
+      || typeof file.createdAt !== 'string') {
+      throw new Error('O backup contém arquivos inválidos.');
+    }
+    let bytes: Uint8Array;
+    try { bytes = fromBase64(file.contentBase64); } catch {
+      throw new Error('O backup contém arquivos com conteúdo Base64 inválido.');
+    }
+    if (bytes.byteLength !== file.size) throw new Error('O tamanho do conteúdo de um arquivo não corresponde aos metadados.');
   }
-  if (typeof parsed.createdAt !== 'string') throw new Error('Data de criação do backup inválida.');
+  if (typeof parsed.createdAt !== 'string' || Number.isNaN(Date.parse(parsed.createdAt))) {
+    throw new Error('Data de criação do backup inválida.');
+  }
   return {
     createdAt: parsed.createdAt,
     counts: { tasks: (data.tasks as unknown[]).length, projects: (data.projects as unknown[]).length, appointments: (data.appointments as unknown[]).length,
-      disciplines: (data.disciplines as unknown[]).length, studyTopics: (data.studyTopics as unknown[]).length, files: (data.files as unknown[]).length },
+      disciplines: (data.disciplines as unknown[]).length, studyTopics: (data.studyTopics as unknown[]).length, files: files.length },
     payload: parsed as unknown as BackupPayload,
   };
 }
 
 export async function restoreBackup(payload: BackupPayload): Promise<void> {
+  // Decode every file before opening the write transaction: malformed data must never
+  // leave a partially populated transaction or clear the user's existing records.
+  const restoredFiles = payload.data.files.map((file) => {
+    const bytes = fromBase64(file.contentBase64);
+    if (bytes.byteLength !== file.size) throw new Error('O tamanho do conteúdo de um arquivo não corresponde aos metadados.');
+    const { contentBase64, ...metadata } = file;
+    return { ...metadata, blob: new Blob([bytes], { type: file.type }) };
+  });
   const database = await openAlfredDatabase();
   const names = Object.values(STORE_NAMES);
   try {
@@ -106,11 +129,7 @@ export async function restoreBackup(payload: BackupPayload): Promise<void> {
       [STORE_NAMES.appointments]: payload.data.appointments,
       [STORE_NAMES.disciplines]: payload.data.disciplines,
       [STORE_NAMES.studyTopics]: payload.data.studyTopics,
-      [STORE_NAMES.files]: payload.data.files.map((file) => {
-        const { contentBase64, ...metadata } = file;
-        const bytes = fromBase64(contentBase64);
-        return { ...metadata, blob: new Blob([bytes.buffer as ArrayBuffer], { type: file.type }) };
-      }),
+      [STORE_NAMES.files]: restoredFiles,
     };
     for (const name of names) {
       const store = transaction.objectStore(name);
