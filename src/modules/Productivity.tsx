@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { focusSessionRepository } from '../storage/repositories';
+import { focusSessionRepository, taskRepository } from '../storage/repositories';
+import type { Task } from './tasks/types';
 import type { FocusSession } from './productivity/types';
 import { summarizeFocusSessions } from './productivity/productivityRules';
 
@@ -11,15 +12,17 @@ export function Productivity() {
   const [remaining, setRemaining] = useState(WORK_SECONDS);
   const [running, setRunning] = useState(false);
   const [sessions, setSessions] = useState<FocusSession[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTaskId, setSelectedTaskId] = useState('');
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
-    focusSessionRepository.getAll()
-      .then((items) => { if (active) setSessions(items); })
-      .catch(() => { if (active) setError('Não foi possível carregar seu histórico de foco.'); })
+    Promise.all([focusSessionRepository.getAll(), taskRepository.getAll()])
+      .then(([items, loadedTasks]) => { if (active) { setSessions(items); setTasks(loadedTasks.filter((task) => task.status === 'pending')); } })
+      .catch(() => { if (active) setError('Não foi possível carregar seus dados de produtividade.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
@@ -41,6 +44,7 @@ export function Productivity() {
         completedAt,
         durationMinutes: 25,
         kind: 'focus',
+        ...(selectedTaskId ? { taskId: selectedTaskId, taskTitle: tasks.find((task) => task.id === selectedTaskId)?.title } : {}),
       };
       focusSessionRepository.save(session)
         .then(() => setSessions((items) => [...items, session]))
@@ -86,6 +90,11 @@ export function Productivity() {
           <div><span className="card-label">SESSÃO ATUAL</span><h2>{mode === 'focus' ? 'Hora de concentrar.' : 'Pausa merecida.'}</h2></div>
           <span className="focus-session-count">{summary.today} {summary.today === 1 ? 'sessão hoje' : 'sessões hoje'}</span>
         </div>
+        <label className="field-label focus-task-label" htmlFor="focus-task">Tarefa desta sessão</label>
+        <select id="focus-task" className="focus-task-select" value={selectedTaskId} onChange={(event) => setSelectedTaskId(event.target.value)} disabled={running}>
+          <option value="">Foco livre · sem tarefa vinculada</option>
+          {tasks.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}
+        </select>
         <div className="focus-mode-switch" role="group" aria-label="Tipo de sessão">
           <button type="button" className={mode === 'focus' ? 'selected' : ''} onClick={() => changeMode('focus')}>Foco · 25 min</button>
           <button type="button" className={mode === 'break' ? 'selected' : ''} onClick={() => changeMode('break')}>Pausa · 5 min</button>
@@ -111,7 +120,7 @@ export function Productivity() {
         <div className="list-heading"><div><span className="card-label">REGISTROS</span><h2>Últimas sessões</h2></div><span className="focus-session-count">{loading ? 'Carregando...' : `${summary.total} no total`}</span></div>
         {error && <p className="module-error" role="alert">{error}</p>}
         {summary.recent.length === 0 ? <div className="empty-state"><strong>Nenhuma sessão concluída ainda.</strong><p>Quando terminar seu primeiro ciclo de foco, ele aparecerá aqui.</p></div> :
-          <div className="focus-history-list">{summary.recent.map((session) => <article className="focus-history-item" key={session.id}><span className="focus-history-dot" /><div><strong>Sessão de foco</strong><small>{new Date(session.completedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</small></div><b>{session.durationMinutes} min</b></article>)}</div>}
+          <div className="focus-history-list">{summary.recent.map((session) => <article className="focus-history-item" key={session.id}><span className="focus-history-dot" /><div><strong>{session.taskTitle ? session.taskTitle : 'Sessão de foco livre'}</strong><small>{new Date(session.completedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</small></div><b>{session.durationMinutes} min</b></article>)}</div>}
       </section>
     </section>
   );
