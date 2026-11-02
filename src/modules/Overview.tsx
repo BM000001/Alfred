@@ -8,6 +8,7 @@ import { summarizeStudyProgress } from './studies/studyRules';
 import { summarizeFocusSessions } from './productivity/productivityRules';
 import { isTaskOverdue } from './tasks/taskRules';
 import { sortAppointmentsByStart } from './agenda/agendaRules';
+import { buildDailyBriefing } from './dailyBriefing';
 
 type Props = {
   onNavigate: (section: 'tarefas' | 'agenda' | 'projetos' | 'estudos' | 'produtividade') => void;
@@ -51,6 +52,7 @@ export function Overview({ onNavigate }: Props) {
   const now = new Date();
   const todayKey = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
   const overdueTasks = tasks.filter((task) => isTaskOverdue(task, now));
+  const briefing = useMemo(() => buildDailyBriefing(tasks, appointments, now), [tasks, appointments, now.toDateString()]);
   const studyProgress = summarizeStudyProgress(topics);
   const focusSummary = summarizeFocusSessions(focusSessions, now);
   const pendingTasks = tasks.filter((task) => task.status === 'pending');
@@ -99,6 +101,27 @@ export function Overview({ onNavigate }: Props) {
               <button type="button" className="dashboard-link" onClick={() => onNavigate('produtividade')}>Abrir produtividade <span aria-hidden="true">→</span></button>
             </article>
           </div>
+          <section className="dashboard-panel daily-briefing" aria-labelledby="briefing-title">
+            <div className="dashboard-panel-heading">
+              <div><span className="card-label">BRIEFING DO DIA</span><h2 id="briefing-title">O que merece sua atenção</h2></div>
+              <span className="briefing-count">{briefing.length} recomendações</span>
+            </div>
+            {briefing.length === 0 ? (
+              <p className="dashboard-empty">Nada urgente identificado. Sua agenda e suas tarefas estão sem alertas prioritários.</p>
+            ) : (
+              <ul className="briefing-list">
+                {briefing.map((item) => (
+                  <li key={item.id}>
+                    <span className={`briefing-indicator urgency-${item.urgency}`} aria-hidden="true" />
+                    <div><strong>{item.title}</strong><span>{item.reason}</span></div>
+                    <button type="button" className="dashboard-link" onClick={() => onNavigate(item.target)}>Abrir <span aria-hidden="true">→</span></button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="briefing-note">Sugestões baseadas nos seus dados locais. Nenhuma tarefa ou compromisso foi alterado.</p>
+          </section>
+
           <div className="dashboard-columns">
             <section className="dashboard-panel">
               <div className="dashboard-panel-heading">
