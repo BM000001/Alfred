@@ -60,4 +60,33 @@ describe('Assistant task approval UI', () => {
     expect(screen.queryByRole('button', { name: 'Confirmar alteração' })).not.toBeInTheDocument();
     expect(await taskRepository.getById(task.id)).toMatchObject({ status: 'pending' });
   });
+
+  it('não cria tarefa ao preparar ou cancelar uma proposta', async () => {
+    const user = userEvent.setup();
+    render(<Assistant />);
+    await user.type(screen.getByLabelText('Mensagem para Alfred'), 'criar tarefa Revisar capítulo');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByRole('button', { name: 'Confirmar alteração' });
+
+    expect(await taskRepository.getAll()).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(await taskRepository.getAll()).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Confirmar alteração' })).not.toBeInTheDocument();
+  });
+
+  it('só cria a tarefa depois da confirmação explícita', async () => {
+    const user = userEvent.setup();
+    render(<Assistant />);
+    await user.type(screen.getByLabelText('Mensagem para Alfred'), 'adicionar tarefa: Revisar capítulo');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirmar alteração' }));
+
+    await waitFor(async () => {
+      expect(await taskRepository.getAll()).toHaveLength(2);
+    });
+    expect(await screen.findByText('Confirmado. A tarefa “Revisar capítulo” foi criada com prioridade média e adicionada às pendências.')).toBeInTheDocument();
+    expect(await taskRepository.getAll()).toContainEqual(expect.objectContaining({
+      title: 'Revisar capítulo', status: 'pending', priority: 'medium',
+    }));
+  });
 });
