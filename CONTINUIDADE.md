@@ -2,8 +2,8 @@
 
 ## Estado atual — 2026-11-02
 - `main` é a fonte da verdade.
-- Última integração: PR #19 — edição de conteúdos no módulo Estudos.
-- Commit integrado: `592f86d24469e27cee9c94cf9522a46d956677dd`.
+- Última integração: PR #20 — edição de disciplinas no módulo Estudos.
+- Commit integrado: `dd067ccfd6b5b3423afce4dfe4ee7e3f4fe8556e`.
 - CI da PR #19: execução #58 aprovada (testes e build).
 - Nenhum dado fictício ou de demonstração foi criado.
 
@@ -11,7 +11,7 @@
 - Tarefas e projetos: cadastro, filtros, conclusão, arquivamento e progresso.
 - Agenda: compromissos, visualizações Dia/Semana/Mês, detecção de conflitos, edição, cancelamento e persistência local.
 - Painel inicial: pendências, atrasos, compromissos de hoje e próximos itens; somente leitura.
-- Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso; edição de conteúdos integrada. Edição de disciplinas em desenvolvimento no PR #20.
+- Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso; edição de conteúdos integrada. Edição de disciplinas integrada.
 - Arquivos: adicionar, pesquisar, baixar e excluir arquivos (limite de 10 MB por arquivo).
 - Backup e restauração: exportação JSON com arquivos em Base64, prévia e confirmação explícita para substituir os dados locais.
 - Persistência local via IndexedDB, sem backend próprio.
@@ -24,7 +24,7 @@
 - Investigar as vulnerabilidades reportadas pelo npm sem aplicar atualizações forçadas indiscriminadamente.
 
 ## Próximas etapas
-1. Finalizar a edição de disciplinas no módulo Estudos (PR #20).
+1. Validar e integrar a importação local de calendários iCalendar (PR em andamento).
 2. Revisar experiência mobile e acessibilidade.
 3. Revisar conflitos e limpeza de campos opcionais na edição da Agenda.
 4. Implementar temas claro/escuro e módulos restantes.
@@ -37,3 +37,11 @@
 - Atualizar este documento em cada marco confirmado.
 - Não criar registros fictícios ou de demonstração.
 - Nunca incluir segredos ou dados pessoais.
+
+
+## Importação de calendário — em desenvolvimento
+- Branch `feat/icalendar-import` adiciona leitura local de arquivos `.ics`, prévia e confirmação explícita.
+- Eventos com UID já importado são filtrados; conflitos de horário são exibidos e não são importados.
+- Eventos recorrentes são ignorados com aviso; não há sincronização direta com iCloud.
+- Limite de arquivo: 5 MB. Nenhum dado é enviado a servidor.
+- Aguardando CI do PR correspondente; não considerar funcionalidade integrada até merge aprovado.
