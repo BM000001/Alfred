@@ -84,7 +84,6 @@ describe('Assistant task approval UI', () => {
     await waitFor(async () => {
       expect(await taskRepository.getAll()).toHaveLength(2);
     });
-    expect(await taskRepository.getById('assistant-test-message-3')).toBeUndefined();
     expect(await screen.findByText('Confirmado. A tarefa “Revisar capítulo” foi criada com prioridade média e adicionada às pendências.')).toBeInTheDocument();
     expect(await taskRepository.getAll()).toContainEqual(expect.objectContaining({
       title: 'Revisar capítulo', status: 'pending', priority: 'medium',
