@@ -6,7 +6,7 @@ import { prepareTaskCompletion } from './assistant/actionProposals';
 import { prepareTaskCreation } from './assistant/taskCreationProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
-import { appointmentRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
+import { appointmentRepository, profileRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return { id: crypto.randomUUID(), role, content, createdAt: new Date().toISOString() };
@@ -18,7 +18,7 @@ type PendingTaskProposal =
 
 export function Assistant() {
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar ou concluir tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
+    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, consultar seu perfil pessoal e preparar propostas para criar ou concluir tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,8 +40,8 @@ export function Assistant() {
     setLoading(true);
     setError('');
     try {
-      const [tasks, appointments, topics] = await Promise.all([
-        taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(),
+      const [tasks, appointments, topics, profile] = await Promise.all([
+        taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(), profileRepository.getById('primary'),
       ]);
       const preparation = prepareTaskCompletion(content, tasks);
       if (preparation.kind === 'proposal') {
@@ -79,7 +79,7 @@ export function Assistant() {
         setMessages((current) => [...current, createMessage('assistant', creation.reason)]);
         return;
       }
-      const provider = new LocalAssistantProvider({ tasks, appointments, topics });
+      const provider = new LocalAssistantProvider({ tasks, appointments, topics, profile });
       const response = await provider.generate({
         messages: nextMessages,
         context: { locale: 'pt-BR', now: new Date().toISOString(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'local' },
@@ -176,7 +176,7 @@ export function Assistant() {
         <span className="assistant-status"><i aria-hidden="true" /> Local</span>
       </header>
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
-        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span>
+        <span>Perfil pessoal</span><span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span>
       </div>
       <div className="assistant-conversation" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((message) => (
