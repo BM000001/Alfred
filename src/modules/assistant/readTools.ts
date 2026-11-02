@@ -2,11 +2,13 @@ import type { Appointment } from '../agenda/types';
 import type { Task } from '../tasks/types';
 import type { StudyTopic } from '../studies/types';
 import type { ToolDefinition } from './contracts';
+import type { PersonalProfile } from '../profile/types';
 
 export interface ReadToolData {
   tasks: Task[];
   appointments: Appointment[];
   topics: StudyTopic[];
+  profile?: PersonalProfile;
   now?: Date;
 }
 
