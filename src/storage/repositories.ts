@@ -1,4 +1,5 @@
 import type { Project } from '../modules/projects/types';
+import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { openAlfredDatabase, runStoreRequest, STORE_NAMES } from './database';
 
@@ -37,3 +38,4 @@ function createRepository<T extends { id: string }>(storeName: string): EntityRe
 
 export const taskRepository = createRepository<Task>(STORE_NAMES.tasks);
 export const projectRepository = createRepository<Project>(STORE_NAMES.projects);
+export const appointmentRepository = createRepository<Appointment>(STORE_NAMES.appointments);
