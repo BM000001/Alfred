@@ -2,6 +2,7 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import type { Discipline, StudyTopic } from '../modules/studies/types';
+import type { StoredFile } from '../modules/files/types';
 import { openAlfredDatabase, runStoreRequest, STORE_NAMES } from './database';
 
 export interface EntityRepository<T extends { id: string }> {
@@ -42,3 +43,5 @@ export const projectRepository = createRepository<Project>(STORE_NAMES.projects)
 export const appointmentRepository = createRepository<Appointment>(STORE_NAMES.appointments);
 export const disciplineRepository = createRepository<Discipline>(STORE_NAMES.disciplines);
 export const studyTopicRepository = createRepository<StudyTopic>(STORE_NAMES.studyTopics);
+
+export const fileRepository = createRepository<StoredFile>(STORE_NAMES.files);

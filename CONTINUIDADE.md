@@ -1,36 +1,38 @@
 # Continuidade do Alfred
 
 ## Estado atual — 2026-11-02
-- Etapa 2 — Organização pessoal em andamento.
-- Branch de trabalho: `feat/studies-module`.
-- Última integração: PR #11 — painel inicial dinâmico.
-- Commit integrado ao `main`: `acc79ec03cf68c1841f2775eae019c63bd2d8f34`.
-- PR #11: CI aprovada (testes e build) e merge confirmado.
-- Trabalho do módulo Estudos foi enviado à branch acima; aguarda CI e revisão.
+- `main` é a fonte da verdade.
+- Última integração: PR #12 — módulo Estudos.
+- Commit integrado: `d9b13753e58eaef188ebad806f84e3d68228be1b`.
+- PR #12 passou nos testes e no build pelo GitHub Actions antes do merge.
+- Trabalho atual: branch `feat/files-module`, PR em preparação.
 
 ## Funcionalidades integradas
-- Tarefas e projetos: CRUD inicial, filtros, conclusão, arquivamento e progresso.
-- Agenda: cadastro, visualizações Dia/Semana/Mês, detecção de conflitos e persistência local.
-- Painel inicial: resumo de pendências, atrasos, compromissos de hoje e próximos itens; somente leitura.
+- Tarefas e projetos: cadastro, filtros, conclusão, arquivamento e progresso.
+- Agenda: compromissos, visualizações Dia/Semana/Mês, detecção de conflitos e persistência local.
+- Painel inicial: pendências, atrasos, compromissos de hoje e próximos itens; somente leitura.
+- Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso.
 - Persistência local via IndexedDB, sem backend próprio.
 
-## Módulo Estudos — branch feat/studies-module
-- Tipos: disciplinas e conteúdos/tópicos com status pendente/concluído.
-- Regras: validação de nomes, vínculo válido de conteúdo à disciplina e cálculo de progresso.
-- Serviços: criar/listar/editar/excluir disciplinas e criar/listar/editar/excluir conteúdos.
-- Exclusão de disciplina também remove conteúdos vinculados.
-- IndexedDB atualizado da versão 2 para 3, preservando stores existentes e adicionando `disciplines` e `studyTopics`.
-- Interface: cadastro de disciplinas, cadastro de conteúdos e anotações, seleção de disciplina, filtro por status, marcação de conclusão e progresso geral/por disciplina.
-- Testes: regras, serviços e fluxo de cadastro pela interface.
+## Módulo Arquivos — em desenvolvimento
+- Modelo de arquivo com metadados e conteúdo Blob.
+- Limite de 10 MB por arquivo e rejeição de arquivos vazios.
+- Serviços para listar, adicionar, recuperar e excluir arquivos.
+- Interface para adicionar, pesquisar, baixar e excluir arquivos.
+- Migração do IndexedDB para versão 4 com nova store `files`, preservando stores existentes.
+- Dados permanecem no dispositivo; não há envio para servidor.
+- Testes unitários do serviço e teste de navegação da interface escritos.
+- Ainda depende de CI para confirmar tipagem, testes e build.
 
 ## Próximas etapas
-1. Aguardar CI da PR do módulo Estudos e corrigir falhas.
-2. Integrar somente após testes e build aprovados.
-3. Revisar robustez da exclusão em cascata e validações de edição.
-4. Próximo módulo sugerido: Arquivos, ou aprimorar Estudos com edição de disciplinas/conteúdos e cronograma.
+1. Abrir PR do módulo Arquivos.
+2. Corrigir eventuais falhas reportadas pelo GitHub Actions.
+3. Integrar somente após testes e build aprovados.
+4. Próxima prioridade após Arquivos: backup e restauração local, para proteger dados do usuário.
+5. Depois, revisar temas claro/escuro e experiência mobile.
 
 ## Protocolo de trabalho
-- `main` é a fonte da verdade; desenvolver em branches e PRs.
+- Desenvolver em branches e PRs; não alterar `main` diretamente.
 - Integrar após CI verde, conforme autorização anterior.
 - Não afirmar testes locais: validação oficial pelo GitHub Actions.
 - Atualizar este documento em cada marco confirmado.

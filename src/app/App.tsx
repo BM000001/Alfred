@@ -3,6 +3,7 @@ import { PersonalOrganization } from '../modules/PersonalOrganization';
 import { Agenda } from '../modules/Agenda';
 import { Overview } from '../modules/Overview';
 import { Studies } from '../modules/Studies';
+import { Files } from '../modules/Files';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
@@ -66,6 +67,8 @@ function App() {
             <Agenda />
           ) : activeSection === 'estudos' ? (
             <Studies />
+          ) : activeSection === 'arquivos' ? (
+            <Files />
           ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (
             <PersonalOrganization section={activeSection} />
           ) : (
