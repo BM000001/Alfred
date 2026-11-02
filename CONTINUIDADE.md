@@ -3,9 +3,9 @@
 > Documento de passagem de contexto entre sessões e ferramentas de desenvolvimento. Atualize ao final de cada sessão.
 
 ## Estado atual
-- **Fase:** fundação técnica e primeira interface.
-- **Situação:** documentação-base e esqueleto inicial React + TypeScript + Vite registrados no GitHub; execução local ainda não verificada.
-- **Aplicação:** ponto de entrada React e tela inicial criados; dependências ainda precisam ser instaladas e o build/teste executados no Codespace.
+- **Fase:** fundação concluída; navegação inicial implementada.
+- **Situação:** CI do GitHub confirmou instalação, testes e build com sucesso; navegação principal responsiva adicionada, aguardando CI da nova alteração.
+- **Aplicação:** tela inicial e navegação entre Início, Estudos, Agenda, Projetos, Arquivos, Produtividade e Configurações. Módulos internos ainda são espaços reservados.
 - **Última atualização:** 2026-11-02.
 
 ## Visão resumida
@@ -26,6 +26,9 @@ Alfred é um assistente pessoal inteligente para centralizar estudos, agenda, ta
 - `docs/ROADMAP.md`: etapas de implementação.
 
 ## Histórico desta etapa
+- CI confirmado com sucesso na execução #3: instalação, testes e build concluídos.
+- Implementada navegação principal responsiva com estado local e placeholders para módulos ainda não construídos.
+- Adicionado teste de navegação entre Agenda e Estudos; CI da nova alteração pendente de conferência.
 - Criado esqueleto com `package.json`, Vite, TypeScript, React e configuração do Vitest.
 - Criada primeira tela-base responsiva com identidade visual inicial.
 - Criado teste inicial da tela principal.
@@ -36,11 +39,10 @@ Alfred é um assistente pessoal inteligente para centralizar estudos, agenda, ta
 - Criados e registrados: `CLAUDE.md`, `CONTINUIDADE.md`, `docs/VISAO-PRODUTO.md`, `docs/ARQUITETURA.md`, `docs/ROADMAP.md` e `docs/decisoes/README.md`.
 
 ## Próxima tarefa
-1. No Codespace, executar `npm install`.
-2. Executar `npm test` e corrigir eventuais falhas.
-3. Executar `npm run build` e corrigir eventuais falhas.
-4. Abrir a aplicação com `npm run dev` e conferir a tela no navegador.
-5. Depois da validação, avançar para navegação e módulos de tarefas/projetos.
+1. Conferir o resultado do CI após a implementação da navegação.
+2. Abrir a aplicação no Codespace e revisar o comportamento em celular e desktop.
+3. Implementar o módulo de tarefas e projetos com persistência local, regras de negócio e testes.
+
 
 ## Regras para atualizar este documento
 - Registre apenas o que foi realmente feito.
