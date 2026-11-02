@@ -20,8 +20,10 @@ describe('prepareTaskCompletion', () => {
     expect(result.proposal.id).toBe('proposal-1');
   });
 
-  it('aceita a formula de marcar como concluída', () => {
-    expect(prepareTaskCompletion('marcar tarefa Entregar relatório como concluída', tasks).kind).toBe('already-completed');
+  it('aceita variações naturais de concluir uma tarefa', () => {
+    expect(prepareTaskCompletion('por favor, conclua a tarefa Entregar relatório', tasks).kind).toBe('already-completed');
+    expect(prepareTaskCompletion('termine a tarefa Entregar relatório', tasks).kind).toBe('already-completed');
+    expect(prepareTaskCompletion('marque a tarefa Entregar relatório como concluída', tasks).kind).toBe('already-completed');
   });
 
   it('não escolhe arbitrariamente entre tarefas com título duplicado', () => {

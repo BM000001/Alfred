@@ -19,8 +19,11 @@ describe('prepareTaskCreation', () => {
     expect(tasks).toHaveLength(1);
   });
 
-  it('aceita a formula adicionar tarefa com dois pontos', () => {
+  it('aceita variações naturais e opcionais de pontuação', () => {
     expect(prepareTaskCreation('adicionar tarefa: Organizar arquivos', tasks).kind).toBe('proposal');
+    expect(prepareTaskCreation('por favor, crie uma tarefa: Revisar matéria', tasks).kind).toBe('proposal');
+    expect(prepareTaskCreation('adiciona tarefa Organizar mesa', tasks).kind).toBe('proposal');
+    expect(prepareTaskCreation('registre a tarefa: Fazer exercícios', tasks).kind).toBe('proposal');
   });
 
   it('não cria duplicata de título já existente', () => {
