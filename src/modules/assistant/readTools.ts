@@ -29,6 +29,26 @@ export function createReadOnlyTools(data: ReadToolData): ToolDefinition<ReadTool
   const now = data.now ?? new Date();
   return [
     {
+      id: 'profile.read',
+      description: 'Consulta o perfil pessoal salvo localmente.',
+      risk: 'read',
+      approval: 'never',
+      async execute() {
+        const profile = data.profile;
+        if (!profile) return { summary: 'Ainda não há perfil salvo.', items: ['Abra Meu perfil para preencher ou importar suas informações.'] };
+        const fields = [
+          ['Como chamar', profile.preferredName],
+          ['Estudos e formação', profile.education],
+          ['Interesses profissionais', profile.careerInterests],
+          ['Objetivos', profile.goals],
+          ['Preferências de aprendizagem', profile.learningPreferences],
+          ['Como Alfred deve ajudar', profile.assistantPreferences],
+        ];
+        const items = fields.filter(([, value]) => value.trim()).map(([label, value]) => label + ': ' + value);
+        return { summary: items.length ? 'Informações do seu perfil local.' : 'Seu perfil ainda está vazio.', items: items.length ? items : ['Abra Meu perfil para preencher ou importar suas informações.'] };
+      },
+    },
+    {
       id: 'tasks.list',
       description: 'Consulta tarefas pendentes ou todas as tarefas locais.',
       risk: 'read',
