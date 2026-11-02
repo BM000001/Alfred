@@ -49,3 +49,18 @@ Alfred é um assistente pessoal inteligente para centralizar estudos, agenda, ta
 - Inclua comandos de teste executados e seus resultados.
 - Não marque funcionalidades como concluídas apenas porque foram planejadas.
 - Registre bloqueios e decisões pendentes.
+
+
+## Protocolo obrigatório de salvamento entre sessões
+
+O risco que queremos eliminar é perder trabalho quando uma conta Claude atingir o limite, a sessão for encerrada ou outra conta assumir.
+
+1. **Salvar em etapas pequenas:** após cada funcionalidade ou conjunto coerente de arquivos, revisar o diff, testar, criar commit e fazer push imediatamente.
+2. **Não depender do fim da sessão:** nunca acumular toda a implementação para um único commit final.
+3. **Troca de conta:** antes de trocar de conta/ferramenta, atualizar este documento e enviar tudo ao GitHub.
+4. **Confirmar o salvamento:** só considerar salvo remotamente quando o push for concluído e o commit aparecer no GitHub.
+5. **Falha no push:** não apagar nem resetar alterações. Criar backup patch local, registrar seu caminho e manter o Codespace. O trabalho ainda não está salvo no GitHub.
+6. **Segurança:** nunca incluir .env, tokens, chaves, senhas ou dados pessoais em commits.
+7. **CI não é backup:** GitHub Actions apenas testa o que já foi enviado; não recupera arquivos não commitados.
+
+Cada checkpoint deve registrar: data, branch, hash do commit, resumo, testes e pendências.
