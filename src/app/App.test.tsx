@@ -54,3 +54,17 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: 'Criar projeto' })).toBeInTheDocument();
   });
 });
+
+  it('permite cadastrar disciplina e conteúdo em Estudos', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
+
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Estrutura de Dados' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
+    expect(await screen.findByRole('button', { name: /Estrutura de Dados/ })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Listas encadeadas' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
+    expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
+  });
+
