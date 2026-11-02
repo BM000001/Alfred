@@ -68,6 +68,8 @@ function App() {
 
           {activeSection === 'inicio' ? (
             <Overview onNavigate={setActiveSection} />
+          ) : activeSection === 'assistente' ? (
+            <Assistant />
           ) : activeSection === 'agenda' ? (
             <Agenda />
           ) : activeSection === 'estudos' ? (
