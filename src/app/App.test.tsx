@@ -72,6 +72,13 @@ describe('App', () => {
     expect(await screen.findByText('Sua biblioteca está vazia.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /arquivos/i })).toHaveAttribute('aria-current', 'page');
   });
+  it('abre as configurações de backup e restauração', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^configurações$/i }));
+    expect(await screen.findByRole('heading', { name: 'Backup local' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Exportar meus dados' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Selecionar backup' })).toBeInTheDocument();
+  });
 
 });
 
