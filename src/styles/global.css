@@ -425,3 +425,16 @@ button, input, textarea { font: inherit; }
 .focus-cycle span.done { background: var(--bronze); }
 .focus-side-card small { color: var(--muted); font-size: 10px; }
 @media (max-width: 700px) { .productivity-module { grid-template-columns: 1fr; } .focus-card, .focus-side-card { padding: 19px; } .focus-side-card { min-height: 190px; } .focus-card-heading { flex-direction: column; } .focus-session-count { text-align: left; } }
+
+
+.focus-history { grid-column: 1 / -1; padding: 22px 24px; border: 1px solid #E2E6EC; border-radius: 14px; background: white; }
+.focus-history .list-heading { margin-bottom: 12px; }
+.focus-history .list-heading h2 { margin: 0; color: var(--navy); font-family: 'Playfair Display',serif; font-size: 21px; font-weight: 500; }
+.focus-history-list { display: grid; }
+.focus-history-item { min-height: 62px; display: flex; align-items: center; gap: 12px; border-top: 1px solid #EEF0F4; }
+.focus-history-dot { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: var(--bronze); }
+.focus-history-item div { display: grid; gap: 4px; flex: 1; }
+.focus-history-item strong { color: var(--navy); font-size: 12px; font-weight: 600; }
+.focus-history-item small { color: var(--muted); font-size: 10px; }
+.focus-history-item b { color: var(--navy); font-size: 12px; font-weight: 600; }
+@media (max-width: 700px) { .focus-history { padding: 18px; } }
