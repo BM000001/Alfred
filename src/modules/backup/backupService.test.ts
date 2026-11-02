@@ -28,8 +28,23 @@ describe('backupService', () => {
     expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('tasks');
   });
 
-  it('rejeita arquivo sem conteúdo Base64', () => {
+  it('rejeita arquivo sem metadados e conteúdo Base64', () => {
     const invalid = { ...validBackup, data: { ...validBackup.data, files: [{ id: 'f1', name: 'a.txt', type: 'text/plain', size: 1, createdAt: validBackup.createdAt }] } };
     expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('arquivos inválidos');
+  });
+
+  it('rejeita conteúdo Base64 malformado', () => {
+    const invalid = { ...validBackup, data: { ...validBackup.data, files: [{ id: 'f1', name: 'a.txt', type: 'text/plain', size: 1, createdAt: validBackup.createdAt, contentBase64: '!!!' }] } };
+    expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('Base64 inválido');
+  });
+
+  it('rejeita divergência entre tamanho declarado e conteúdo', () => {
+    const invalid = { ...validBackup, data: { ...validBackup.data, files: [{ id: 'f1', name: 'a.txt', type: 'text/plain', size: 2, createdAt: validBackup.createdAt, contentBase64: 'YQ==' }] } };
+    expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('não corresponde');
+  });
+
+  it('aceita arquivo vazio com tamanho zero', () => {
+    const valid = { ...validBackup, data: { ...validBackup.data, files: [{ id: 'f1', name: 'vazio.txt', type: 'text/plain', size: 0, createdAt: validBackup.createdAt, contentBase64: '' }] } };
+    expect(inspectBackup(JSON.stringify(valid)).counts.files).toBe(1);
   });
 });

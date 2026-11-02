@@ -2,10 +2,10 @@
 
 ## Estado atual — 2026-11-02
 - `main` é a fonte da verdade.
-- Última integração: PR #13 — biblioteca local de arquivos.
-- Commit integrado: `ca95a64ee3b2abf3a00c74a3be037fe63f67408e`.
-- CI da PR #13: testes e build aprovados na execução #43.
-- Trabalho atual: branch `feat/local-backup-restore`, módulo em desenvolvimento.
+- Última integração: PR #14 — backup e restauração local.
+- Commit integrado: `bbf1ef5c543c7c868f27bde608c63f510df204fb`.
+- CI da PR #14: execução #47 aprovada (60 testes e build).
+- Trabalho atual: branch `fix/backup-validation`, revisão de integridade do backup.
 
 ## Funcionalidades integradas
 - Tarefas e projetos: cadastro, filtros, conclusão, arquivamento e progresso.
@@ -13,23 +13,20 @@
 - Painel inicial: pendências, atrasos, compromissos de hoje e próximos itens; somente leitura.
 - Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso.
 - Arquivos: adicionar, pesquisar, baixar e excluir arquivos (limite de 10 MB por arquivo).
+- Backup e restauração: exportação JSON com arquivos em Base64, prévia e confirmação explícita para substituir os dados locais.
 - Persistência local via IndexedDB, sem backend próprio.
 
-## Backup e restauração — em desenvolvimento
-- Exportação de tarefas, projetos, compromissos, disciplinas, conteúdos e arquivos em JSON.
-- Conteúdo dos arquivos incluído no backup em Base64.
-- Validação de formato, versão e estrutura antes da restauração.
-- Restauração substitui os dados locais e exige confirmação explícita.
-- Interface adicionada às Configurações.
-- Testes de validação do formato e teste de navegação escritos.
-- Ainda depende de CI para confirmar tipagem, testes e build.
+## Revisão de backup em andamento
+- Identificado risco: a inspeção inicial aceitava qualquer string Base64 e não conferia se o tamanho decodificado correspondia aos metadados.
+- Correção proposta: validar Base64, tamanho declarado e data do backup; decodificar arquivos antes de abrir a transação de escrita.
+- Testes adicionais cobrem Base64 inválido, divergência de tamanho e arquivo vazio.
+- Aguardando CI da PR de correção; ainda não integrado.
 
 ## Próximas etapas
-1. Validar backup e restauração com GitHub Actions.
-2. Corrigir falhas, se houver, e integrar somente após testes e build aprovados.
-3. Revisar segurança e limites de tamanho dos backups.
-4. Revisar experiência mobile e acessibilidade.
-5. Implementar temas claro/escuro e módulos restantes.
+1. Confirmar CI da revisão de integridade do backup e integrar somente após testes e build aprovados.
+2. Revisar limite de tamanho de importação/exportação e comportamento em dispositivos móveis.
+3. Revisar experiência mobile e acessibilidade.
+4. Implementar temas claro/escuro e módulos restantes.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente.
