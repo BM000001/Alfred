@@ -31,7 +31,7 @@ describe('summarizeFocusSessions', () => {
     const result = summarizeFocusSessions([
       session('late-local-yesterday', '2026-11-02T02:00:00.000Z'),
       session('early-local-today', '2026-11-02T03:30:00.000Z'),
-      session('previous-day', '2026-11-01T20:00:00.000Z'),
+      session('previous-day', '2026-11-01T02:00:00.000Z'),
     ], new Date('2026-11-02T02:30:00.000Z'), 'America/Sao_Paulo');
     expect(result.today).toBe(1);
     expect(result.todayMinutes).toBe(25);
