@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PersonalOrganization } from '../modules/PersonalOrganization';
+import { Agenda } from '../modules/Agenda';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
@@ -62,6 +63,8 @@ function App() {
               <article className="overview-card"><span className="card-label">AGENDA</span><strong>Em preparação</strong><p>Seus compromissos aparecerão aqui.</p></article>
               <article className="overview-card"><span className="card-label">PRIORIDADES</span><strong>Em preparação</strong><p>Vamos organizar o que merece atenção.</p></article>
             </section>
+          ) : activeSection === 'agenda' ? (
+            <Agenda />
           ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (
             <PersonalOrganization section={activeSection} />
           ) : (
