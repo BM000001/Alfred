@@ -384,3 +384,16 @@ button, input, textarea { font: inherit; }
 .backup-preview ul { padding-left: 20px; color: var(--muted); line-height: 1.8; }
 .danger-action { background: #A33E3E; }
 .danger-action:hover { background: #842F2F; }
+
+
+/* Importacao local de calendarios */
+.ical-import { margin: 1rem 0 1.25rem; }
+.ical-import h3 { margin: .35rem 0; }
+.ical-import > p { color: var(--muted, #64748b); }
+.ical-import input[type='file'] { display: block; width: 100%; margin: .5rem 0; }
+.ical-preview { display: grid; gap: .5rem; max-height: 260px; overflow: auto; margin: .75rem 0; }
+.ical-preview article { display: grid; gap: .2rem; padding: .7rem; border: 1px solid var(--border, #e2e8f0); border-radius: 10px; }
+.ical-preview span, .ical-preview em { font-size: .85rem; color: var(--muted, #64748b); }
+.ical-preview em, .ical-warnings { color: #9a6700; }
+.ical-warnings { padding-left: 1.2rem; font-size: .9rem; }
+.ical-import button:disabled { opacity: .55; cursor: not-allowed; }
