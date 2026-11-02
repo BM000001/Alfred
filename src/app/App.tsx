@@ -7,10 +7,12 @@ import { Files } from '../modules/Files';
 import { BackupSettings } from '../modules/BackupSettings';
 import { Productivity } from '../modules/Productivity';
 import { Assistant } from '../modules/Assistant';
+import { Profile } from '../modules/Profile';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
   { id: 'assistente', label: 'Alfred', mark: '✦' },
+  { id: 'perfil', label: 'Meu perfil', mark: '◎' },
   { id: 'tarefas', label: 'Tarefas', mark: '✓' },
   { id: 'estudos', label: 'Estudos', mark: '▤' },
   { id: 'agenda', label: 'Agenda', mark: '▦' },
@@ -25,6 +27,7 @@ type SectionId = (typeof sections)[number]['id'];
 const sectionDetails: Record<SectionId, { title: string; description: string }> = {
   inicio: { title: 'Seu dia, sob controle.', description: 'Um espaço claro para entender o que está acontecendo e decidir o próximo passo.' },
   assistente: { title: 'À sua disposição.', description: 'Converse com Alfred e consulte suas informações.' },
+  perfil: { title: 'Seu perfil pessoal.', description: 'Suas metas, interesses e preferências, guardados localmente.' },
   tarefas: { title: 'Tarefas', description: 'Transforme suas prioridades em próximos passos claros.' },
   estudos: { title: 'Estudos', description: 'Disciplinas, conteúdos, cronogramas e avaliações ficarão organizados aqui.' },
   agenda: { title: 'Agenda', description: 'Compromissos, eventos e prazos em uma visão única.' },
@@ -70,6 +73,8 @@ function App() {
             <Overview onNavigate={setActiveSection} />
           ) : activeSection === 'assistente' ? (
             <Assistant />
+          ) : activeSection === 'perfil' ? (
+            <Profile />
           ) : activeSection === 'agenda' ? (
             <Agenda />
           ) : activeSection === 'estudos' ? (
