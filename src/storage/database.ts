@@ -1,10 +1,12 @@
 export const ALFRED_DATABASE_NAME = 'alfred';
-export const ALFRED_DATABASE_VERSION = 2;
+export const ALFRED_DATABASE_VERSION = 3;
 
 export const STORE_NAMES = {
   tasks: 'tasks',
   projects: 'projects',
   appointments: 'appointments',
+  disciplines: 'disciplines',
+  studyTopics: 'studyTopics',
 } as const;
 
 export function openAlfredDatabase(factory: IDBFactory = indexedDB): Promise<IDBDatabase> {
@@ -21,6 +23,12 @@ export function openAlfredDatabase(factory: IDBFactory = indexedDB): Promise<IDB
       }
       if (!database.objectStoreNames.contains(STORE_NAMES.appointments)) {
         database.createObjectStore(STORE_NAMES.appointments, { keyPath: 'id' });
+      }
+      if (!database.objectStoreNames.contains(STORE_NAMES.disciplines)) {
+        database.createObjectStore(STORE_NAMES.disciplines, { keyPath: 'id' });
+      }
+      if (!database.objectStoreNames.contains(STORE_NAMES.studyTopics)) {
+        database.createObjectStore(STORE_NAMES.studyTopics, { keyPath: 'id' });
       }
     };
 
