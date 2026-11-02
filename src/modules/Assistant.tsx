@@ -204,8 +204,8 @@ export function Assistant() {
       {error && <p className="module-error" role="alert">{error}</p>}
       <form className="assistant-composer" onSubmit={submit}>
         <label className="sr-only" htmlFor="assistant-prompt">Mensagem para Alfred</label>
-        <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving} />
-        <button type="submit" className="primary-action" disabled={loading || approving || !input.trim()}>Enviar</button>
+        <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving || pendingProposal !== null} />
+        <button type="submit" className="primary-action" disabled={loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
       <p className="assistant-disclaimer">Versão local: consultas por regras e criação/conclusão de tarefas mediante confirmação explícita. Ainda não há modelo de IA remoto, voz ou memória persistente.</p>
     </section>
