@@ -2,9 +2,9 @@
 
 ## Estado atual — 2026-11-02
 - `main` é a fonte da verdade.
-- Última integração: PR #22 — restauração da configuração React + Vite e da entrada HTML do aplicativo.
-- Commit integrado: `736e2a7ff147d9e6ed30bf1c4e8de24bea8554a2`.
-- CI da PR #22: aprovado (12 arquivos de teste, 70 testes; build de produção aprovado).
+- Última integração: PR #28 — Briefing Diário de prioridades.
+- Commit integrado: `266f34855f1c12a3034e11de92d75dca4ca85bdf`.
+- CI da PR #28: aprovado após correção da ordenação entre prazos de tarefas e compromissos do dia.
 - PR #21 — importação iCalendar — também integrada à `main`.
 - Nenhum dado fictício ou de demonstração foi criado.
 
@@ -35,12 +35,20 @@
 - Verificar o workflow de publicação do GitHub Pages e confirmar a URL publicada antes de considerá-la operacional.
 - Verificar licença, atribuições de terceiros e dependências da Etapa 1 antes de distribuir o produto.
 
+## Integração Jarvis — análise concluída
+- Documento: `docs/ANALISE-JARVIS.md`.
+- Branch: `docs/jarvis-architecture-analysis`.
+- Análise arquitetural documentada; nenhum código do Jarvis foi copiado.
+- Decisão: preservar React/Vite, IndexedDB e serviços atuais; IA provider-independent, ferramentas com escopo e aprovação explícita; voz opcional.
+- Riscos registrados: chave de API no frontend do Jarvis, permissões de ferramentas, bridge/SSRF, privacidade de voz e licenças individuais de assets.
+
 ## Próximas etapas prioritárias
-1. Integrar backup criptografado AES-GCM ao fluxo atual, preservando compatibilidade com backups JSON existentes e exigindo senha/ação explícita.
-2. Integrar o portão de privacidade à futura camada de IA; por enquanto, não existe envio automático a provedores.
-3. Revisar o modelo de entidades independente e mapear apenas campos compatíveis com os módulos atuais.
-4. Validar experiência mobile, acessibilidade e persistência real em Safari/iPhone.
-5. Verificar publicação GitHub Pages e licenças.
+1. Corrigir timezone local do histórico Pomodoro e cobrir limites de dia com testes.
+2. Definir contratos TypeScript da camada Intelligence/Tools/Approval sem provedor remoto.
+3. Integrar backup criptografado AES-GCM ao fluxo atual, preservando compatibilidade com backups JSON existentes e exigindo senha/ação explícita.
+4. Integrar o portão de privacidade à futura camada de IA; por enquanto, não existe envio automático a provedores.
+5. Validar experiência mobile, acessibilidade e persistência real em Safari/iPhone.
+6. Verificar publicação GitHub Pages e licenças.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
