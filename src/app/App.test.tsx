@@ -66,6 +66,24 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
   });
+  it('permite editar um conteúdo de estudo sem duplicá-lo', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
+    fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Matemática/ }));
+    fireEvent.change(await screen.findByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Funções' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
+    expect(await screen.findByText('Funções')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    fireEvent.change(screen.getByLabelText('Editar conteúdo ou tópico'), { target: { value: 'Funções quadráticas' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByText('Funções quadráticas')).toBeInTheDocument();
+    expect(screen.queryByText('Funções', { exact: true })).not.toBeInTheDocument();
+  });
+
   it('impede envio da Agenda com data inválida sem lançar erro', async () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^agenda$/i }));
