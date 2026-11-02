@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ActionProposal, ApprovalDecision, AssistantMessage, ToolDefinition } from './assistant/contracts';
 import './assistant/assistant.css';
 import { ActionApprovalError, executeApprovedProposal } from './assistant/actionApproval';
-import { prepareTaskCompletion, type TaskCompletionPreparation } from './assistant/actionProposals';
+import { prepareTaskCompletion } from './assistant/actionProposals';
 import { prepareTaskCreation } from './assistant/taskCreationProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
