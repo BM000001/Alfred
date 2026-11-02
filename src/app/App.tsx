@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { PersonalOrganization } from '../modules/PersonalOrganization';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
+  { id: 'tarefas', label: 'Tarefas', mark: '✓' },
   { id: 'estudos', label: 'Estudos', mark: '▤' },
   { id: 'agenda', label: 'Agenda', mark: '▦' },
   { id: 'projetos', label: 'Projetos', mark: '◇' },
@@ -14,6 +16,7 @@ type SectionId = (typeof sections)[number]['id'];
 
 const sectionDetails: Record<SectionId, { title: string; description: string }> = {
   inicio: { title: 'Seu dia, sob controle.', description: 'Um espaço claro para entender o que está acontecendo e decidir o próximo passo.' },
+  tarefas: { title: 'Tarefas', description: 'Transforme suas prioridades em próximos passos claros.' },
   estudos: { title: 'Estudos', description: 'Disciplinas, conteúdos, cronogramas e avaliações ficarão organizados aqui.' },
   agenda: { title: 'Agenda', description: 'Compromissos, eventos e prazos em uma visão única.' },
   projetos: { title: 'Projetos', description: 'Acompanhe objetivos, etapas e entregas importantes.' },
@@ -40,15 +43,9 @@ function App() {
         <nav className="sidebar" aria-label="Navegação principal">
           <p className="nav-caption">ESPAÇO PESSOAL</p>
           {sections.map((section) => (
-            <button
-              className={`nav-item ${activeSection === section.id ? 'active' : ''}`}
-              key={section.id}
-              type="button"
-              aria-current={activeSection === section.id ? 'page' : undefined}
-              onClick={() => setActiveSection(section.id)}
-            >
-              <span className="nav-mark" aria-hidden="true">{section.mark}</span>
-              <span>{section.label}</span>
+            <button className={`nav-item ${activeSection === section.id ? 'active' : ''}`} key={section.id} type="button"
+              aria-current={activeSection === section.id ? 'page' : undefined} onClick={() => setActiveSection(section.id)}>
+              <span className="nav-mark" aria-hidden="true">{section.mark}</span><span>{section.label}</span>
             </button>
           ))}
         </nav>
@@ -62,17 +59,11 @@ function App() {
 
           {activeSection === 'inicio' ? (
             <section className="overview" aria-label="Visão geral">
-              <article className="overview-card">
-                <span className="card-label">AGENDA</span>
-                <strong>Em preparação</strong>
-                <p>Seus compromissos aparecerão aqui.</p>
-              </article>
-              <article className="overview-card">
-                <span className="card-label">PRIORIDADES</span>
-                <strong>Em preparação</strong>
-                <p>Vamos organizar o que merece atenção.</p>
-              </article>
+              <article className="overview-card"><span className="card-label">AGENDA</span><strong>Em preparação</strong><p>Seus compromissos aparecerão aqui.</p></article>
+              <article className="overview-card"><span className="card-label">PRIORIDADES</span><strong>Em preparação</strong><p>Vamos organizar o que merece atenção.</p></article>
             </section>
+          ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (
+            <PersonalOrganization section={activeSection} />
           ) : (
             <section className="module-placeholder">
               <span className="placeholder-mark" aria-hidden="true">{sections.find((item) => item.id === activeSection)?.mark}</span>
@@ -83,10 +74,7 @@ function App() {
         </section>
       </div>
 
-      <footer className="app-footer">
-        <span>ALFRED</span>
-        <span>Discreto. Atento. Ao seu lado.</span>
-      </footer>
+      <footer className="app-footer"><span>ALFRED</span><span>Discreto. Atento. Ao seu lado.</span></footer>
     </main>
   );
 }
