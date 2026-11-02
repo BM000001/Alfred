@@ -27,7 +27,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^tarefas$/i }));
 
-    expect(screen.getByRole('heading', { name: 'O que precisa ser feito?' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'O que precisa ser feito?' })).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Adicionar tarefa' })).toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^projetos$/i }));
 
-    expect(screen.getByRole('heading', { name: 'Um objetivo de cada vez.' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Um objetivo de cada vez.' })).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Criar projeto' })).toBeInTheDocument();
   });
 });
