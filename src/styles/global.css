@@ -443,3 +443,16 @@ button, input, textarea { font: inherit; }
 .focus-task-label { display: block; margin: 18px 0 6px; }
 .focus-task-select { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid #DDE2E9; border-radius: 8px; color: var(--navy); background: white; font: inherit; font-size: 12px; }
 .focus-task-select:disabled { opacity: .65; cursor: not-allowed; }
+
+
+.dashboard-insights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+.dashboard-insight { min-width: 0; padding: 20px; display: flex; flex-direction: column; align-items: stretch; border: 1px solid #E2E6EC; border-radius: 12px; background: var(--surface); }
+.dashboard-insight .card-label { margin-bottom: 10px; }
+.dashboard-insight > div:first-child > strong { color: var(--navy); font-size: 30px; letter-spacing: -1px; }
+.dashboard-insight p { margin: 5px 0 14px; color: var(--muted); font-size: 12px; }
+.dashboard-insight .progress-track { height: 7px; margin: 0 0 16px; overflow: hidden; border-radius: 99px; background: #E9EDF3; }
+.dashboard-insight .progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.focus-mini-history { min-height: 28px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.focus-mini-history span { padding: 5px 8px; border-radius: 6px; color: #526078; background: #F3F5F8; font-size: 10px; }
+.dashboard-insight .dashboard-link { align-self: flex-start; margin-top: auto; }
+@media (max-width: 600px) { .dashboard-insights { grid-template-columns: 1fr; gap: 10px; } }

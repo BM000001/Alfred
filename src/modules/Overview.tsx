@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Task } from './tasks/types';
 import type { Appointment } from './agenda/types';
-import { taskRepository, appointmentRepository } from '../storage/repositories';
+import type { StudyTopic } from './studies/types';
+import type { FocusSession } from './productivity/types';
+import { taskRepository, appointmentRepository, studyTopicRepository, focusSessionRepository } from '../storage/repositories';
+import { summarizeStudyProgress } from './studies/studyRules';
+import { summarizeFocusSessions } from './productivity/productivityRules';
 import { isTaskOverdue } from './tasks/taskRules';
 import { sortAppointmentsByStart } from './agenda/agendaRules';
 
 type Props = {
-  onNavigate: (section: 'tarefas' | 'agenda' | 'projetos') => void;
+  onNavigate: (section: 'tarefas' | 'agenda' | 'projetos' | 'estudos' | 'produtividade') => void;
 };
 
 function formatDate(value: string): string {
@@ -20,16 +24,20 @@ function formatTime(value: string): string {
 export function Overview({ onNavigate }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [topics, setTopics] = useState<StudyTopic[]>([]);
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
-    Promise.all([taskRepository.getAll(), appointmentRepository.getAll()])
-      .then(([loadedTasks, loadedAppointments]) => {
+    Promise.all([taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(), focusSessionRepository.getAll()])
+      .then(([loadedTasks, loadedAppointments, loadedTopics, loadedSessions]) => {
         if (!active) return;
         setTasks(loadedTasks);
         setAppointments(loadedAppointments);
+        setTopics(loadedTopics);
+        setFocusSessions(loadedSessions);
       })
       .catch(() => {
         if (active) setError('Não foi possível carregar o resumo dos seus dados locais.');
@@ -43,6 +51,8 @@ export function Overview({ onNavigate }: Props) {
   const now = new Date();
   const todayKey = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
   const overdueTasks = tasks.filter((task) => isTaskOverdue(task, now));
+  const studyProgress = summarizeStudyProgress(topics);
+  const focusSummary = summarizeFocusSessions(focusSessions, now);
   const pendingTasks = tasks.filter((task) => task.status === 'pending');
   const todayAppointments = useMemo(() => sortAppointmentsByStart(
     appointments.filter((item) => item.status === 'scheduled' && item.startsAt.slice(0, 10) === todayKey),
@@ -77,6 +87,18 @@ export function Overview({ onNavigate }: Props) {
             </article>
           </div>
 
+          <div className="dashboard-insights">
+            <article className="dashboard-insight">
+              <div><span className="card-label">ESTUDOS</span><strong>{studyProgress.percentage}%</strong><p>{studyProgress.completed} de {studyProgress.total} conteúdos concluídos</p></div>
+              <div className="progress-track" role="progressbar" aria-label="Progresso dos estudos" aria-valuenow={studyProgress.percentage} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${studyProgress.percentage}%` }} /></div>
+              <button type="button" className="dashboard-link" onClick={() => onNavigate('estudos')}>Acompanhar estudos <span aria-hidden="true">→</span></button>
+            </article>
+            <article className="dashboard-insight">
+              <div><span className="card-label">FOCO DE HOJE</span><strong>{focusSummary.todayMinutes} min</strong><p>{focusSummary.today} sessões concluídas · {focusSummary.total} no histórico</p></div>
+              <div className="focus-mini-history">{focusSummary.recent.slice(0, 3).map((session) => <span key={session.id}>{session.taskTitle || 'Foco livre'} · {session.durationMinutes} min</span>)}</div>
+              <button type="button" className="dashboard-link" onClick={() => onNavigate('produtividade')}>Abrir produtividade <span aria-hidden="true">→</span></button>
+            </article>
+          </div>
           <div className="dashboard-columns">
             <section className="dashboard-panel">
               <div className="dashboard-panel-heading">
