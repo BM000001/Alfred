@@ -4,4 +4,6 @@ export interface FocusSession {
   completedAt: string;
   durationMinutes: number;
   kind: 'focus';
+  taskId?: string;
+  taskTitle?: string;
 }
