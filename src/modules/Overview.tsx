@@ -10,7 +10,7 @@ import { isTaskOverdue } from './tasks/taskRules';
 import { sortAppointmentsByStart } from './agenda/agendaRules';
 
 type Props = {
-  onNavigate: (section: 'tarefas' | 'agenda' | 'projetos') => void;
+  onNavigate: (section: 'tarefas' | 'agenda' | 'projetos' | 'estudos' | 'produtividade') => void;
 };
 
 function formatDate(value: string): string {
