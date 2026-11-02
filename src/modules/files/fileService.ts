@@ -17,8 +17,7 @@ export function createFileService(repository: EntityRepository<StoredFile>, crea
       if (file.size > MAX_FILE_SIZE) throw new Error('O arquivo deve ter no máximo 10 MB.');
       const stored: StoredFile = { id: createId(), name, type: file.type || 'application/octet-stream', size: file.size, createdAt: now().toISOString(), blob: file };
       await repository.save(stored);
-      const { blob: _blob, ...summary } = stored;
-      return summary;
+      return { id: stored.id, name: stored.name, type: stored.type, size: stored.size, createdAt: stored.createdAt };
     },
     async get(id: string): Promise<StoredFile | undefined> { return repository.getById(id); },
     async delete(id: string): Promise<void> { await repository.delete(id); },
