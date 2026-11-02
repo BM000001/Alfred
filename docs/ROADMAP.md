@@ -3,14 +3,14 @@
 O roadmap representa uma sequência de trabalho, não uma promessa de prazo. Cada etapa só avança quando os critérios de conclusão forem verificados.
 
 ## Etapa 1 — Fundação
-- [ ] Configurar React, TypeScript e Vite.
-- [ ] Definir estrutura de pastas e convenções.
-- [ ] Configurar Vitest.
-- [ ] Criar tokens de design e temas claro/escuro.
+- [x] Configurar React, TypeScript e Vite.
+- [x] Definir estrutura de pastas e convenções.
+- [x] Configurar Vitest.
+- [ ] Criar tokens de design e temas claro/escuro completos.
 - [x] Criar layout responsivo e navegação inicial.
-- [ ] Validar build e testes.
+- [x] Validar instalação, testes e build pelo GitHub Actions.
 
-**Critério de saída:** aplicação inicia localmente, possui navegação-base e passa nas verificações configuradas.
+**Critério de saída:** fundação técnica, navegação-base e pipeline de validação implementados. Revisão visual em dispositivos reais ainda recomendada.
 
 ## Etapa 2 — Organização pessoal
 - [ ] Modelar tarefas e projetos.
