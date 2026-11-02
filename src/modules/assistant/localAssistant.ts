@@ -17,7 +17,9 @@ export class LocalAssistantProvider implements AIProvider {
 
     const tools = createReadOnlyTools(this.data);
     const query = prompt.match(/(?:sobre|de|para|chamada?)\s+(.+?)[?.!]*$/i)?.[1]?.trim();
-    const selected = prompt.includes('agenda') || prompt.includes('compromisso')
+    const selected = prompt.includes('perfil') || prompt.includes('sobre mim') || prompt.includes('me conhece') || prompt.includes('meus interesses') || prompt.includes('meus objetivos')
+      ? tools.find((tool) => tool.id === 'profile.read')
+      : prompt.includes('agenda') || prompt.includes('compromisso')
       ? tools.find((tool) => tool.id === 'agenda.upcoming')
       : prompt.includes('estud') || prompt.includes('tópico') || prompt.includes('topico')
         ? tools.find((tool) => tool.id === 'studies.progress')
@@ -25,7 +27,7 @@ export class LocalAssistantProvider implements AIProvider {
           ? tools.find((tool) => tool.id === 'tasks.list') : undefined;
 
     if (!selected) {
-      return { message: 'Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos. Ainda não estou conectado a um modelo de IA; por enquanto, respondo por regras locais e não envio seus dados para serviços externos.', usedTools: [], warnings: ['Assistente local inicial: compreensão limitada a consultas reconhecidas.'] };
+      return { message: 'Posso consultar seu perfil pessoal, tarefas pendentes, próximos compromissos e progresso dos estudos. Ainda não estou conectado a um modelo de IA; por enquanto, respondo por regras locais e não envio seus dados para serviços externos.', usedTools: [], warnings: ['Assistente local inicial: compreensão limitada a consultas reconhecidas.'] };
     }
 
     const result = await selected.execute({ query });
