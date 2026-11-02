@@ -33,3 +33,12 @@ Princípios
 * Proatividade sem executar ações sem autorização.
 * Documentação contínua.
 * Testes antes de considerar funcionalidades concluídas.
+
+
+Documentação
+
+* [Visão do produto](docs/VISAO-PRODUTO.md)
+* [Arquitetura](docs/ARQUITETURA.md)
+* [Roadmap](docs/ROADMAP.md)
+* [Continuidade do projeto](CONTINUIDADE.md)
+* [Instruções para agentes de desenvolvimento](CLAUDE.md)
