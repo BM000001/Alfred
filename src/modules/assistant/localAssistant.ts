@@ -6,13 +6,13 @@ function latestUserMessage(request: AssistantRequest): string {
   return [...request.messages].reverse().find((message) => message.role === 'user')?.content.trim() ?? '';
 }
 function normalize(value: string): string {
-  return value.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
 }
 function completionTarget(prompt: string): string | undefined {
   const patterns = [
-    /(?:concluir|finalizar)\\s+(?:a\\s+)?tarefa\\s+(.+)$/i,
-    /(?:marcar|marque)\\s+(?:a\\s+)?tarefa\\s+(.+?)\\s+como\\s+conclu[ií]da?$/i,
-    /tarefa\\s+(.+?)\\s+(?:como\\s+)?conclu[ií]da?$/i,
+    /(?:concluir|finalizar)\s+(?:a\s+)?tarefa\s+(.+)$/i,
+    /(?:marcar|marque)\s+(?:a\s+)?tarefa\s+(.+?)\s+como\s+conclu[ií]da?$/i,
+    /tarefa\s+(.+?)\s+(?:como\s+)?conclu[ií]da?$/i,
   ];
   for (const pattern of patterns) {
     const match = prompt.match(pattern);
@@ -45,12 +45,12 @@ export class LocalAssistantProvider implements AIProvider {
         createdAt: request.context.now,
       };
       return {
-        message: 'Preparei uma ação para você. ' + proposal.explanation,
+        message: 'Preparei uma ação para sua aprovação. ' + proposal.explanation,
         usedTools: [], warnings: ['Ação aguardando aprovação explícita. Nenhum dado foi alterado.'], proposal,
       };
     }
     const tools = createReadOnlyTools(this.data);
-    const query = rawPrompt.match(/(?:sobre|de|para|chamada?)\\s+(.+?)[?.!]*$/i)?.[1]?.trim();
+    const query = rawPrompt.match(/(?:sobre|de|para|chamada?)\s+(.+?)[?.!]*$/i)?.[1]?.trim();
     const selected = prompt.includes('agenda') || prompt.includes('compromisso')
       ? tools.find((tool) => tool.id === 'agenda.upcoming')
       : prompt.includes('estud') || prompt.includes('topico')
@@ -63,7 +63,7 @@ export class LocalAssistantProvider implements AIProvider {
     };
     const result = await selected.execute({ query });
     return {
-      message: result.summary + '\\n' + (result.items.length ? result.items.map((item) => '• ' + item).join('\\n') : 'Não há itens para mostrar.'),
+      message: result.summary + '\n' + (result.items.length ? result.items.map((item) => '• ' + item).join('\n') : 'Não há itens para mostrar.'),
       usedTools: [selected.id], warnings: ['Consulta somente leitura. Nenhum dado foi alterado.'],
     };
   }
