@@ -8,6 +8,7 @@
 - PR #34 — executor de ações com validação de aprovação — integrada; CI aprovado (run #95).
 - PR #35 — proposta e confirmação explícita para concluir tarefas — integrada; CI aprovado (run #100).
 - PR #36 — resumo Pomodoro pelo dia local e testes de fuso — integrada; CI aprovado (run #103).
+- PR #38 — backup com senha e inclusão do histórico Pomodoro — integrada; CI aprovado (run #108).
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
@@ -17,7 +18,8 @@
 - Painel inicial: pendências, atrasos, compromissos próximos e briefing diário; somente leitura para recomendações.
 - Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso.
 - Arquivos: adicionar, pesquisar, baixar e excluir arquivos (limite de 10 MB por arquivo).
-- Backup/restauração: JSON com arquivos em Base64, prévia e confirmação explícita para substituir dados locais.
+- Backup/restauração: JSON com arquivos em Base64, prévia e confirmação explícita para substituir dados locais; opção adicional de exportação protegida por senha.
+- Novos backups incluem histórico Pomodoro; backups JSON antigos sem esse campo continuam sendo aceitos.
 - Produtividade: Pomodoro, histórico de sessões e associação opcional com tarefas. O resumo de sessões diárias agora usa o fuso do dispositivo; a função aceita fuso explícito para testes determinísticos.
 - Persistência local via IndexedDB, sem backend próprio.
 
@@ -39,13 +41,14 @@
 ## Etapa 1 recebida de implementação independente
 - Os arquivos dessa etapa foram preservados na raiz.
 - A PR #22 restaurou a configuração React/Vite que havia sido substituída por configuração TypeScript independente.
-- Módulos independentes de domínio, armazenamento, privacidade, criptografia e adaptador manual ainda NÃO estão integrados à aplicação React.
-- Não declarar AES-GCM nem consentimento de envio como implementados no produto principal sem integração explícita e testes.
+- Módulos independentes de domínio, armazenamento, privacidade e adaptador manual ainda NÃO estão integrados à aplicação React.
+- A proteção por senha do backup está integrada no módulo atual; os módulos criptográficos independentes da Etapa 1 não foram incorporados.
+- A etapa de consentimento antes de enviar dados a provedores externos ainda não está implementada.
 - Testes independentes da Etapa 1 não fazem parte da suíte Vitest do app.
 
 ## Pontos de atenção conhecidos
 - Rever o limite de tamanho do backup, pois Base64 aumenta os arquivos exportados.
-- Rever o ciclo de vida de URLs temporárias de download.
+- O ciclo de vida das URLs temporárias de download foi melhorado com revogação atrasada; validar em Safari/iPhone.
 - Ampliar testes da edição de compromissos (conflito próprio, conflito com outro compromisso e limpeza de campos).
 - Investigar vulnerabilidades do npm sem atualizações forçadas indiscriminadas. O CI registrou 3 vulnerabilidades (1 moderada e 2 críticas); ainda não foram corrigidas nesta etapa.
 - Confirmar publicação e URL do GitHub Pages antes de considerá-la operacional.
@@ -54,11 +57,10 @@
 ## Próximas etapas prioritárias
 1. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
 2. Melhorar a experiência de propostas de ação, incluindo estados de erro e recarga dos dados após uma escrita.
-3. Integrar backup AES-GCM ao fluxo atual com senha/ação explícita e compatibilidade com backups JSON existentes.
-4. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
-5. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
-6. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
-7. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
+3. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
+4. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
+5. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
+6. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
