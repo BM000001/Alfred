@@ -11,6 +11,7 @@ export interface Appointment {
   endsAt: string;
   location?: string;
   createdAt: string;
+  importedUid?: string;
 }
 
 export type CreateAppointmentInput = Pick<Appointment, 'title' | 'type' | 'startsAt' | 'endsAt'> &
