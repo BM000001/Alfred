@@ -470,3 +470,27 @@ button, input, textarea { font: inherit; }
 .briefing-list li strong { color: var(--navy); font-size: 13px; overflow-wrap: anywhere; }
 .briefing-list li span:not(.briefing-indicator) { color: var(--muted); font-size: 11px; }
 .briefing-note { margin: 14px 0 0; color: #929BA8; font-size: 10px; line-height: 1.5; }
+
+
+/* Assistente Alfred */
+.assistant-module { max-width: 900px; min-height: 540px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 36px; }
+.assistant-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.assistant-heading h2 { margin: 5px 0; color: var(--navy); font-family: 'Playfair Display',serif; font-size: 25px; font-weight: 500; }
+.assistant-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+.assistant-status { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid #DCE9E0; border-radius: 99px; color: #477B68; background: #F1F7F3; font-size: 11px; }
+.assistant-status i { width: 7px; height: 7px; border-radius: 50%; background: #5D9B7C; }
+.assistant-capabilities { display: flex; flex-wrap: wrap; gap: 7px; }
+.assistant-capabilities span { padding: 7px 10px; border: 1px solid #E2E6EC; border-radius: 99px; color: #526078; background: white; font-size: 10px; }
+.assistant-conversation { min-height: 300px; max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid #E2E6EC; border-radius: 13px; background: #F8F9FB; }
+.assistant-message { width: fit-content; max-width: min(88%, 620px); padding: 12px 14px; border: 1px solid #E2E6EC; border-radius: 12px; background: white; }
+.assistant-message.from-user { align-self: flex-end; border-color: #D6E2F2; background: #EDF3FA; }
+.assistant-message > span { color: var(--muted); font-size: 10px; font-weight: 700; }
+.assistant-message p { margin: 6px 0 0; color: var(--navy); font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant-loading { color: var(--muted); font-size: 11px; }
+.assistant-composer { display: flex; gap: 9px; }
+.assistant-composer input { min-width: 0; min-height: 46px; flex: 1; padding: 0 13px; border: 1px solid #DDE2E9; border-radius: 9px; color: var(--navy); background: white; font: inherit; font-size: 12px; }
+.assistant-composer .primary-action { margin: 0; }
+.assistant-composer button:disabled { opacity: .55; cursor: not-allowed; }
+.assistant-disclaimer { margin: 0; color: #929BA8; font-size: 10px; line-height: 1.5; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (max-width: 560px) { .assistant-heading { flex-direction: column; } .assistant-conversation { min-height: 280px; padding: 12px; } .assistant-message { max-width: 94%; } .assistant-composer { align-items: stretch; } .assistant-composer .primary-action { padding-inline: 13px; } }
