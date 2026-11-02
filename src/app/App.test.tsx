@@ -66,12 +66,29 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
   });
+  it('permite editar o nome e a descrição de uma disciplina', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
+    fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática para edição' } });
+    fireEvent.change(screen.getByLabelText(/Descrição/), { target: { value: 'Estudo inicial' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Matemática para edição/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Editar disciplina' }));
+
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Matemática Discreta' } });
+    fireEvent.change(screen.getByLabelText(/Descrição/), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar disciplina' }));
+
+    expect(await screen.findByRole('heading', { name: 'Matemática Discreta' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Matemática' })).not.toBeInTheDocument();
+  });
+
   it('permite editar um conteúdo de estudo sem duplicá-lo', async () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
-    fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática' } });
+    fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática tópicos' } });
     fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
-    fireEvent.click(await screen.findByRole('button', { name: /Matemática/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Matemática tópicos/ }));
     fireEvent.change(await screen.findByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Funções' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Funções')).toBeInTheDocument();

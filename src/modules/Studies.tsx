@@ -14,6 +14,7 @@ export function Studies() {
   const [topicTitle, setTopicTitle] = useState('');
   const [topicNotes, setTopicNotes] = useState('');
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
+  const [editingDisciplineId, setEditingDisciplineId] = useState<string | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState('');
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -48,9 +49,23 @@ export function Studies() {
   async function createDiscipline(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     try {
-      const created = await studies.createDiscipline({ name: disciplineName, ...(disciplineDescription.trim() ? { description: disciplineDescription } : {}) });
-      setDisciplineName(''); setDisciplineDescription(''); await refresh(); setSelectedDiscipline(created.id);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível criar a disciplina.'); }
+      if (editingDisciplineId) {
+        await studies.updateDiscipline(editingDisciplineId, { name: disciplineName, description: disciplineDescription });
+        setSelectedDiscipline(editingDisciplineId);
+      } else {
+        const created = await studies.createDiscipline({ name: disciplineName, ...(disciplineDescription.trim() ? { description: disciplineDescription } : {}) });
+        setSelectedDiscipline(created.id);
+      }
+      setDisciplineName(''); setDisciplineDescription(''); setEditingDisciplineId(null); await refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar a disciplina.'); }
+  }
+
+  function editDiscipline(discipline: Discipline) {
+    setEditingDisciplineId(discipline.id); setDisciplineName(discipline.name); setDisciplineDescription(discipline.description ?? '');
+  }
+
+  function cancelDisciplineEdit() {
+    setEditingDisciplineId(null); setDisciplineName(''); setDisciplineDescription('');
   }
 
   async function createTopic(event: FormEvent<HTMLFormElement>) {
@@ -95,12 +110,12 @@ export function Studies() {
     </section>
 
     <form className="entry-panel study-form" onSubmit={createDiscipline}>
-      <span className="card-label">ORGANIZE SUA ROTINA</span><h2>Adicionar disciplina</h2>
+      <span className="card-label">ORGANIZE SUA ROTINA</span><h2>{editingDisciplineId ? "Editar disciplina" : "Adicionar disciplina"}</h2>
       <label className="field-label" htmlFor="discipline-name">Nome</label>
       <input id="discipline-name" value={disciplineName} onChange={(event) => setDisciplineName(event.target.value)} maxLength={80} placeholder="Ex.: Estrutura de Dados" required />
       <label className="field-label" htmlFor="discipline-description">Descrição <span className="optional-label">· opcional</span></label>
       <textarea id="discipline-description" value={disciplineDescription} onChange={(event) => setDisciplineDescription(event.target.value)} rows={2} placeholder="Professor, objetivo ou observações" />
-      <button className="primary-action" type="submit">Criar disciplina</button>
+      <button className="primary-action" type="submit">{editingDisciplineId ? "Salvar disciplina" : "Criar disciplina"}</button>{editingDisciplineId && <button className="text-action" type="button" onClick={cancelDisciplineEdit}>Cancelar edição</button>}
     </form>
 
     {disciplines.length === 0 ? <div className="empty-state"><strong>Seu espaço de estudos começa aqui.</strong><p>Cadastre uma disciplina para organizar os conteúdos e acompanhar sua evolução.</p></div> : <>
@@ -115,7 +130,7 @@ export function Studies() {
           })}
         </aside>
         <div className="study-content">
-          <div className="list-heading study-content-heading"><div><span className="card-label">CONTEÚDOS</span><h2>{disciplines.find((item) => item.id === selectedDiscipline)?.name}</h2></div><button className="text-action" type="button" onClick={() => { const item = disciplines.find((entry) => entry.id === selectedDiscipline); if (item) void deleteDiscipline(item); }}>Excluir disciplina</button></div>
+          <div className="list-heading study-content-heading"><div><span className="card-label">CONTEÚDOS</span><h2>{disciplines.find((item) => item.id === selectedDiscipline)?.name}</h2></div><div><button className="text-action" type="button" onClick={() => { const item = disciplines.find((entry) => entry.id === selectedDiscipline); if (item) editDiscipline(item); }}>Editar disciplina</button><button className="text-action" type="button" onClick={() => { const item = disciplines.find((entry) => entry.id === selectedDiscipline); if (item) void deleteDiscipline(item); }}>Excluir disciplina</button></div></div>
           <form className="entry-panel topic-form" onSubmit={createTopic}>
             <label className="field-label" htmlFor="topic-title">{editingTopicId ? "Editar conteúdo ou tópico" : "Novo conteúdo ou tópico"}</label>
             <input id="topic-title" value={topicTitle} onChange={(event) => setTopicTitle(event.target.value)} maxLength={120} placeholder="Ex.: Listas encadeadas" required />
