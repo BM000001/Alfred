@@ -39,6 +39,7 @@ export function Agenda() {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [conflicts, setConflicts] = useState<Appointment[]>([]);
@@ -86,29 +87,47 @@ export function Agenda() {
     const start = new Date(startsAt);
     const end = new Date(endsAt);
     const candidate = { id: '__new__', startsAt: start.toISOString(), endsAt: end.toISOString() };
-    const overlaps = findAppointmentConflicts(items, candidate);
+    const overlaps = findAppointmentConflicts(items, { ...candidate, id: editingId ?? candidate.id });
     if (overlaps.length) {
       setConflicts(overlaps);
       setError('Este horário coincide com outro compromisso. Ajuste o horário antes de salvar.');
       return;
     }
     try {
-      await agenda.create({
-        title,
-        type,
-        startsAt: start.toISOString(),
-        endsAt: end.toISOString(),
-        ...(location.trim() ? { location: location.trim() } : {}),
-        ...(description.trim() ? { description: description.trim() } : {}),
-      });
-      setTitle('');
-      setLocation('');
-      setDescription('');
-      setShowForm(false);
+      const input = { title, type, startsAt: start.toISOString(), endsAt: end.toISOString(), location: location.trim(), description: description.trim() };
+      if (editingId) await agenda.update(editingId, input);
+      else await agenda.create(input);
+      resetForm();
       await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o compromisso.');
     }
+  }
+
+  function resetForm() {
+    setTitle('');
+    setType('personal');
+    setStartsAt(localDateTime(new Date(Date.now() + 60 * 60_000)));
+    setEndsAt(localDateTime(new Date(Date.now() + 2 * 60 * 60_000)));
+    setLocation('');
+    setDescription('');
+    setEditingId(null);
+    setShowForm(false);
+    setConflicts([]);
+    setError('');
+  }
+
+  function editAppointment(item: Appointment) {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setType(item.type);
+    setStartsAt(localDateTime(new Date(item.startsAt)));
+    setEndsAt(localDateTime(new Date(item.endsAt)));
+    setLocation(item.location ?? '');
+    setDescription(item.description ?? '');
+    setConflicts([]);
+    setError('');
+    setShowForm(true);
   }
 
   async function cancelAppointment(item: Appointment) {
@@ -134,7 +153,7 @@ export function Agenda() {
           <span className="card-label">SEUS COMPROMISSOS</span>
           <h2>{selectedLabel}</h2>
         </div>
-        <button className="primary-action" type="button" onClick={() => { setShowForm((value) => !value); setError(''); setConflicts([]); }}>
+        <button className="primary-action" type="button" onClick={() => { if (showForm) resetForm(); else { setEditingId(null); setShowForm(true); setError(''); setConflicts([]); } }}>
           {showForm ? 'Fechar' : '+ Novo compromisso'}
         </button>
       </div>
@@ -163,7 +182,7 @@ export function Agenda() {
           <input id="appointment-location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Sala, endereço ou link" />
           <label className="field-label" htmlFor="appointment-description">Observações <span className="optional-label">· opcional</span></label>
           <textarea id="appointment-description" rows={2} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Detalhes importantes..." />
-          <button className="primary-action" type="submit">Salvar compromisso</button>
+          <div className="agenda-form-actions"><button className="primary-action" type="submit">{editingId ? 'Salvar alterações' : 'Salvar compromisso'}</button>{editingId && <button className="text-action" type="button" onClick={resetForm}>Cancelar edição</button>}</div>
         </form>
       )}
 
@@ -183,7 +202,7 @@ export function Agenda() {
                 <p>{new Date(item.startsAt).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })}{item.location ? ` · ${item.location}` : ''}</p>
                 {item.description && <p>{item.description}</p>}
               </div>
-              <button className="text-action" type="button" onClick={() => void cancelAppointment(item)}>Cancelar</button>
+              <div className="appointment-actions"><button className="text-action" type="button" onClick={() => editAppointment(item)}>Editar</button><button className="text-action" type="button" onClick={() => void cancelAppointment(item)}>Cancelar</button></div>
             </article>
           ))}
         </div>
