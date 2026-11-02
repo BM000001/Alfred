@@ -9,5 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
+    // A Etapa 1 mantém testes Node próprios na raiz; Vitest valida somente o app React.
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });

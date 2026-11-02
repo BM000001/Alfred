@@ -1,30 +1,16 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#1e3a8a" />
-    <meta name="description" content="Alfred: tarefas, disciplinas e notas no seu aparelho, com privacidade." />
-    <!--
-      Política de conteúdo: somente recursos da própria origem.
-      Não há comunicação com serviços externos nesta etapa.
-    -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
-    />
-    <meta name="referrer" content="no-referrer" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
-    <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17243A" />
+    <meta name="description" content="Alfred — seu assistente pessoal." />
+    <link rel="manifest" href="/Alfred/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/Alfred/apple-touch-icon-180.png" />
     <title>Alfred</title>
   </head>
   <body>
-    <div id="app">
-      <p class="loading">Carregando o Alfred…</p>
-    </div>
-    <noscript>O Alfred precisa de JavaScript para funcionar.</noscript>
-    <script type="module" src="js/app/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
