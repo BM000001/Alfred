@@ -18,7 +18,7 @@ describe('fileService', () => {
     const file = new File(['conteúdo'], 'anotacoes.txt', { type: 'text/plain' });
     const added = await service.add(file);
     expect(added.name).toBe('anotacoes.txt');
-    expect(added.size).toBe(8);
+    expect(added.size).toBe(9);
     expect(await service.get('file-1')).toBeDefined();
     expect(await service.list()).toEqual([expect.objectContaining({ id: 'file-1', name: 'anotacoes.txt' })]);
   });
