@@ -377,3 +377,10 @@ button, input, textarea { font: inherit; }
 .stored-file-info strong { overflow-wrap: anywhere; }
 .stored-file-info span { color: var(--muted, #64748b); font-size: 12px; }
 @media (max-width: 560px) { .stored-file { flex-wrap: wrap; } .stored-file-info { flex-basis: calc(100% - 60px); } .stored-file .text-action { margin-left: 56px; } }
+
+ .backup-settings { max-width: 760px; display: grid; gap: 16px; padding-bottom: 36px; }
+.backup-settings .entry-panel p { color: var(--muted); font-size: 13px; line-height: 1.65; }
+.backup-preview { margin-top: 20px; padding-top: 16px; border-top: 1px solid #E2E6EC; color: var(--navy); font-size: 13px; }
+.backup-preview ul { padding-left: 20px; color: var(--muted); line-height: 1.8; }
+.danger-action { background: #A33E3E; }
+.danger-action:hover { background: #842F2F; }
