@@ -55,3 +55,21 @@ Ao finalizar, informe:
 - Próxima tarefa recomendada.
 
 Se não conseguir executar um teste, declare isso claramente.
+
+## Salvamento obrigatório e prevenção de perda de trabalho
+
+**Regra crítica: nenhum trabalho pode ficar apenas na sessão do Claude, ChatGPT ou Codespace.**
+
+- Faça checkpoint no Git ao concluir cada unidade pequena de trabalho (por exemplo: uma funcionalidade, um conjunto coerente de arquivos ou uma correção). Não espere o fim da sessão.
+- Antes de iniciar uma tarefa, confira `git status` e preserve qualquer alteração preexistente.
+- Antes de cada commit, revise `git diff` e `git diff --staged`; não inclua segredos, arquivos .env, credenciais, chaves ou dados pessoais.
+- Depois de validar a unidade, faça commit com mensagem objetiva e envie imediatamente com `git push` para a branch de trabalho.
+- Confirme que o push terminou sem erro e que `git status` não mostra alterações pendentes. Só então informe que o checkpoint está salvo no GitHub.
+- Trabalhe sempre em branch própria; nunca use `main` diretamente para desenvolvimento.
+- Atualize `CONTINUIDADE.md` em cada checkpoint relevante, registrando commit, branch, arquivos, testes, pendências e próximo passo.
+- Ao perceber limite de uso, interrupção, troca de conta ou encerramento iminente, pare de iniciar funcionalidades novas. Salve o estado atual, faça commit e push, atualize a continuidade e informe claramente o que ficou sem salvar.
+- Se não for possível fazer push, NÃO diga que está salvo. Preserve o trabalho no ambiente local, gere um patch com `git diff > backup-sessao.patch` (e inclua também alterações staged com `git diff --cached`, se necessário), informe o caminho exato e instrua a não apagar o Codespace até recuperar o backup.
+- Nunca descarte alterações para limpar a árvore de trabalho. Nunca use `git reset --hard`, `git clean -fd` ou force push sem autorização explícita.
+- O workflow de CI valida o código, mas **não salva alterações locais**. Apenas commit + push enviam o trabalho ao GitHub.
+
+**Critério de conclusão de qualquer sessão:** commit enviado, push confirmado, documentação de continuidade atualizada e árvore de trabalho limpa — ou bloqueio/backup local descrito sem alegar que está salvo remotamente.
