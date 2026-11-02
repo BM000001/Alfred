@@ -10,7 +10,7 @@ export type TaskCreationPreparation =
 
 function requestedTitle(prompt: string): string | null {
   const value = prompt.trim().replace(/[.!?]+$/, '').trim();
-  const match = value.match(/^(?:por favor,?\s*)?(?:criar|crie|cria|adicionar|adicione|adiciona|cadastrar|cadastre|cadastra|registrar|registre|registra)\s+(?:uma\s+)?tarefa(?:\s*:\s*|\s+)(.+)$/i);
+  const match = value.match(/^(?:por favor,?\s*)?(?:criar|crie|cria|adicionar|adicione|adiciona|cadastrar|cadastre|cadastra|registrar|registre|registra)\s+(?:(?:uma|a)\s+)?tarefa(?:\s*:\s*|\s+)(.+)$/i);
   if (!match?.[1]) return null;
   return match[1].trim().replace(/^["'“”]|["'“”]$/g, '').trim();
 }
