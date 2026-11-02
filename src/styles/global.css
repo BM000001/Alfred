@@ -364,3 +364,16 @@ button, input, textarea { font: inherit; }
 .study-topic p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .study-topic.completed strong { color: #929BA8; text-decoration: line-through; }
 @media (max-width: 700px) { .study-layout { grid-template-columns: 1fr; } .discipline-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; } .discipline-list .list-heading { grid-column: 1 / -1; margin-bottom: 0; } .discipline-option { margin: 0; } .study-content-heading { align-items: flex-start; } }
+
+
+.files-module { display: grid; gap: 16px; }
+.files-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.file-upload-button { display: inline-flex; align-items: center; justify-content: center; padding: 11px 16px; border-radius: 10px; background: var(--color-action, #3978D5); color: white; font-weight: 600; cursor: pointer; }
+.file-upload-button input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.stored-file-list { display: grid; gap: 10px; }
+.stored-file { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--border-color, #e3e7ed); border-radius: 12px; background: var(--surface, #fff); }
+.stored-file-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 10px; background: #eef3fa; color: #3978D5; font-size: 22px; }
+.stored-file-info { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.stored-file-info strong { overflow-wrap: anywhere; }
+.stored-file-info span { color: var(--muted, #64748b); font-size: 12px; }
+@media (max-width: 560px) { .stored-file { flex-wrap: wrap; } .stored-file-info { flex-basis: calc(100% - 60px); } .stored-file .text-action { margin-left: 56px; } }
