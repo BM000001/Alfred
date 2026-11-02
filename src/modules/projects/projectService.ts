@@ -19,6 +19,25 @@ export function createProjectService(
   const createId = options.createId ?? (() => crypto.randomUUID());
   const now = options.now ?? (() => new Date());
 
+  async function update(id: string, changes: UpdateProjectInput): Promise<Project> {
+    const current = await repository.getById(id);
+    if (!current) throw new Error('Projeto não encontrado.');
+
+    const name = changes.name === undefined ? current.name : changes.name.trim();
+    const validationError = validateProjectName(name);
+    if (validationError) throw new Error(validationError);
+
+    const updated: Project = { ...current, ...changes, name };
+    if (changes.description !== undefined) {
+      const description = changes.description.trim();
+      if (description) updated.description = description;
+      else delete updated.description;
+    }
+
+    await repository.save(updated);
+    return updated;
+  }
+
   return {
     async list(): Promise<Project[]> {
       return repository.getAll();
@@ -45,29 +64,10 @@ export function createProjectService(
       return project;
     },
 
-    async update(id: string, changes: UpdateProjectInput): Promise<Project> {
-      const current = await repository.getById(id);
-      if (!current) throw new Error('Projeto não encontrado.');
-
-      const name = changes.name === undefined ? current.name : changes.name.trim();
-      const validationError = validateProjectName(name);
-      if (validationError) throw new Error(validationError);
-
-      const updated: Project = {
-        ...current,
-        ...changes,
-        name,
-        ...(changes.description !== undefined
-          ? (changes.description.trim() ? { description: changes.description.trim() } : { description: undefined })
-          : {}),
-      };
-
-      await repository.save(updated);
-      return updated;
-    },
+    update,
 
     async archive(id: string): Promise<Project> {
-      return this.update(id, { status: 'archived' });
+      return update(id, { status: 'archived' });
     },
 
     async delete(id: string): Promise<void> {
