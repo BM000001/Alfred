@@ -13,6 +13,7 @@ export function Studies() {
   const [disciplineDescription, setDisciplineDescription] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [topicNotes, setTopicNotes] = useState('');
+  const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState('');
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -55,9 +56,15 @@ export function Studies() {
   async function createTopic(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     try {
-      await studies.createTopic({ disciplineId: selectedDiscipline, title: topicTitle, ...(topicNotes.trim() ? { notes: topicNotes } : {}) });
-      setTopicTitle(''); setTopicNotes(''); await refresh();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível adicionar o conteúdo.'); }
+      const input = { title: topicTitle, notes: topicNotes };
+      if (editingTopicId) await studies.updateTopic(editingTopicId, input);
+      else await studies.createTopic({ disciplineId: selectedDiscipline, ...input });
+      setTopicTitle(''); setTopicNotes(''); setEditingTopicId(null); await refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o conteúdo.'); }
+  }
+
+  function editTopic(topic: StudyTopic) {
+    setEditingTopicId(topic.id); setTopicTitle(topic.title); setTopicNotes(topic.notes ?? '');
   }
 
   async function toggleTopic(topic: StudyTopic) {
@@ -110,17 +117,17 @@ export function Studies() {
         <div className="study-content">
           <div className="list-heading study-content-heading"><div><span className="card-label">CONTEÚDOS</span><h2>{disciplines.find((item) => item.id === selectedDiscipline)?.name}</h2></div><button className="text-action" type="button" onClick={() => { const item = disciplines.find((entry) => entry.id === selectedDiscipline); if (item) void deleteDiscipline(item); }}>Excluir disciplina</button></div>
           <form className="entry-panel topic-form" onSubmit={createTopic}>
-            <label className="field-label" htmlFor="topic-title">Novo conteúdo ou tópico</label>
+            <label className="field-label" htmlFor="topic-title">{editingTopicId ? "Editar conteúdo ou tópico" : "Novo conteúdo ou tópico"}</label>
             <input id="topic-title" value={topicTitle} onChange={(event) => setTopicTitle(event.target.value)} maxLength={120} placeholder="Ex.: Listas encadeadas" required />
             <label className="field-label" htmlFor="topic-notes">Anotações <span className="optional-label">· opcional</span></label>
             <textarea id="topic-notes" value={topicNotes} onChange={(event) => setTopicNotes(event.target.value)} rows={2} placeholder="O que revisar ou praticar?" />
-            <button className="primary-action" type="submit">Adicionar conteúdo</button>
+            <button className="primary-action" type="submit">{editingTopicId ? "Salvar alterações" : "Adicionar conteúdo"}</button>{editingTopicId && <button className="text-action" type="button" onClick={() => { setEditingTopicId(null); setTopicTitle(""); setTopicNotes(""); }}>Cancelar edição</button>}
           </form>
           <div className="study-filter"><label className="field-label" htmlFor="topic-filter">Exibir</label><select id="topic-filter" value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">Todos</option><option value="pending">Pendentes</option><option value="completed">Concluídos</option></select></div>
           {visibleTopics.length === 0 ? <div className="empty-state"><strong>Nenhum conteúdo nesta lista.</strong><p>Adicione um tópico ou altere o filtro para visualizar seus estudos.</p></div> : <div className="study-topic-list">{visibleTopics.map((topic) => <article className={topic.status === 'completed' ? 'study-topic completed' : 'study-topic'} key={topic.id}>
             <input type="checkbox" aria-label={`Marcar ${topic.title} como concluído`} checked={topic.status === 'completed'} onChange={() => void toggleTopic(topic)} />
             <div><strong>{topic.title}</strong>{topic.notes && <p>{topic.notes}</p>}</div>
-            <button className="text-action" type="button" onClick={() => void deleteTopic(topic)}>Excluir</button>
+            <div><button className="text-action" type="button" onClick={() => editTopic(topic)}>Editar</button><button className="text-action" type="button" onClick={() => void deleteTopic(topic)}>Excluir</button></div>
           </article>)}</div>}
         </div>
       </div>
