@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PersonalOrganization } from '../modules/PersonalOrganization';
 import { Agenda } from '../modules/Agenda';
 import { Overview } from '../modules/Overview';
+import { Studies } from '../modules/Studies';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
@@ -63,6 +64,8 @@ function App() {
             <Overview onNavigate={setActiveSection} />
           ) : activeSection === 'agenda' ? (
             <Agenda />
+          ) : activeSection === 'estudos' ? (
+            <Studies />
           ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (
             <PersonalOrganization section={activeSection} />
           ) : (
