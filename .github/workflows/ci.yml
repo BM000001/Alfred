@@ -26,6 +26,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Report dependency audit
+        run: |
+          npm audit --json > npm-audit.json || true
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            try {
+              const report = JSON.parse(readFileSync("npm-audit.json", "utf8"));
+              console.log("Dependency audit summary:", JSON.stringify(report.metadata?.vulnerabilities ?? {}));
+              for (const [name, item] of Object.entries(report.vulnerabilities ?? {})) {
+                console.log(`${item.severity}: ${name}; affected=${item.range}; fix=${JSON.stringify(item.fixAvailable)}`);
+              }
+            } catch {
+              console.log("Dependency audit report unavailable; see npm audit output above.");
+            }
+          '
+
       - name: Run tests
         run: npm test
 
