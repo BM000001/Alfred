@@ -11,6 +11,7 @@
 - PR #38 — backup com senha e inclusão do histórico Pomodoro — integrada; CI aprovado (run #108).
 - PR #40 — relatório detalhado de auditoria de dependências no CI — integrada.
 - PR #41 — atualização de Vite/Vitest — integrada; CI aprovado (run #114), testes e build concluídos.
+- PR #43 — criação de tarefas pelo assistente com confirmação explícita — integrada; CI aprovado (run #119).
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
@@ -31,7 +32,7 @@
 - Provider inicial baseado em regras locais; não chama APIs externas nem envia dados pessoais.
 - Interface conversacional responsiva conectada aos dados reais do IndexedDB; mensagens existem somente na sessão atual.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
-- Ação de escrita atualmente disponível: solicitar `concluir tarefa <título exato>` ou `marcar tarefa <título exato> como concluída`. O Alfred apresenta uma proposta; a tarefa só é gravada após clique em “Confirmar alteração”. Cancelar não altera dados. Títulos duplicados ou inexistentes não são resolvidos por adivinhação; o executor relê o registro e exige que ele ainda esteja pendente.
+- Ações de escrita disponíveis: `criar tarefa <título>`, `adicionar tarefa: <título>`, `concluir tarefa <título exato>` ou `marcar tarefa <título exato> como concluída`. O Alfred apresenta uma proposta e só grava após clique em “Confirmar alteração”. Cancelar não altera dados. A criação recusa títulos duplicados e títulos acima do limite; a conclusão recusa títulos ambíguos/inexistentes e exige que a tarefa ainda esteja pendente. Enquanto há uma proposta aberta, o campo de comando fica desativado até confirmar ou cancelar.
 - Ainda não há memória persistente, modelo de IA remoto, voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
 
 ## Integração Jarvis — análise concluída, código não copiado
@@ -58,7 +59,7 @@
 
 ## Próximas etapas prioritárias
 1. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
-2. Melhorar a experiência de propostas de ação, incluindo estados de erro e recarga dos dados após uma escrita.
+2. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
 3. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
 4. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
 5. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
