@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LocalAssistantProvider } from './localAssistant';
 import type { AssistantRequest } from './contracts';
 import type { Task } from '../tasks/types';
+import type { PersonalProfile } from '../profile/types';
 
 const request = (content: string): AssistantRequest => ({
   messages: [{ id: '1', role: 'user', content, createdAt: '2026-11-02T12:00:00.000Z' }],
