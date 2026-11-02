@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Assistant } from './Assistant';
@@ -27,12 +27,11 @@ describe('Assistant task approval UI', () => {
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'concluir tarefa Preparar apresentação');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
-    const confirm = await screen.findByRole('button', { name: 'Confirmar alteração' });
+    await screen.findByRole('button', { name: 'Confirmar alteração' });
     expect(await taskRepository.getById(task.id)).toMatchObject({ status: 'pending' });
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(await taskRepository.getById(task.id)).toMatchObject({ status: 'pending' });
     expect(screen.queryByRole('button', { name: 'Confirmar alteração' })).not.toBeInTheDocument();
-    expect(confirm).toBeTruthy();
   });
 
   it('só conclui a tarefa depois do clique explícito de confirmação', async () => {
