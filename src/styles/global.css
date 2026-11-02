@@ -122,3 +122,86 @@ button, input, textarea { font: inherit; }
   .overview-card { padding: 20px; }
   .app-footer { flex-direction: column; gap: 8px; }
 }
+
+.workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
+  flex: 1;
+}
+
+.sidebar {
+  padding: 38px 0 24px;
+  border-right: 1px solid #DDE2E9;
+}
+
+.nav-caption {
+  margin: 0 0 18px 12px;
+  color: #929BA8;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.nav-item {
+  width: calc(100% - 16px);
+  min-height: 44px;
+  margin: 3px 8px 3px 0;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 9px;
+  color: #667286;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.nav-item:hover { background: #E9EDF3; color: var(--navy); }
+.nav-item.active { color: var(--navy); background: #E4EAF3; font-weight: 600; }
+.nav-mark { width: 20px; color: var(--bronze); text-align: center; font-size: 17px; }
+
+.main-content { min-width: 0; padding-bottom: 32px; }
+.main-content .welcome { padding-top: clamp(54px, 9vh, 88px); }
+.module-placeholder {
+  max-width: 620px;
+  padding: 28px;
+  border: 1px solid #E2E6EC;
+  border-radius: 14px;
+  background: var(--surface);
+}
+.placeholder-mark { color: var(--bronze); font-size: 28px; }
+.module-placeholder h2 { margin: 14px 0 8px; color: var(--navy); font-size: 18px; }
+.module-placeholder p { max-width: 480px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+@media (max-width: 700px) {
+  .workspace { display: flex; flex-direction: column; gap: 0; }
+  .sidebar {
+    order: 2;
+    padding: 12px 0 18px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    border-top: 1px solid #DDE2E9;
+    border-right: 0;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .nav-caption { display: none; }
+  .nav-item {
+    width: auto;
+    min-width: max-content;
+    min-height: 42px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid transparent;
+  }
+  .nav-item.active { border-color: #D5DDE8; }
+  .main-content { order: 1; }
+  .main-content .welcome { padding: 54px 0 36px; }
+  .overview { grid-template-columns: 1fr; }
+  .app-footer { padding-top: 28px; }
+}
