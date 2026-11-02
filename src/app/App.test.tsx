@@ -77,7 +77,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /^configurações$/i }));
     expect(await screen.findByRole('heading', { name: 'Backup local' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Exportar meus dados' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Selecionar backup' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Selecionar arquivo de backup')).toHaveAttribute('type', 'file');
   });
 
 });
