@@ -13,8 +13,12 @@ const task: Task = {
   createdAt: '2026-11-01T10:00:00.000Z',
 };
 
+let messageCounter = 0;
+
 beforeEach(async () => {
-  vi.stubGlobal('crypto', { ...crypto, randomUUID: () => 'assistant-test-message-id' });
+  messageCounter = 0;
+  vi.stubGlobal('crypto', { randomUUID: () => `assistant-test-message-${++messageCounter}` });
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
   const existing = await taskRepository.getAll();
   await Promise.all(existing.map((item) => taskRepository.delete(item.id)));
   await taskRepository.save(task);
