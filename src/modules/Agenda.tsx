@@ -86,6 +86,14 @@ export function Agenda() {
     setConflicts([]);
     const start = new Date(startsAt);
     const end = new Date(endsAt);
+    if (!startsAt || !endsAt || !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+      setError('Informe datas e horários válidos para o compromisso.');
+      return;
+    }
+    if (end <= start) {
+      setError('O horário de término deve ser posterior ao início.');
+      return;
+    }
     const candidate = { id: '__new__', startsAt: start.toISOString(), endsAt: end.toISOString() };
     const overlaps = findAppointmentConflicts(items, { ...candidate, id: editingId ?? candidate.id });
     if (overlaps.length) {
@@ -169,8 +177,8 @@ export function Agenda() {
 
       {showForm && (
         <form className="entry-panel agenda-form" onSubmit={handleSubmit}>
-          <span className="card-label">NOVO COMPROMISSO</span>
-          <h2>O que está marcado?</h2>
+          <span className="card-label">{editingId ? 'EDITAR COMPROMISSO' : 'NOVO COMPROMISSO'}</span>
+          <h2>{editingId ? 'Atualize seus dados.' : 'O que está marcado?'}</h2>
           <label className="field-label" htmlFor="appointment-title">Título</label>
           <input id="appointment-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Ex.: Aula de programação" required />
           <div className="form-grid agenda-form-grid">

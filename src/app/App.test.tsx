@@ -66,6 +66,36 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
   });
+  it('impede envio da Agenda com data inválida sem lançar erro', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^agenda$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /novo compromisso/i }));
+
+    fireEvent.change(screen.getByLabelText('Início'), { target: { value: '' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Salvar compromisso' }).closest('form')!);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Informe datas e horários válidos');
+  });
+
+  it('permite editar um compromisso existente sem criar um segundo registro', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^agenda$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /novo compromisso/i }));
+
+    fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Revisão de algoritmos' } });
+    fireEvent.change(screen.getByLabelText('Início'), { target: { value: '2026-11-03T08:00' } });
+    fireEvent.change(screen.getByLabelText('Término'), { target: { value: '2026-11-03T09:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar compromisso' }));
+
+    expect(await screen.findByRole('heading', { name: 'Revisão de algoritmos' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Revisão final de algoritmos' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByRole('heading', { name: 'Revisão final de algoritmos' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Revisão de algoritmos' })).not.toBeInTheDocument();
+  });
+
   it('abre a biblioteca de arquivos', async () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^arquivos$/i }));
