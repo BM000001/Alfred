@@ -4,6 +4,7 @@ import type { Project } from '../projects/types';
 import type { Appointment } from '../agenda/types';
 import type { Discipline, StudyTopic } from '../studies/types';
 import type { StoredFile } from '../files/types';
+import type { FocusSession } from '../productivity/types';
 
 const BACKUP_FORMAT = 'alfred-local-backup';
 const BACKUP_VERSION = 1;
@@ -18,6 +19,7 @@ type BackupPayload = {
     appointments: Appointment[];
     disciplines: Discipline[];
     studyTopics: StudyTopic[];
+    focusSessions: FocusSession[];
     files: Array<Omit<StoredFile, 'blob'> & { contentBase64: string }>;
   };
 };
@@ -59,7 +61,7 @@ export async function createBackup(): Promise<string> {
       request.onsuccess = () => resolve(request.result as unknown[]);
       request.onerror = () => reject(request.error ?? new Error('Falha ao ler os dados locais.'));
     }));
-    const [tasks, projects, appointments, disciplines, studyTopics, files] = await Promise.all(requests);
+    const [tasks, projects, appointments, disciplines, studyTopics, files, focusSessions] = await Promise.all(requests);
     const filePayload = await Promise.all((files as StoredFile[]).map(async (file) => ({
       id: file.id, name: file.name, type: file.type, size: file.size, createdAt: file.createdAt,
       contentBase64: toBase64(new Uint8Array(await file.blob.arrayBuffer())),
@@ -67,7 +69,7 @@ export async function createBackup(): Promise<string> {
     const payload: BackupPayload = {
       format: BACKUP_FORMAT, version: BACKUP_VERSION, createdAt: new Date().toISOString(),
       data: { tasks: tasks as Task[], projects: projects as Project[], appointments: appointments as Appointment[],
-        disciplines: disciplines as Discipline[], studyTopics: studyTopics as StudyTopic[], files: filePayload },
+        disciplines: disciplines as Discipline[], studyTopics: studyTopics as StudyTopic[], focusSessions: focusSessions as FocusSession[], files: filePayload },
     };
     return JSON.stringify(payload);
   } finally { database.close(); }
@@ -80,7 +82,9 @@ export function inspectBackup(raw: string): { createdAt: string; counts: Record<
     throw new Error('Formato de backup inválido ou versão não compatível.');
   }
   const data = parsed.data;
-  for (const name of ['tasks', 'projects', 'appointments', 'disciplines', 'studyTopics', 'files']) assertEntities(data[name], name);
+  // Backups created before focus-history support remain readable.
+  if (data.focusSessions === undefined) data.focusSessions = [];
+  for (const name of ['tasks', 'projects', 'appointments', 'disciplines', 'studyTopics', 'focusSessions', 'files']) assertEntities(data[name], name);
   const files = data.files as unknown[];
   for (const file of files) {
     if (!isRecord(file) || typeof file.contentBase64 !== 'string' || typeof file.name !== 'string'
@@ -100,7 +104,8 @@ export function inspectBackup(raw: string): { createdAt: string; counts: Record<
   return {
     createdAt: parsed.createdAt,
     counts: { tasks: (data.tasks as unknown[]).length, projects: (data.projects as unknown[]).length, appointments: (data.appointments as unknown[]).length,
-      disciplines: (data.disciplines as unknown[]).length, studyTopics: (data.studyTopics as unknown[]).length, files: files.length },
+      disciplines: (data.disciplines as unknown[]).length, studyTopics: (data.studyTopics as unknown[]).length,
+      focusSessions: (data.focusSessions as unknown[]).length, files: files.length },
     payload: parsed as unknown as BackupPayload,
   };
 }
@@ -129,6 +134,7 @@ export async function restoreBackup(payload: BackupPayload): Promise<void> {
       [STORE_NAMES.appointments]: payload.data.appointments,
       [STORE_NAMES.disciplines]: payload.data.disciplines,
       [STORE_NAMES.studyTopics]: payload.data.studyTopics,
+      [STORE_NAMES.focusSessions]: payload.data.focusSessions ?? [],
       [STORE_NAMES.files]: restoredFiles,
     };
     for (const name of names) {
