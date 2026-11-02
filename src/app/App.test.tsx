@@ -70,7 +70,7 @@ describe('App', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^estudos$/i }));
     fireEvent.change(await screen.findByLabelText('Nome'), { target: { value: 'Matemática' } });
-    fireEvent.change(screen.getByLabelText('Descrição'), { target: { value: 'Estudo inicial' } });
+    fireEvent.change(screen.getByLabelText(/Descrição/), { target: { value: 'Estudo inicial' } });
     fireEvent.click(screen.getByRole('button', { name: 'Criar disciplina' }));
     fireEvent.click(await screen.findByRole('button', { name: /Matemática/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Editar disciplina' }));
