@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #17243A;
+  background: #F3F5F8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --navy: #17243A;
+  --blue: #3978D5;
+  --bronze: #C5A059;
+  --muted: #778294;
+  --surface: #FFFFFF;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button, input, textarea { font: inherit; }
+
+.app-shell {
+  width: min(100% - 40px, 1080px);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #DDE2E9;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--navy);
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.7px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: white;
+  background: var(--navy);
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+}
+
+.brand-period { color: var(--bronze); }
+.topbar-caption, .eyebrow, .card-label, .app-footer {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.topbar-caption { color: var(--muted); }
+
+.welcome { padding: clamp(64px, 12vh, 112px) 0 48px; }
+.eyebrow { color: var(--bronze); }
+.welcome h1 {
+  margin: 14px 0;
+  color: var(--navy);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 8vw, 64px);
+  font-weight: 500;
+  letter-spacing: -1.8px;
+}
+.welcome-copy {
+  max-width: 520px;
+  color: #667286;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.overview-card {
+  padding: 24px;
+  border: 1px solid #E2E6EC;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(23 36 58 / 4%);
+}
+.card-label { display: block; margin-bottom: 18px; color: var(--bronze); }
+.overview-card strong { color: var(--navy); font-size: 17px; }
+.overview-card p { margin-bottom: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+.app-footer {
+  margin-top: auto;
+  padding: 48px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #929BA8;
+  font-size: 9px;
+}
+
+@media (max-width: 600px) {
+  .app-shell { width: min(100% - 32px, 1080px); }
+  .topbar { min-height: 64px; }
+  .topbar-caption { font-size: 8px; }
+  .overview { grid-template-columns: 1fr; gap: 12px; }
+  .overview-card { padding: 20px; }
+  .app-footer { flex-direction: column; gap: 8px; }
+}
