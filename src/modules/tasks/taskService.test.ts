@@ -49,6 +49,22 @@ describe('taskService', () => {
     expect(completed.status).toBe('completed');
   });
 
+  it('allows status updates and removes an optional description when cleared', async () => {
+    const service = createTaskService(createMemoryRepository<Task>(), { createId: () => 'task-description' });
+    const created = await service.create({
+      title: 'Revisar matéria',
+      priority: 'medium',
+      description: 'Descrição inicial',
+    });
+
+    const withoutDescription = await service.update(created.id, { description: '   ' });
+    const completed = await service.update(created.id, { status: 'completed' });
+
+    expect(withoutDescription.description).toBeUndefined();
+    expect(Object.hasOwn(withoutDescription, 'description')).toBe(false);
+    expect(completed.status).toBe('completed');
+  });
+
   it('rejects update when task does not exist', async () => {
     const service = createTaskService(createMemoryRepository<Task>());
     await expect(service.update('missing', { title: 'Novo título' }))

@@ -5,7 +5,9 @@ import { validateTaskTitle } from './taskRules';
 export type CreateTaskInput = Pick<Task, 'title' | 'priority'> &
   Partial<Pick<Task, 'description' | 'dueDate' | 'projectId'>>;
 
-export type UpdateTaskInput = Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'projectId'>>;
+export type UpdateTaskInput = Partial<
+  Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'dueDate' | 'projectId'>
+>;
 
 export interface TaskServiceOptions {
   createId?: () => string;
@@ -18,6 +20,25 @@ export function createTaskService(
 ) {
   const createId = options.createId ?? (() => crypto.randomUUID());
   const now = options.now ?? (() => new Date());
+
+  async function update(id: string, changes: UpdateTaskInput): Promise<Task> {
+    const current = await repository.getById(id);
+    if (!current) throw new Error('Tarefa não encontrada.');
+
+    const title = changes.title === undefined ? current.title : changes.title.trim();
+    const validationError = validateTaskTitle(title);
+    if (validationError) throw new Error(validationError);
+
+    const updated: Task = { ...current, ...changes, title };
+    if (changes.description !== undefined) {
+      const description = changes.description.trim();
+      if (description) updated.description = description;
+      else delete updated.description;
+    }
+
+    await repository.save(updated);
+    return updated;
+  }
 
   return {
     async list(): Promise<Task[]> {
@@ -48,29 +69,10 @@ export function createTaskService(
       return task;
     },
 
-    async update(id: string, changes: UpdateTaskInput): Promise<Task> {
-      const current = await repository.getById(id);
-      if (!current) throw new Error('Tarefa não encontrada.');
-
-      const title = changes.title === undefined ? current.title : changes.title.trim();
-      const validationError = validateTaskTitle(title);
-      if (validationError) throw new Error(validationError);
-
-      const updated: Task = {
-        ...current,
-        ...changes,
-        title,
-        ...(changes.description !== undefined
-          ? (changes.description.trim() ? { description: changes.description.trim() } : { description: undefined })
-          : {}),
-      };
-
-      await repository.save(updated);
-      return updated;
-    },
+    update,
 
     async complete(id: string): Promise<Task> {
-      return this.update(id, { status: 'completed' } as UpdateTaskInput);
+      return update(id, { status: 'completed' });
     },
 
     async delete(id: string): Promise<void> {
