@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('exibe a identidade e a mensagem inicial do Alfred', () => {
+  it('exibe a identidade e a mensagem inicial do Alfred', async () => {
     render(<App />);
 
     expect(screen.getByRole('link', { name: /alfred, início/i })).toBeInTheDocument();
