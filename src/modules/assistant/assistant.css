@@ -1,0 +1,6 @@
+.assistant-proposal { padding: 20px; border: 1px solid #D9C89F; border-radius: 12px; background: #FFFCF5; }
+.assistant-proposal-label { color: #8A6A2E; font-size: 9px; font-weight: 700; letter-spacing: .8px; }
+.assistant-proposal h3 { margin: 9px 0 6px; color: var(--navy); font-size: 16px; }
+.assistant-proposal p { margin: 0; color: #667286; font-size: 12px; line-height: 1.65; }
+.assistant-proposal-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+.assistant-proposal-actions .primary-action, .assistant-proposal-actions .secondary-action { margin: 0; }
