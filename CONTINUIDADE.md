@@ -9,6 +9,8 @@
 - PR #35 — proposta e confirmação explícita para concluir tarefas — integrada; CI aprovado (run #100).
 - PR #36 — resumo Pomodoro pelo dia local e testes de fuso — integrada; CI aprovado (run #103).
 - PR #38 — backup com senha e inclusão do histórico Pomodoro — integrada; CI aprovado (run #108).
+- PR #40 — relatório detalhado de auditoria de dependências no CI — integrada.
+- PR #41 — atualização de Vite/Vitest — integrada; CI aprovado (run #114), testes e build concluídos.
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
@@ -18,7 +20,7 @@
 - Painel inicial: pendências, atrasos, compromissos próximos e briefing diário; somente leitura para recomendações.
 - Estudos: disciplinas, conteúdos, anotações, filtros, conclusão e progresso.
 - Arquivos: adicionar, pesquisar, baixar e excluir arquivos (limite de 10 MB por arquivo).
-- Backup/restauração: JSON com arquivos em Base64, prévia e confirmação explícita para substituir dados locais; opção adicional de exportação protegida por senha.
+- Backup/restauração: JSON com arquivos em Base64, prévia e confirmação explícita para substituir dados locais; opção adicional de exportação protegida por senha. A senha não é armazenada; a perda impede a recuperação do backup criptografado.
 - Novos backups incluem histórico Pomodoro; backups JSON antigos sem esse campo continuam sendo aceitos.
 - Produtividade: Pomodoro, histórico de sessões e associação opcional com tarefas. O resumo de sessões diárias agora usa o fuso do dispositivo; a função aceita fuso explícito para testes determinísticos.
 - Persistência local via IndexedDB, sem backend próprio.
@@ -50,7 +52,7 @@
 - Rever o limite de tamanho do backup, pois Base64 aumenta os arquivos exportados.
 - O ciclo de vida das URLs temporárias de download foi melhorado com revogação atrasada; validar em Safari/iPhone.
 - Ampliar testes da edição de compromissos (conflito próprio, conflito com outro compromisso e limpeza de campos).
-- Investigar vulnerabilidades do npm sem atualizações forçadas indiscriminadas. O CI registrou 3 vulnerabilidades (1 moderada e 2 críticas); ainda não foram corrigidas nesta etapa.
+- A auditoria npm após atualizar Vite/Vitest reportou 0 vulnerabilidades no ambiente do CI (run #114). O CI agora imprime os detalhes de futuras ocorrências.
 - Confirmar publicação e URL do GitHub Pages antes de considerá-la operacional.
 - Verificar licenças e atribuições de dependências/assets antes de distribuir.
 
