@@ -4,7 +4,7 @@
 
 ## Estado atual
 - **Fase:** fundação e documentação.
-- **Situação:** repositório iniciado; documentação-base em construção.
+- **Situação:** documentação-base criada e registrada no GitHub.
 - **Aplicação executável:** ainda não implementada.
 - **Última atualização:** 2026-11-02.
 
@@ -29,10 +29,9 @@ Alfred é um assistente pessoal inteligente para centralizar estudos, agenda, ta
 - Confirmada a permissão de escrita no repositório GitHub.
 - Realizado teste de criação, leitura e remoção de arquivo temporário; operações concluídas.
 - README existente foi lido e preservado.
-- Documentação-base está sendo criada.
+- Criados e registrados: `CLAUDE.md`, `CONTINUIDADE.md`, `docs/VISAO-PRODUTO.md`, `docs/ARQUITETURA.md`, `docs/ROADMAP.md` e `docs/decisoes/README.md`.
 
 ## Próxima tarefa
-Após concluir a documentação:
 1. Criar o esqueleto React + TypeScript + Vite.
 2. Definir scripts de desenvolvimento, teste e build.
 3. Criar a primeira tela-base responsiva do Alfred, sem conectar serviços externos.
