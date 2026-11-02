@@ -11,8 +11,8 @@ export type TaskCompletionPreparation =
 function requestedTaskTitle(prompt: string): string | null {
   const value = prompt.trim().replace(/[.!?]+$/, '').trim();
   const patterns = [
-    /^(?:por favor,?\s*)?(?:concluir|finalizar|completar)\s+(?:a\s+)?tarefa\s+(.+)$/i,
-    /^(?:por favor,?\s*)?marcar\s+(?:a\s+)?tarefa\s+(.+?)\s+como\s+conclu[ií]da$/i,
+    /^(?:por favor,?\s*)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina)\s+(?:a\s+)?tarefa\s+(.+)$/i,
+    /^(?:por favor,?\s*)?(?:marcar|marque|marca)\s+(?:a\s+)?tarefa\s+(.+?)\s+como\s+conclu[ií]da$/i,
   ];
   for (const pattern of patterns) {
     const match = value.match(pattern);
