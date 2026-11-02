@@ -1,15 +1,26 @@
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Project } from '../modules/projects/types';
+import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { ALFRED_DATABASE_NAME } from './database';
-import { projectRepository, taskRepository } from './repositories';
+import { appointmentRepository, projectRepository, taskRepository } from './repositories';
 
 const task: Task = {
   id: 'task-1',
   title: 'Estudar IndexedDB',
   status: 'pending',
   priority: 'high',
+  createdAt: '2026-11-02T10:00:00.000Z',
+};
+
+const appointment: Appointment = {
+  id: 'appointment-1',
+  title: 'Aula de programação',
+  type: 'class',
+  status: 'scheduled',
+  startsAt: '2026-11-03T08:00:00.000-03:00',
+  endsAt: '2026-11-03T09:30:00.000-03:00',
   createdAt: '2026-11-02T10:00:00.000Z',
 };
 
@@ -61,5 +72,21 @@ describe('projectRepository', () => {
 
     await projectRepository.delete(project.id);
     expect(await projectRepository.getById(project.id)).toBeUndefined();
+  });
+});
+
+
+describe('appointmentRepository', () => {
+  it('saves, retrieves, updates and deletes appointments', async () => {
+    await appointmentRepository.save(appointment);
+    expect(await appointmentRepository.getById(appointment.id)).toEqual(appointment);
+    expect(await appointmentRepository.getAll()).toEqual([appointment]);
+
+    const updated = { ...appointment, status: 'cancelled' as const };
+    await appointmentRepository.save(updated);
+    expect(await appointmentRepository.getById(appointment.id)).toEqual(updated);
+
+    await appointmentRepository.delete(appointment.id);
+    expect(await appointmentRepository.getById(appointment.id)).toBeUndefined();
   });
 });
