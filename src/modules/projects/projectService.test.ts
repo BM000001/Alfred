@@ -49,6 +49,18 @@ describe('projectService', () => {
     expect(archived.status).toBe('archived');
   });
 
+  it('removes an optional description when it is cleared', async () => {
+    const service = createProjectService(createMemoryRepository<Project>(), {
+      createId: () => 'project-description',
+    });
+    const created = await service.create({ name: 'Projeto', description: 'Descrição inicial' });
+
+    const updated = await service.update(created.id, { description: '   ' });
+
+    expect(updated.description).toBeUndefined();
+    expect(Object.hasOwn(updated, 'description')).toBe(false);
+  });
+
   it('rejects update when project does not exist', async () => {
     const service = createProjectService(createMemoryRepository<Project>());
     await expect(service.update('missing', { name: 'Outro' }))
