@@ -1,43 +1,46 @@
 # Continuidade do Alfred
 
 ## Estado atual — 2026-11-02
-- Etapa 2, subetapa A (modelagem) em andamento.
-- Branch: `feat/organizacao-pessoal`.
-- Base: `main` no commit `6759988bf049e6fbdcc6809458f4a193320d9212`.
-- Último commit de código: `4fb67c639c77a078bb907263455d93ce2521fc56`.
-- Commits enviados à branch remota pela API do GitHub.
-- Testes escritos, mas não executados nesta sessão; aguardando CI do PR.
+- Etapa 2 — Organização pessoal.
+- Modelagem (Etapa A) integrada à `main` pelo PR #2.
+- Persistência local (Etapa B) em desenvolvimento na branch `feat/indexeddb-persistence`.
+- Commit mais recente: `305871b8ca9f8b7d57031c1afd98c63d5a512be1`.
+- Os testes da persistência foram escritos, mas ainda aguardam execução pelo GitHub Actions desta branch.
 
-## Implementado nesta etapa
-- `src/modules/tasks/types.ts`: tipos de tarefa, status, prioridade e filtros.
-- `src/modules/tasks/taskRules.ts`: validação de título, filtros e regra de atraso.
-- `src/modules/tasks/taskRules.test.ts`: testes das regras de tarefas.
-- `src/modules/projects/types.ts`: tipos de projeto e status.
-- `src/modules/projects/projectRules.ts`: validação de nome e resumo de progresso.
-- `src/modules/projects/projectRules.test.ts`: testes das regras de projetos.
+## Modelagem integrada
+- Tarefas: tipos, status, prioridades, filtros e regras de validação/atraso.
+- Projetos: tipos, status, validação de nome e resumo de progresso.
+- Testes unitários das regras.
+- PR #2 passou no GitHub Actions e foi integrado por squash.
+- Merge commit: `d693c7cb9c165fc445cb3b4cf07b9fa6b5e276d2`.
 
-## Regras definidas
-- Título de tarefa: obrigatório, máximo 120 caracteres.
-- Nome de projeto: obrigatório, máximo 80 caracteres.
-- Tarefa atrasada: pendente e com prazo anterior à data local atual.
-- Filtros de tarefa: status, prioridade e projeto.
-- Resumo de projeto: total, pendentes, concluídas e percentual concluído.
+## Persistência em desenvolvimento
+- `src/storage/database.ts`: abertura/versionamento do IndexedDB e helper de transação.
+- `src/storage/repositories.ts`: repositórios CRUD para tarefas e projetos.
+- `src/storage/repositories.test.ts`: testes de leitura, gravação, atualização e exclusão com fake-indexeddb.
+- `package.json`: adiciona `fake-indexeddb` como dependência de desenvolvimento para testes.
 
 ## Próximos passos
-1. Abrir PR para `main` e aguardar CI.
-2. Corrigir falhas identificadas pelo CI.
-3. Revisar e integrar a modelagem.
-4. Implementar persistência local e seus testes.
-5. Depois, criar a interface de tarefas e projetos.
+1. Abrir PR de `feat/indexeddb-persistence` para `main`.
+2. Aguardar CI; corrigir erros encontrados.
+3. Revisar transações, testes e tratamento de falhas.
+4. Integrar somente após CI aprovado.
+5. Depois, conectar a persistência às operações de aplicação e à interface.
 
-## Histórico anterior
-- Fundação React 19, TypeScript, Vite 6 e Vitest 3.
+## Limitações atuais
+- Não há interface de tarefas/projetos nesta etapa.
+- Os repositórios ainda não estão conectados à aplicação.
+- Não foi executado npm localmente nesta sessão.
+- Não declarar testes aprovados sem resultado do CI.
+
+## Histórico da fundação
+- React 19, TypeScript, Vite 6 e Vitest 3.
 - Navegação inicial para sete áreas; módulos ainda são placeholders.
-- PR #1 integrado à `main`; CI daquele PR aprovou testes e build.
+- PR #1 integrado; CI aprovou testes e build.
+- CI é executado pelo GitHub Actions em pushes e pull requests para main.
 
 ## Protocolo
 - Registrar somente trabalho realmente feito.
-- Não declarar testes aprovados sem resultado real.
-- Commit e push frequentes; só declarar salvo após confirmar push.
+- Commit e push frequentes; só declarar salvo após confirmar no GitHub.
 - Nunca incluir segredos ou dados pessoais.
 - CI valida commits enviados, não salva alterações locais.
