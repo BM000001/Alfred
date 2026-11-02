@@ -42,13 +42,22 @@
 - Decisão: preservar React/Vite, IndexedDB e serviços atuais; IA provider-independent, ferramentas com escopo e aprovação explícita; voz opcional.
 - Riscos registrados: chave de API no frontend do Jarvis, permissões de ferramentas, bridge/SSRF, privacidade de voz e licenças individuais de assets.
 
+## Fundação do assistente — em implementação na PR #30
+- Branch: `feat/alfred-assistant-foundation`.
+- Contratos provider-independent: mensagens, contexto, provider, ferramentas, propostas e decisões de aprovação.
+- Ferramentas locais somente leitura para tarefas, agenda e progresso de estudos.
+- Provider inicial baseado em regras locais; não chama APIs externas e não envia dados pessoais.
+- Testes cobrem consulta de tarefas pendentes e fallback para pedidos não reconhecidos.
+- Limitação explícita: ainda não é um LLM conversacional; é a primeira fundação segura para integrar um provedor posteriormente.
+
 ## Próximas etapas prioritárias
-1. Corrigir timezone local do histórico Pomodoro e cobrir limites de dia com testes.
-2. Definir contratos TypeScript da camada Intelligence/Tools/Approval sem provedor remoto.
-3. Integrar backup criptografado AES-GCM ao fluxo atual, preservando compatibilidade com backups JSON existentes e exigindo senha/ação explícita.
-4. Integrar o portão de privacidade à futura camada de IA; por enquanto, não existe envio automático a provedores.
-5. Validar experiência mobile, acessibilidade e persistência real em Safari/iPhone.
-6. Verificar publicação GitHub Pages e licenças.
+1. Conectar o assistente à interface e carregar dados reais do IndexedDB.
+2. Implementar propostas de alteração e aprovação explícita, com testes de autorização.
+3. Corrigir timezone local do histórico Pomodoro e cobrir limites de dia com testes.
+4. Integrar backup criptografado AES-GCM ao fluxo atual, preservando compatibilidade com backups JSON existentes e exigindo senha/ação explícita.
+5. Integrar o portão de privacidade à futura camada de IA; por enquanto, não existe envio automático a provedores.
+6. Validar experiência mobile, acessibilidade e persistência real em Safari/iPhone.
+7. Verificar publicação GitHub Pages e licenças.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
