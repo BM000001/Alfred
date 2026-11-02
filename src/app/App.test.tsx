@@ -22,6 +22,18 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Estudos' })).toBeInTheDocument();
   });
 
+  it('abre a Agenda funcional e permite iniciar um novo compromisso', async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^agenda$/i }));
+
+    expect(await screen.findByText('SEUS COMPROMISSOS')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /novo compromisso/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /novo compromisso/i }));
+    expect(screen.getByRole('heading', { name: 'O que está marcado?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar compromisso' })).toBeInTheDocument();
+  });
+
   it('abre a área funcional de tarefas', async () => {
     render(<App />);
 
