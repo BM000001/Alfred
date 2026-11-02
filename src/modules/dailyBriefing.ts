@@ -42,7 +42,7 @@ export function buildDailyBriefing(tasks: Task[], appointments: Appointment[], n
     items.push({
       id: `appointment:${appointment.id}`, kind: 'appointment', title: appointment.title,
       target: 'agenda', reason: date === today ? 'Compromisso de hoje' : 'Compromisso de amanhã',
-      urgency: date === today ? 1 : 4,
+      urgency: date === today ? 2 : 4,
     });
   }
   return items.sort((a, b) => a.urgency - b.urgency || a.title.localeCompare(b.title, 'pt-BR')).slice(0, 6);
