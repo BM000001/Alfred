@@ -1,18 +1,36 @@
 import { describe, expect, it } from 'vitest';
-import { inspectBackup } from './backupService';
+import { createBackup, inspectBackup } from './backupService';
+import { focusSessionRepository } from '../../storage/repositories';
+import type { FocusSession } from '../productivity/types';
 
 const validBackup = {
   format: 'alfred-local-backup',
   version: 1,
   createdAt: '2026-11-02T12:00:00.000Z',
-  data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], files: [] },
+  data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], focusSessions: [], files: [] },
 };
 
 describe('backupService', () => {
   it('inspeciona um backup válido e contabiliza os dados', () => {
     const result = inspectBackup(JSON.stringify(validBackup));
     expect(result.createdAt).toBe(validBackup.createdAt);
-    expect(result.counts).toEqual({ tasks: 0, projects: 0, appointments: 0, disciplines: 0, studyTopics: 0, files: 0 });
+    expect(result.counts).toEqual({ tasks: 0, projects: 0, appointments: 0, disciplines: 0, studyTopics: 0, focusSessions: 0, files: 0 });
+  });
+
+  it('continua lendo backups antigos sem histórico de foco', () => {
+    const legacy = { ...validBackup, data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], files: [] } };
+    expect(inspectBackup(JSON.stringify(legacy)).counts.focusSessions).toBe(0);
+  });
+
+  it('inclui o histórico Pomodoro no backup exportado', async () => {
+    const id = 'backup-focus-session-test';
+    const session: FocusSession = { id, startedAt: '2026-11-02T10:00:00.000Z', completedAt: '2026-11-02T10:25:00.000Z', durationMinutes: 25, kind: 'focus' };
+    try {
+      await focusSessionRepository.save(session);
+      expect(inspectBackup(await createBackup()).counts.focusSessions).toBe(1);
+    } finally {
+      await focusSessionRepository.delete(id);
+    }
   });
 
   it('rejeita JSON inválido', () => {
