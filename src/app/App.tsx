@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PersonalOrganization } from '../modules/PersonalOrganization';
 import { Agenda } from '../modules/Agenda';
+import { Overview } from '../modules/Overview';
 
 const sections = [
   { id: 'inicio', label: 'Início', mark: '⌂' },
@@ -59,10 +60,7 @@ function App() {
           </section>
 
           {activeSection === 'inicio' ? (
-            <section className="overview" aria-label="Visão geral">
-              <article className="overview-card"><span className="card-label">AGENDA</span><strong>Em preparação</strong><p>Seus compromissos aparecerão aqui.</p></article>
-              <article className="overview-card"><span className="card-label">PRIORIDADES</span><strong>Em preparação</strong><p>Vamos organizar o que merece atenção.</p></article>
-            </section>
+            <Overview onNavigate={setActiveSection} />
           ) : activeSection === 'agenda' ? (
             <Agenda />
           ) : activeSection === 'tarefas' || activeSection === 'projetos' ? (

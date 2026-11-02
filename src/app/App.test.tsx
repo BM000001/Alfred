@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('exibe a identidade e a mensagem inicial do Alfred', () => {
+  it('exibe a identidade e a mensagem inicial do Alfred', async () => {
     render(<App />);
 
     expect(screen.getByRole('link', { name: /alfred, início/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /boa tarde/i })).toBeInTheDocument();
-    expect(screen.getByText(/estou preparando seu espaço/i)).toBeInTheDocument();
+    expect(await screen.findByText('PENDÊNCIAS')).toBeInTheDocument();
+    expect(await screen.findByText('EM ATRASO')).toBeInTheDocument();
+    expect(await screen.findByText('HOJE NA AGENDA')).toBeInTheDocument();
   });
 
   it('permite navegar entre as áreas principais', () => {
