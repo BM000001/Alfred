@@ -66,5 +66,12 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
     expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
   });
+  it('abre a biblioteca de arquivos', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^arquivos$/i }));
+    expect(await screen.findByText('Sua biblioteca está vazia.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /arquivos/i })).toHaveAttribute('aria-current', 'page');
+  });
+
 });
 
