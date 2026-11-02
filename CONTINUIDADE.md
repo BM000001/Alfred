@@ -29,7 +29,7 @@ Alfred é um assistente pessoal inteligente para centralizar estudos, agenda, ta
 - Criado esqueleto com `package.json`, Vite, TypeScript, React e configuração do Vitest.
 - Criada primeira tela-base responsiva com identidade visual inicial.
 - Criado teste inicial da tela principal.
-- **Validação pendente:** `npm install`, `npm test` e `npm run build` ainda não foram executados.
+- **Validação:** workflow `.github/workflows/ci.yml` criado para executar `npm install`, `npm test` e `npm run build` em pushes/PRs para `main`. A execução precisa ser conferida em GitHub Actions; ela não executa dentro do Codespace.
 - Confirmada a permissão de escrita no repositório GitHub.
 - Realizado teste de criação, leitura e remoção de arquivo temporário; operações concluídas.
 - README existente foi lido e preservado.
