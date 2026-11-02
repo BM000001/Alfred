@@ -57,8 +57,8 @@ export function createReadOnlyTools(data: ReadToolData): ToolDefinition<ReadTool
       approval: 'never',
       async execute(input) {
         const topics = data.topics.filter((topic) => !input.query || matches(topic.title, input.query));
-        const completed = topics.filter((topic) => topic.completed).length;
-        return { summary: `${completed} de ${topics.length} tópico(s) concluído(s).`, items: topics.slice(0, 20).map((topic) => `${topic.title} — ${topic.completed ? 'concluído' : 'pendente'}`) };
+        const completed = topics.filter((topic) => topic.status === 'completed').length;
+        return { summary: `${completed} de ${topics.length} tópico(s) concluído(s).`, items: topics.slice(0, 20).map((topic) => `${topic.title} — ${topic.status === 'completed' ? 'concluído' : 'pendente'}`) };
       },
     },
   ];
