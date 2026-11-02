@@ -1,44 +1,51 @@
-Alfred
+# Alfred
 
-Assistente pessoal inteligente para centralizar estudos, agenda, projetos, arquivos e produtividade.
+Assistente pessoal de produtividade e estudos, com foco em **privacidade** e **funcionamento local**.
 
-Visão do produto
+> Status: **Etapa 1** (base técnica do MVP). Ainda não é uma versão de uso diário.
 
-O Alfred será um assistente pessoal proativo, elegante e estratégico, inspirado na personalidade de Alfred Pennyworth.
+## O que o Alfred faz nesta etapa
 
-Seu objetivo é ajudar a responder:
+- Tarefas, disciplinas e notas, armazenadas **no próprio aparelho** (IndexedDB).
+- Exportação e importação de backup (arquivo JSON, opcionalmente criptografado com senha).
+- Adaptador **Manual** para IA: o Alfred gera um texto que você copia para o serviço de IA de sua escolha e, depois, cola a resposta de volta como nota.
+- Interface responsiva, instalável como PWA, para computador e iPhone, servida por HTTPS.
 
-1. O que está acontecendo na minha vida?
-2. O que precisa da minha atenção agora?
-3. Como posso resolver isso?
+## O que o Alfred não faz (ainda)
 
-Estado atual
+- Não envia dados a nenhum serviço de IA automaticamente.
+- Não integra com o Canvas LMS (planejado, aguardando verificação das políticas institucionais).
+- Não sincroniza entre dispositivos (planejado para etapa futura, com a estrutura de dados já preparada).
+- Não usa modelo local nem voz.
+- Não exige nenhuma assinatura ou API paga.
 
-Projeto iniciado do zero. A arquitetura, a documentação e as funcionalidades serão construídas progressivamente.
+## Princípios
 
-Tecnologias planejadas
+1. **Dados pessoais ficam no aparelho.** Nenhum dado do usuário passa pela hospedagem do site, que entrega apenas arquivos públicos.
+2. **Nada sai sem ação explícita.** Qualquer envio a serviço externo exige confirmação do usuário, categoria por categoria, e é registrado (sem o conteúdo).
+3. **Sem dependência obrigatória de serviço pago.**
+4. **Arquitetura independente de provedor de IA.** O núcleo não importa SDK de nenhum serviço.
 
-* TypeScript
-* React
-* Vite
-* CSS
-* IndexedDB
-* Vitest
-* PWA
+## Desenvolvimento
 
-Princípios
+Requisitos: Node.js 20 ou superior.
 
-* Privacidade e armazenamento local-first.
-* Arquitetura modular.
-* Proatividade sem executar ações sem autorização.
-* Documentação contínua.
-* Testes antes de considerar funcionalidades concluídas.
+```
+npm install
+npm test       # compila e executa os testes automatizados
+npm run build  # gera o site estático em site/
+```
 
+Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. Para instalar no iPhone, é preciso HTTPS (ver `docs/testes-manuais-iphone.md`).
 
-Documentação
+## Documentação
 
-* [Visão do produto](docs/VISAO-PRODUTO.md)
-* [Arquitetura](docs/ARQUITETURA.md)
-* [Roadmap](docs/ROADMAP.md)
-* [Continuidade do projeto](CONTINUIDADE.md)
-* [Instruções para agentes de desenvolvimento](CLAUDE.md)
+- `docs/decisoes.md`: decisões registradas e seus motivos.
+- `docs/arquitetura.md`: camadas, formato de backup e regras de privacidade.
+- `docs/status-etapa-1.md`: o que foi feito, testes executados e limitações conhecidas.
+- `docs/testes-manuais-iphone.md`: roteiro de testes que exigem dispositivo real.
+- `NOTICE.md` e `THIRD_PARTY.md`: atribuições e licenças de dependências.
+
+## Licença
+
+**Pendente de decisão.** Veja `docs/decisoes.md`.
