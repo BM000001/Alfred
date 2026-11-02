@@ -8,7 +8,9 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: /alfred, início/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /boa tarde/i })).toBeInTheDocument();
-    expect(screen.getByText(/estou preparando seu espaço/i)).toBeInTheDocument();
+    expect(screen.getByText('PENDÊNCIAS')).toBeInTheDocument();
+    expect(screen.getByText('EM ATRASO')).toBeInTheDocument();
+    expect(screen.getByText('HOJE NA AGENDA')).toBeInTheDocument();
   });
 
   it('permite navegar entre as áreas principais', () => {
