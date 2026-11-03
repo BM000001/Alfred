@@ -869,3 +869,65 @@ body {
   .dashboard-summary { grid-template-columns: minmax(0, 1fr); }
   .dashboard-stat:last-child { grid-column: auto; }
 }
+
+
+/* Final mobile viewport and background correction. */
+:root, html, body, #root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  background: #0b101b !important;
+}
+body {
+  min-height: 100vh;
+  background: #0b101b !important;
+  background-image: radial-gradient(ellipse at top left, #17283a 0%, #0b101b 58%) !important;
+  background-attachment: fixed;
+}
+#root {
+  min-height: 100vh;
+  overflow-x: clip;
+}
+.app-shell {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 1440px !important;
+  min-width: 0 !important;
+  padding-inline: clamp(12px, 2.5vw, 28px);
+  margin-inline: auto !important;
+}
+.workspace {
+  width: 100%;
+  grid-template-columns: 228px minmax(0, 1fr);
+}
+.main-content {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .app-shell {
+    width: 100% !important;
+    padding-inline: 12px;
+  }
+  .workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100%;
+  }
+  .main-content {
+    width: 100% !important;
+    max-width: 100%;
+  }
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+  .dashboard, .dashboard-home-grid, .dashboard-summary, .dashboard-columns {
+    width: 100%;
+    min-width: 0;
+  }
+  .dashboard-home-grid, .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
