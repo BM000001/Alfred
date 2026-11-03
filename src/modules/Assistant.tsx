@@ -212,9 +212,10 @@ export function Assistant() {
       async execute(input) {
         if (typeof input !== 'object' || input === null) throw new ActionApprovalError('Entrada inválida para alterar o prazo.');
         const record = input as Record<string, unknown>;
-        const validDate = typeof record.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(record.dueDate) &&
-          !Number.isNaN(Date.parse(record.dueDate + 'T00:00:00Z')) &&
-          new Date(record.dueDate + 'T00:00:00Z').toISOString().slice(0, 10) === record.dueDate;
+        const dueDate = record.dueDate;
+        const validDate = typeof dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dueDate) &&
+          !Number.isNaN(Date.parse(dueDate + 'T00:00:00Z')) &&
+          new Date(dueDate + 'T00:00:00Z').toISOString().slice(0, 10) === dueDate;
         if (typeof record.id !== 'string' || !validDate ||
             !(record.expectedDueDate === null || typeof record.expectedDueDate === 'string')) {
           throw new ActionApprovalError('Os dados do prazo são inválidos.');
@@ -222,8 +223,8 @@ export function Assistant() {
         const current = await taskRepository.getById(record.id);
         if (!current) throw new ActionApprovalError('A tarefa não existe mais. Nenhuma alteração foi feita.');
         if ((current.dueDate ?? null) !== record.expectedDueDate) throw new ActionApprovalError('O prazo dessa tarefa foi alterado desde a proposta. Consulte novamente antes de tentar outra mudança.');
-        await taskRepository.save({ ...current, dueDate: record.dueDate });
-        return { id: current.id, title: current.title, dueDate: record.dueDate };
+        await taskRepository.save({ ...current, dueDate });
+        return { id: current.id, title: current.title, dueDate };
       },
     };
     const updateDescriptionTool: ToolDefinition<unknown, unknown> = {
