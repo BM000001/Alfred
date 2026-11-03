@@ -1,35 +1,9 @@
 import {
   hasValidSession, jsonError, requestBody, requestOriginIsValid,
 } from './_lib/security.js';
+import { validateChatConsent, validateChatMessages } from './_lib/chatValidation.js';
 
-const ALLOWED_ROLES = new Set(['user', 'assistant']);
-const ALLOWED_CLASSES = new Set(['public', 'personal', 'academic']);
-const MAX_MESSAGES = 12;
-const MAX_MESSAGE_CHARS = 8_000;
-const MAX_TOTAL_CHARS = 20_000;
 const MAX_OUTPUT_TOKENS = 800;
-
-function validateMessages(messages) {
-  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) return null;
-  let total = 0;
-  const normalized = [];
-  for (const message of messages) {
-    if (!message || !ALLOWED_ROLES.has(message.role) || typeof message.content !== 'string') return null;
-    const content = message.content.trim();
-    if (!content || content.length > MAX_MESSAGE_CHARS) return null;
-    total += content.length;
-    if (total > MAX_TOTAL_CHARS) return null;
-    normalized.push({ role: message.role, content });
-  }
-  if (normalized.at(-1)?.role !== 'user') return null;
-  return normalized;
-}
-
-function validateConsent(consent) {
-  if (!consent || consent.confirmed !== true || consent.reviewedSensitive !== true) return false;
-  if (!Array.isArray(consent.classes) || consent.classes.length === 0) return false;
-  return consent.classes.every((value) => ALLOWED_CLASSES.has(value));
-}
 
 export default async function chat(req, res) {
   if (req.method !== 'POST') return jsonError(res, 405, 'Método não permitido.');
@@ -38,9 +12,9 @@ export default async function chat(req, res) {
   const body = requestBody(req);
   if (!body) return jsonError(res, 413, 'A solicitação é inválida ou excede o limite permitido.');
 
-  const messages = validateMessages(body.messages);
+  const messages = validateChatMessages(body.messages);
   if (!messages) return jsonError(res, 400, 'A conversa excede os limites ou contém mensagens inválidas.');
-  if (!validateConsent(body.consent)) {
+  if (!validateChatConsent(body.consent)) {
     return jsonError(res, 403, 'Revise os dados e confirme explicitamente as categorias antes de enviar.');
   }
 
