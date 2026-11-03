@@ -80,7 +80,7 @@ describe('Assistant task approval UI', () => {
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'altere a descrição da tarefa Preparar apresentação para Incluir introdução, resultados e conclusão');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await screen.findByRole('button', { name: 'Confirmar alteração' });
-    expect(await taskRepository.getById(task.id)).toMatchObject({ description: undefined });
+    expect((await taskRepository.getById(task.id))?.description).toBeUndefined();
     await user.click(screen.getByRole('button', { name: 'Confirmar alteração' }));
     await waitFor(async () => {
       expect(await taskRepository.getById(task.id)).toMatchObject({
