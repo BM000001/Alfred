@@ -6,6 +6,7 @@ import { prepareTaskCompletion } from './assistant/actionProposals';
 import { prepareTaskCreation } from './assistant/taskCreationProposals';
 import { prepareTaskPriorityUpdate } from './assistant/taskUpdateProposals';
 import { prepareTaskDueDateUpdate } from './assistant/taskDueDateProposals';
+import { prepareTaskDescriptionUpdate } from './assistant/taskDescriptionProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
 import { appointmentRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
@@ -18,11 +19,12 @@ type PendingTaskProposal =
   | { action: 'complete'; task: Task; proposal: ActionProposal }
   | { action: 'create'; taskId: string; taskTitle: string; priority: TaskPriority; proposal: ActionProposal }
   | { action: 'priority'; task: Task; priority: TaskPriority; proposal: ActionProposal }
-  | { action: 'due-date'; task: Task; dueDate: string; proposal: ActionProposal };
+  | { action: 'due-date'; task: Task; dueDate: string; proposal: ActionProposal }
+  | { action: 'description'; task: Task; description: string; proposal: ActionProposal };
 
 export function Assistant() {
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar, concluir, ajustar prioridades e definir prazos de tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
+    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar, concluir, ajustar prioridades, definir prazos e editar descrições de tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,6 +66,29 @@ export function Assistant() {
       }
       if (priorityUpdate.kind === 'already-set') {
         setMessages((current) => [...current, createMessage('assistant', 'A tarefa “' + priorityUpdate.task.title + '” já está com essa prioridade.')]);
+        return;
+      }
+
+      const descriptionUpdate = prepareTaskDescriptionUpdate(content, tasks, { referenceTaskId: recentTaskIdRef.current });
+      if (descriptionUpdate.kind === 'proposal') {
+        setPendingProposal({ action: 'description', task: descriptionUpdate.task, description: descriptionUpdate.description, proposal: descriptionUpdate.proposal });
+        setMessages((current) => [...current, createMessage('assistant', 'Preparei uma proposta para atualizar a descrição. Confira o texto e confirme se deseja salvar.')]);
+        return;
+      }
+      if (descriptionUpdate.kind === 'not-found') {
+        setMessages((current) => [...current, createMessage('assistant', 'Não encontrei “' + descriptionUpdate.taskTitle + '”. Não alterei nenhuma tarefa.')]);
+        return;
+      }
+      if (descriptionUpdate.kind === 'ambiguous') {
+        setMessages((current) => [...current, createMessage('assistant', 'Encontrei ' + descriptionUpdate.matches + ' tarefas chamadas “' + descriptionUpdate.taskTitle + '”. Não vou escolher uma delas automaticamente.')]);
+        return;
+      }
+      if (descriptionUpdate.kind === 'already-set') {
+        setMessages((current) => [...current, createMessage('assistant', 'A tarefa “' + descriptionUpdate.task.title + '” já possui essa descrição.')]);
+        return;
+      }
+      if (descriptionUpdate.kind === 'invalid-description') {
+        setMessages((current) => [...current, createMessage('assistant', 'A descrição precisa conter entre 1 e 500 caracteres.')]);
         return;
       }
 
@@ -201,6 +226,25 @@ export function Assistant() {
         return { id: current.id, title: current.title, dueDate: record.dueDate };
       },
     };
+    const updateDescriptionTool: ToolDefinition<unknown, unknown> = {
+      id: 'tasks.update-description',
+      description: 'Atualiza a descrição de uma tarefa existente.',
+      risk: 'write',
+      approval: 'explicit-confirmation',
+      async execute(input) {
+        if (typeof input !== 'object' || input === null) throw new ActionApprovalError('Entrada inválida para atualizar a descrição.');
+        const record = input as Record<string, unknown>;
+        if (typeof record.id !== 'string' || typeof record.description !== 'string' || !record.description.trim() ||
+            record.description.length > 500 || !(record.expectedDescription === null || typeof record.expectedDescription === 'string')) {
+          throw new ActionApprovalError('A descrição deve conter entre 1 e 500 caracteres.');
+        }
+        const current = await taskRepository.getById(record.id);
+        if (!current) throw new ActionApprovalError('A tarefa não existe mais. Nenhuma alteração foi feita.');
+        if ((current.description ?? null) !== record.expectedDescription) throw new ActionApprovalError('A descrição foi alterada desde a proposta. Consulte novamente antes de tentar outra mudança.');
+        await taskRepository.save({ ...current, description: record.description.trim() });
+        return { id: current.id, title: current.title, description: record.description.trim() };
+      },
+    };
     const createTaskTool: ToolDefinition<unknown, unknown> = {
       id: 'tasks.create',
       description: 'Cria uma tarefa pendente.',
@@ -229,7 +273,7 @@ export function Assistant() {
         return created;
       },
     };
-    const tools = pending.action === 'complete' ? [completeTaskTool] : pending.action === 'create' ? [createTaskTool] : pending.action === 'priority' ? [updatePriorityTool] : [updateDueDateTool];
+    const tools = pending.action === 'complete' ? [completeTaskTool] : pending.action === 'create' ? [createTaskTool] : pending.action === 'priority' ? [updatePriorityTool] : pending.action === 'due-date' ? [updateDueDateTool] : [updateDescriptionTool];
     const decision: ApprovalDecision = {
       proposalId: proposal.id,
       approved: true,
@@ -248,11 +292,14 @@ export function Assistant() {
         recentTaskIdRef.current = pending.task.id;
         const label = pending.priority === 'high' ? 'alta' : pending.priority === 'low' ? 'baixa' : 'média';
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A prioridade de “' + pending.task.title + '” agora é ' + label + '.')]);
-      } else {
+      } else if (pending.action === 'due-date') {
         recentTaskIdRef.current = pending.task.id;
         const [year, month, day] = pending.dueDate.split('-').map(Number);
         const label = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. O prazo de “' + pending.task.title + '” foi definido para ' + label + '.')]);
+      } else {
+        recentTaskIdRef.current = pending.task.id;
+        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A descrição de “' + pending.task.title + '” foi atualizada.')]);
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível executar a ação. Nenhuma confirmação de sucesso foi registrada.');
@@ -274,7 +321,7 @@ export function Assistant() {
         <span className="assistant-status"><i aria-hidden="true" /> Local</span>
       </header>
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
-        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span><span>Definir prazos com confirmação</span>
+        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span><span>Definir prazos com confirmação</span><span>Editar descrições com confirmação</span>
       </div>
       {messages.length === 1 && (
         <div className="assistant-suggestions" aria-label="Sugestões para começar">
@@ -309,6 +356,7 @@ export function Assistant() {
           <p id="assistant-proposal-description">{pendingProposal.proposal.explanation}</p>
           <div className="assistant-proposal-record"><span>{pendingProposal.action === 'create' ? 'Nova tarefa' : 'Tarefa afetada'}</span><strong>{pendingProposal.action === 'create' ? pendingProposal.taskTitle : pendingProposal.task.title}</strong></div>
           {pendingProposal.action === 'due-date' && <div className="assistant-proposal-record"><span>Novo prazo</span><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(pendingProposal.dueDate + 'T00:00:00Z'))}</strong></div>}
+          {pendingProposal.action === 'description' && <div className="assistant-proposal-record"><span>Nova descrição</span><strong>{pendingProposal.description}</strong></div>}
           <p className="assistant-proposal-warning">Nada será alterado até você selecionar “Confirmar alteração”.</p>
           <div className="assistant-proposal-actions">
             <button type="button" className="secondary-action" onClick={cancelProposal} disabled={approving}>Cancelar</button>
@@ -322,7 +370,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão, alteração de prioridade e definição de prazos mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada, concluída ou ajustada enquanto esta conversa estiver aberta; não é memória persistente.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão, alteração de prioridade, definição de prazos e edição de descrições mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada, concluída ou ajustada enquanto esta conversa estiver aberta; não é memória persistente.</p>
     </section>
   );
 }
