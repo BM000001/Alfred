@@ -39,8 +39,9 @@ export function prepareTaskCompletion(
   const matches = referencedTask
     ? [referencedTask]
     : tasks.filter((task) => task.title.toLocaleLowerCase('pt-BR') === title!.toLocaleLowerCase('pt-BR'));
-  if (matches.length === 0) return { kind: 'not-found', taskTitle: title };
-  if (matches.length > 1) return { kind: 'ambiguous', taskTitle: title, matches: matches.length };
+  const resolvedTitle = title ?? referencedTask?.title ?? 'a tarefa mencionada anteriormente';
+  if (matches.length === 0) return { kind: 'not-found', taskTitle: resolvedTitle };
+  if (matches.length > 1) return { kind: 'ambiguous', taskTitle: resolvedTitle, matches: matches.length };
 
   const task = matches[0];
   if (task.status === 'completed') return { kind: 'already-completed', task };
