@@ -44,6 +44,10 @@ export default async function chat(req, res) {
     return jsonError(res, 403, 'Revise os dados e confirme explicitamente as categorias antes de enviar.');
   }
 
+  if (process.env.ALFRED_AI_ENABLED !== 'true') {
+    return jsonError(res, 503, 'A inteligência externa está desativada pelo administrador.');
+  }
+
   const gatewayToken = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
   const model = process.env.AI_GATEWAY_MODEL;
   if (!gatewayToken || !model) {
