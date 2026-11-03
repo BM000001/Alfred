@@ -979,3 +979,70 @@ button:disabled { opacity:.48; cursor:not-allowed; }
   .dashboard-stat { padding:11px; }
   .dashboard-stat .card-label { font-size:7px; letter-spacing:.65px; }
 }
+
+
+/* Alfred Design System — controles e conteúdo compartilhado */
+:root {
+  --alfred-radius-sm: 8px;
+  --alfred-radius-md: 12px;
+  --alfred-radius-lg: 16px;
+  --alfred-control-bg: #0b1423;
+  --alfred-control-border: rgba(151,174,211,.2);
+  --alfred-focus: rgba(131,170,255,.24);
+}
+.entry-panel,.backup-settings .entry-panel { padding:22px; border-radius:15px; }
+.entry-panel h2 { margin-top:0; margin-bottom:17px; }
+.field-label,.entry-panel label { color:#aab8cd; font-size:11px; font-weight:600; }
+.entry-panel input,.entry-panel select,.entry-panel textarea,
+.filter-control select,.agenda-date-label input,.study-filter select,
+.weather-city-form input {
+  min-height:42px;
+  border:1px solid var(--alfred-control-border);
+  border-radius:9px;
+  color:#e7edf8;
+  background:var(--alfred-control-bg);
+  font-size:12px;
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.entry-panel textarea { min-height:100px; padding:12px; resize:vertical; }
+.entry-panel input:hover,.entry-panel select:hover,.entry-panel textarea:hover,
+.filter-control select:hover,.agenda-date-label input:hover,.study-filter select:hover,
+.weather-city-form input:hover { border-color:rgba(151,174,211,.34); }
+.entry-panel input:focus,.entry-panel select:focus,.entry-panel textarea:focus,
+.filter-control select:focus,.agenda-date-label input:focus,.study-filter select:focus,
+.weather-city-form input:focus {
+  border-color:#83aaff;
+  background:#0d192b;
+  box-shadow:0 0 0 3px var(--alfred-focus);
+  outline:0;
+}
+.entry-panel input::placeholder,.entry-panel textarea::placeholder,.weather-city-form input::placeholder { color:#65758f; }
+.primary-action,.secondary-action,.text-action {
+  min-height:38px;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:650;
+  transition:transform .16s ease,background .16s ease,border-color .16s ease,color .16s ease;
+}
+.primary-action { border:1px solid rgba(169,196,255,.26); box-shadow:0 5px 16px rgba(67,108,184,.12); }
+.primary-action:hover,.secondary-action:hover { transform:translateY(-1px); }
+.secondary-action { color:#c2d1e8; border:1px solid var(--alfred-border); background:#17243a; }
+.secondary-action:hover { color:#eef3fc; border-color:rgba(151,174,211,.32); background:#1b2b44; }
+.text-action { min-height:32px; padding:0 9px; border-radius:8px; }
+.task-row,.project-card,.appointment-card,.stored-file,.study-topic,.discipline-option {
+  border-radius:12px;
+  transition:border-color .16s ease,background .16s ease,transform .16s ease;
+}
+.task-row:hover,.project-card:hover,.appointment-card:hover,.stored-file:hover,.study-topic:hover {
+  border-color:rgba(131,170,255,.24);
+}
+.empty-state { padding:26px 18px; border:1px dashed rgba(151,174,211,.23); border-radius:13px; }
+.module-error { padding:12px 14px; border:1px solid rgba(225,135,135,.22); border-radius:10px; font-size:11px; }
+.module-feedback { font-size:11px; }
+@media (max-width:700px) {
+  .entry-panel,.backup-settings .entry-panel { padding:17px; }
+  .entry-panel input,.entry-panel select,.entry-panel textarea,
+  .filter-control select,.agenda-date-label input,.study-filter select,
+  .weather-city-form input { font-size:16px; }
+  .primary-action,.secondary-action { min-height:42px; }
+}
