@@ -13,7 +13,7 @@ Assistente pessoal de produtividade e estudos, com foco em **privacidade** e **f
 
 ## O que o Alfred não faz (ainda)
 
-- A API serverless de autenticação e chat está em preparação, mas ainda não foi publicada nem conectada à interface. A URL do GitHub Pages continua sendo apenas a versão estática.
+- A interface já possui controles de login e consentimento para a API serverless, mas o backend ainda não foi publicado. A URL do GitHub Pages continua sendo apenas a versão estática/local.
 
 - Não envia dados a nenhum serviço de IA automaticamente.
 - Não integra com o Canvas LMS (planejado, aguardando verificação das políticas institucionais).
