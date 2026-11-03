@@ -187,7 +187,7 @@ export function Assistant() {
       async execute(input) {
         if (typeof input !== 'object' || input === null) throw new ActionApprovalError('Entrada inválida para alterar o prazo.');
         const record = input as Record<string, unknown>;
-        const validDate = typeof record.dueDate === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(record.dueDate) &&
+        const validDate = typeof record.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(record.dueDate) &&
           !Number.isNaN(Date.parse(record.dueDate + 'T00:00:00Z')) &&
           new Date(record.dueDate + 'T00:00:00Z').toISOString().slice(0, 10) === record.dueDate;
         if (typeof record.id !== 'string' || !validDate ||
