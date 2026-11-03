@@ -2080,3 +2080,175 @@ select:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion:reduce) {
   .nav-item,.mobile-more-menu { animation:none!important; transition:none!important; }
 }
+
+
+/* Alfred — acabamento de formulários, ações e estados interativos */
+.main-content .entry-panel {
+  border-color:rgba(151,177,222,.16);
+  border-radius:16px;
+  background:linear-gradient(150deg,rgba(18,30,49,.98),rgba(11,20,35,.98));
+  box-shadow:0 14px 34px rgba(0,0,0,.13),inset 0 1px rgba(255,255,255,.025);
+}
+.main-content .entry-panel h2,
+.main-content .list-heading h2 {
+  color:#edf3ff;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  letter-spacing:-.55px;
+}
+.main-content .field-label {
+  margin:15px 0 7px;
+  color:#a9b9d0;
+  font-size:10px;
+  font-weight:650;
+  letter-spacing:.15px;
+}
+.main-content .entry-panel input,
+.main-content .entry-panel select,
+.main-content .entry-panel textarea,
+.main-content .filter-control select,
+.main-content .weather-city-form input {
+  min-height:43px;
+  border:1px solid rgba(151,177,222,.19);
+  border-radius:10px;
+  color:#e8eef9;
+  background:#0a1423;
+  font-size:12px;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.main-content .entry-panel textarea { min-height:96px; padding:12px; line-height:1.6; }
+.main-content .entry-panel input::placeholder,
+.main-content .entry-panel textarea::placeholder,
+.main-content .weather-city-form input::placeholder { color:#71839e; }
+.main-content .entry-panel input:hover,
+.main-content .entry-panel select:hover,
+.main-content .entry-panel textarea:hover,
+.main-content .filter-control select:hover,
+.main-content .weather-city-form input:hover { border-color:rgba(151,177,222,.34); }
+.main-content .entry-panel input:focus,
+.main-content .entry-panel select:focus,
+.main-content .entry-panel textarea:focus,
+.main-content .filter-control select:focus,
+.main-content .weather-city-form input:focus {
+  border-color:rgba(145,180,245,.62);
+  background:#0c192b;
+  box-shadow:0 0 0 3px rgba(131,170,255,.11);
+  outline:0;
+}
+.main-content .entry-panel input:disabled,
+.main-content .entry-panel select:disabled,
+.main-content .entry-panel textarea:disabled { opacity:.55; cursor:not-allowed; }
+.main-content .primary-action,
+.main-content .assistant-proposal-actions .primary-action {
+  min-height:41px;
+  padding-inline:16px;
+  border:1px solid rgba(177,200,244,.2);
+  border-radius:10px;
+  color:#101d31;
+  background:linear-gradient(180deg,#b9cdf7,#9db8ed);
+  box-shadow:0 5px 14px rgba(73,111,177,.16),inset 0 1px rgba(255,255,255,.32);
+  font-size:11px;
+  font-weight:700;
+  transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;
+}
+.main-content .primary-action:hover:not(:disabled) {
+  background:linear-gradient(180deg,#c9d9fb,#aec5f4);
+  box-shadow:0 8px 19px rgba(73,111,177,.22),inset 0 1px rgba(255,255,255,.36);
+  transform:translateY(-1px);
+}
+.main-content .primary-action:active:not(:disabled) { transform:translateY(0); }
+.main-content .primary-action:disabled { opacity:.42; box-shadow:none; cursor:not-allowed; }
+.main-content .text-action,
+.main-content .dashboard-link {
+  border-radius:8px;
+  color:#a9c2f6;
+  font-size:10px;
+  font-weight:600;
+  transition:color .16s ease,background .16s ease,border-color .16s ease;
+}
+.main-content .text-action:hover:not(:disabled),
+.main-content .dashboard-link:hover:not(:disabled) {
+  color:#d7e4ff;
+  background:rgba(111,150,220,.1);
+}
+.main-content button:focus-visible,
+.main-content a:focus-visible {
+  outline:2px solid #a9c2f6;
+  outline-offset:3px;
+}
+.main-content .task-row,
+.main-content .project-card {
+  border-color:rgba(151,177,222,.15);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(18,30,49,.96),rgba(11,20,35,.98));
+  box-shadow:0 7px 18px rgba(0,0,0,.08);
+  transition:border-color .18s ease,transform .18s ease,background .18s ease;
+}
+.main-content .task-row:hover,
+.main-content .project-card:hover {
+  border-color:rgba(145,180,245,.28);
+  transform:translateY(-1px);
+}
+.main-content .task-content strong,
+.main-content .project-card h3 { color:#e8eef9; }
+.main-content .task-meta,
+.main-content .project-card > p { color:#91a1ba; }
+.main-content .empty-state {
+  border-color:rgba(151,177,222,.2);
+  color:#dce6f7;
+  background:rgba(13,23,39,.55);
+}
+.main-content .empty-state p { color:#91a1ba; }
+.main-content .weather-city-form {
+  padding:13px;
+  border:1px solid rgba(151,177,222,.15);
+  border-radius:12px;
+  background:rgba(8,17,30,.52);
+}
+.main-content .weather-city-form label {
+  color:#a9b9d0;
+  font-size:10px;
+  font-weight:650;
+}
+.main-content .weather-city-form > div { display:flex; align-items:center; gap:9px; }
+.main-content .weather-city-form input { min-width:0; flex:1; padding:0 12px; }
+.main-content .weather-city-form .primary-action { margin:0; }
+.assistant-proposal {
+  border-color:rgba(145,180,245,.24);
+  background:linear-gradient(145deg,rgba(25,42,68,.98),rgba(12,22,38,.99));
+  box-shadow:0 18px 42px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.035);
+}
+.assistant-proposal-actions .secondary-action {
+  min-height:40px;
+  padding:0 15px;
+  border:1px solid rgba(151,177,222,.2);
+  border-radius:9px;
+  color:#b5c4d9;
+  background:rgba(8,17,30,.45);
+  font-size:10px;
+  font-weight:650;
+  cursor:pointer;
+  transition:border-color .16s ease,color .16s ease,background .16s ease;
+}
+.assistant-proposal-actions .secondary-action:hover:not(:disabled) {
+  border-color:rgba(151,177,222,.38);
+  color:#edf3ff;
+  background:rgba(30,46,70,.72);
+}
+@media (max-width:600px) {
+  .main-content .entry-panel { padding:17px; }
+  .main-content .weather-city-form > div { align-items:stretch; flex-direction:column; }
+  .main-content .weather-city-form .primary-action { width:100%; }
+  .main-content .primary-action { width:100%; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .main-content .entry-panel *,
+  .main-content .task-row,
+  .main-content .project-card,
+  .main-content .primary-action,
+  .main-content .text-action,
+  .main-content .dashboard-link { transition:none!important; }
+  .main-content .task-row:hover,
+  .main-content .project-card:hover,
+  .main-content .primary-action:hover { transform:none; }
+}
