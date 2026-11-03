@@ -4,6 +4,7 @@ import './assistant/assistant.css';
 import { ActionApprovalError, executeApprovedProposal } from './assistant/actionApproval';
 import { prepareTaskCompletion } from './assistant/actionProposals';
 import { prepareTaskCreation } from './assistant/taskCreationProposals';
+import { prepareTaskPriorityUpdate } from './assistant/taskUpdateProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
 import { appointmentRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
@@ -14,7 +15,8 @@ function createMessage(role: AssistantMessage['role'], content: string): Assista
 
 type PendingTaskProposal =
   | { action: 'complete'; task: Task; proposal: ActionProposal }
-  | { action: 'create'; taskId: string; taskTitle: string; priority: TaskPriority; proposal: ActionProposal };
+  | { action: 'create'; taskId: string; taskTitle: string; priority: TaskPriority; proposal: ActionProposal }
+  | { action: 'priority'; task: Task; priority: TaskPriority; proposal: ActionProposal };
 
 export function Assistant() {
   const [messages, setMessages] = useState<AssistantMessage[]>([
@@ -44,6 +46,25 @@ export function Assistant() {
       const [tasks, appointments, topics] = await Promise.all([
         taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(),
       ]);
+      const priorityUpdate = prepareTaskPriorityUpdate(content, tasks, { referenceTaskId: recentTaskIdRef.current });
+      if (priorityUpdate.kind === 'proposal') {
+        setPendingProposal({ action: 'priority', task: priorityUpdate.task, priority: priorityUpdate.priority, proposal: priorityUpdate.proposal });
+        setMessages((current) => [...current, createMessage('assistant', 'Preparei uma proposta para alterar a prioridade. Confira os detalhes e confirme se deseja salvar.')]);
+        return;
+      }
+      if (priorityUpdate.kind === 'not-found') {
+        setMessages((current) => [...current, createMessage('assistant', 'Não encontrei “' + priorityUpdate.taskTitle + '”. Não alterei nenhuma tarefa.')]);
+        return;
+      }
+      if (priorityUpdate.kind === 'ambiguous') {
+        setMessages((current) => [...current, createMessage('assistant', 'Encontrei ' + priorityUpdate.matches + ' tarefas chamadas “' + priorityUpdate.taskTitle + '”. Não vou escolher uma delas automaticamente.')]);
+        return;
+      }
+      if (priorityUpdate.kind === 'already-set') {
+        setMessages((current) => [...current, createMessage('assistant', 'A tarefa “' + priorityUpdate.task.title + '” já está com essa prioridade.')]);
+        return;
+      }
+
       const preparation = prepareTaskCompletion(content, tasks, { referenceTaskId: recentTaskIdRef.current });
       if (preparation.kind === 'proposal') {
         setPendingProposal({ action: 'complete', task: preparation.task, proposal: preparation.proposal });
@@ -115,6 +136,23 @@ export function Assistant() {
         return { id: current.id, title: current.title, status: 'completed' };
       },
     };
+    const updatePriorityTool: ToolDefinition<unknown, unknown> = {
+      id: 'tasks.update-priority',
+      description: 'Altera a prioridade de uma tarefa existente.',
+      risk: 'write',
+      approval: 'explicit-confirmation',
+      async execute(input) {
+        if (typeof input !== 'object' || input === null) throw new ActionApprovalError('Entrada inválida para alterar a prioridade.');
+        const record = input as Record<string, unknown>;
+        if (typeof record.id !== 'string' || (record.priority !== 'low' && record.priority !== 'medium' && record.priority !== 'high')) {
+          throw new ActionApprovalError('Os dados da alteração de prioridade são inválidos.');
+        }
+        const current = await taskRepository.getById(record.id);
+        if (!current) throw new ActionApprovalError('A tarefa não existe mais. Nenhuma alteração foi feita.');
+        await taskRepository.save({ ...current, priority: record.priority });
+        return { id: current.id, title: current.title, priority: record.priority };
+      },
+    };
     const createTaskTool: ToolDefinition<unknown, unknown> = {
       id: 'tasks.create',
       description: 'Cria uma tarefa pendente.',
@@ -143,7 +181,7 @@ export function Assistant() {
         return created;
       },
     };
-    const tools = pending.action === 'complete' ? [completeTaskTool] : [createTaskTool];
+    const tools = pending.action === 'complete' ? [completeTaskTool] : pending.action === 'create' ? [createTaskTool] : [updatePriorityTool];
     const decision: ApprovalDecision = {
       proposalId: proposal.id,
       approved: true,
@@ -155,9 +193,13 @@ export function Assistant() {
       if (pending.action === 'complete') {
         recentTaskIdRef.current = pending.task.id;
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.task.title + '” foi marcada como concluída.')]);
-      } else {
+      } else if (pending.action === 'create') {
         recentTaskIdRef.current = pending.taskId;
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.taskTitle + '” foi criada com prioridade média e adicionada às pendências. Agora você pode se referir a ela como “essa tarefa” nesta conversa.')]);
+      } else {
+        recentTaskIdRef.current = pending.task.id;
+        const label = pending.priority === 'high' ? 'alta' : pending.priority === 'low' ? 'baixa' : 'média';
+        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A prioridade de “' + pending.task.title + '” agora é ' + label + '.')]);
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível executar a ação. Nenhuma confirmação de sucesso foi registrada.');
@@ -167,7 +209,7 @@ export function Assistant() {
   }
   function cancelProposal() {
     if (!pendingProposal || approving) return;
-    const title = pendingProposal.action === 'complete' ? pendingProposal.task.title : pendingProposal.taskTitle;
+    const title = pendingProposal.action === 'create' ? pendingProposal.taskTitle : pendingProposal.task.title;
     setPendingProposal(null);
     setMessages((current) => [...current, createMessage('assistant', `Proposta cancelada. “${title}” continua sem alterações.`)]);
   }
@@ -179,7 +221,7 @@ export function Assistant() {
         <span className="assistant-status"><i aria-hidden="true" /> Local</span>
       </header>
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
-        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span>
+        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span>
       </div>
       {messages.length === 1 && (
         <div className="assistant-suggestions" aria-label="Sugestões para começar">
@@ -212,7 +254,7 @@ export function Assistant() {
           <span className="card-label">CONFIRMAÇÃO NECESSÁRIA</span>
           <h3 id="assistant-proposal-title">{pendingProposal.proposal.title}</h3>
           <p id="assistant-proposal-description">{pendingProposal.proposal.explanation}</p>
-          <div className="assistant-proposal-record"><span>{pendingProposal.action === 'complete' ? 'Tarefa afetada' : 'Nova tarefa'}</span><strong>{pendingProposal.action === 'complete' ? pendingProposal.task.title : pendingProposal.taskTitle}</strong></div>
+          <div className="assistant-proposal-record"><span>{pendingProposal.action === 'create' ? 'Nova tarefa' : 'Tarefa afetada'}</span><strong>{pendingProposal.action === 'create' ? pendingProposal.taskTitle : pendingProposal.task.title}</strong></div>
           <p className="assistant-proposal-warning">Nada será alterado até você selecionar “Confirmar alteração”.</p>
           <div className="assistant-proposal-actions">
             <button type="button" className="secondary-action" onClick={cancelProposal} disabled={approving}>Cancelar</button>
@@ -226,7 +268,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e criação/conclusão de tarefas mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada ou concluída enquanto esta conversa estiver aberta; não é memória persistente.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão e alteração de prioridade mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada ou concluída enquanto esta conversa estiver aberta; não é memória persistente.</p>
     </section>
   );
 }
