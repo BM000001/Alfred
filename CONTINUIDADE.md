@@ -2,7 +2,7 @@
 
 ## Estado atual — 2026-11-03
 - PR #55 — fundação de backend seguro para IA — integrada após CI verde; rotas Vercel para login, sessão, logout e chat via AI Gateway, com consentimento obrigatório e testes Node.
-- PR #56 — interface de IA externa — em desenvolvimento; login, ativação opcional, consentimento por mensagem, envio somente da mensagem atual e auditoria local de metadados. Ainda depende de CI e publicação em Vercel.
+- PR #56 — interface de IA externa — integrada após CI verde; login, ativação opcional, consentimento por mensagem, envio somente da mensagem atual e auditoria local de metadados.
 - `main` é a fonte da verdade; desenvolver em branches e PRs.
 - PR #29 — análise arquitetural do Jarvis — integrada.
 - PR #30 — fundação segura do assistente — integrada.
