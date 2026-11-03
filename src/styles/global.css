@@ -878,3 +878,51 @@ body {
   color: #ffffff !important;
 }
 .app-shell .sr-only { color: inherit !important; }
+
+
+/* Surface/contrast balance: pair light typography with dark cards throughout the app. */
+:root {
+  --navy: #f3f6fc;
+  --blue: #48c9ed;
+  --bronze: #8b80ff;
+  --muted: #b4c0d1;
+  --surface: #202b3a;
+  --alfred-ink: #0b101b;
+  --alfred-panel: #202b3a;
+  --alfred-panel-raised: #263448;
+  --alfred-border: #354253;
+}
+.dashboard-stat, .dashboard-panel, .study-progress, .study-topic,
+.task-row, .project-card, .appointment-card, .focus-card,
+.focus-side-card, .focus-history, .dashboard-insight,
+.discipline-option, .stored-file, .focus-history-item,
+.agenda-view-switch, .focus-mode-switch, .secondary-action,
+.empty-state, .assistant-capabilities span {
+  color: #e7edf7 !important;
+  border-color: #354253 !important;
+  background: linear-gradient(145deg, #202b3a 0%, #171d27 100%) !important;
+}
+.dashboard-stat strong, .dashboard-panel strong, .study-topic strong,
+.task-content strong, .project-card h3, .appointment-details h3,
+.focus-card h2, .focus-side-card h3, .focus-clock,
+.dashboard-insight strong, .entry-panel h2, .list-heading h2,
+.agenda-toolbar h2 {
+  color: #f7f9ff !important;
+}
+.dashboard-stat p, .dashboard-panel p, .study-topic p,
+.task-meta, .appointment-details p, .appointment-time,
+.focus-guidance, .focus-side-card p, .focus-side-card small,
+.dashboard-insight p, .dashboard-empty, .progress-label {
+  color: #b6c2d3 !important;
+}
+.agenda-view-switch button, .focus-mode-switch button,
+.secondary-action, .text-action {
+  color: #d6e1f0 !important;
+}
+.entry-panel input, .entry-panel select, .entry-panel textarea,
+.filter-control select, .agenda-date-label input,
+.focus-task-select, .assistant-composer input,
+.app-shell input, .app-shell textarea, .app-shell select {
+  color: #17243a !important;
+  background: #f7f9fc !important;
+}
