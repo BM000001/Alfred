@@ -6,6 +6,7 @@ import type { StoredFile } from '../modules/files/types';
 import type { FocusSession } from '../modules/productivity/types';
 import type { AssistantMessage } from '../modules/assistant/contracts';
 import type { AssistantMemory } from '../modules/memory/types';
+import type { EgressAuditEntry, EgressSettings } from '../modules/assistant/egressAudit';
 import { openAlfredDatabase, runStoreRequest, STORE_NAMES } from './database';
 
 export interface EntityRepository<T extends { id: string }> {
@@ -55,3 +56,5 @@ export const fileRepository = createRepository<StoredFile>(STORE_NAMES.files);
 export const focusSessionRepository = createRepository<FocusSession>(STORE_NAMES.focusSessions);
 export const assistantMessageRepository = createRepository<AssistantMessage>(STORE_NAMES.assistantMessages);
 export const memoryRepository = createRepository<AssistantMemory>(STORE_NAMES.memories);
+export const egressAuditRepository = createRepository<EgressAuditEntry>(STORE_NAMES.egressAudit);
+export const egressSettingsRepository = createRepository<EgressSettings>(STORE_NAMES.egressSettings);

@@ -56,7 +56,11 @@ function assertEntities(value: unknown, label: string): asserts value is Array<{
 export async function createBackup(): Promise<string> {
   const database = await openAlfredDatabase();
   try {
-    const names = Object.values(STORE_NAMES);
+    const names = [
+      STORE_NAMES.tasks, STORE_NAMES.projects, STORE_NAMES.appointments,
+      STORE_NAMES.disciplines, STORE_NAMES.studyTopics, STORE_NAMES.files,
+      STORE_NAMES.focusSessions, STORE_NAMES.assistantMessages, STORE_NAMES.memories,
+    ];
     const transaction = database.transaction(names, 'readonly');
     const requests = names.map((name) => new Promise<unknown[]>((resolve, reject) => {
       const request = transaction.objectStore(name).getAll();
