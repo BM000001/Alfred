@@ -29,6 +29,7 @@ export function ExternalAIControls({
   onAuthenticatedChange,
 }: ExternalAIControlsProps) {
   const [status, setStatus] = useState<APIStatus>('checking');
+  const [aiReady, setAiReady] = useState(false);
   const [password, setPassword] = useState('');
   const [enabled, setEnabled] = useState(false);
   const [classes, setClasses] = useState<EgressDataClass[]>([]);
@@ -44,13 +45,14 @@ export function ExternalAIControls({
         if (!response.ok) throw new Error('API indisponível');
         return response.json();
       })
-      .then((result: { configured?: boolean; authenticated?: boolean }) => {
+      .then((result: { configured?: boolean; authenticated?: boolean; aiEnabled?: boolean }) => {
         if (!active) return;
         if (!result.configured) {
           setStatus('unavailable');
           onAuthenticatedChange(false);
           return;
         }
+        setAiReady(result.aiEnabled === true);
         const authenticated = result.authenticated === true;
         setStatus(authenticated ? 'signed-in' : 'signed-out');
         onAuthenticatedChange(authenticated);
@@ -149,7 +151,8 @@ export function ExternalAIControls({
         <div><input id="assistant-remote-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} maxLength={256} required />
           <button type="submit" className="secondary-action" disabled={busy || !password}>{busy ? 'Entrando…' : 'Entrar'}</button></div>
       </form>}
-      {status === 'signed-in' && <div className="assistant-remote-controls">
+      {status === 'signed-in' && !aiReady && <div className="assistant-remote-controls"><p className="assistant-remote-note">A sessão está ativa, mas a IA externa ainda não foi habilitada ou configurada no servidor.</p><button type="button" className="assistant-remote-logout" onClick={() => void logout()} disabled={busy}>Encerrar sessão</button></div>}
+      {status === 'signed-in' && aiReady && <div className="assistant-remote-controls">
         <div className="assistant-remote-toggle">
           <div><strong>Usar IA externa nesta conversa</strong><small>Desligado por padrão. Não altera o comportamento do modo local.</small></div>
           <button type="button" className={enabled ? 'primary-action' : 'secondary-action'} onClick={() => changeMode(!enabled)} disabled={busy}>
