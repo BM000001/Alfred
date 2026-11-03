@@ -1196,3 +1196,141 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   html { scroll-behavior:auto; }
   *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
 }
+
+
+/* Alfred — camada final de consistência visual */
+:root {
+  color-scheme: dark;
+  --alfred-bg: #080d18;
+  --alfred-panel: #101a2b;
+  --alfred-panel-raised: #142139;
+  --alfred-border: rgba(151, 177, 222, .16);
+  --alfred-text: #e8eef9;
+  --alfred-heading: #f2f6ff;
+  --alfred-muted: #91a0b8;
+  --alfred-accent: #91b4f5;
+  --alfred-accent-strong: #b6ceff;
+  --alfred-control-bg: #0b1423;
+  --alfred-control-border: rgba(151, 174, 211, .22);
+  --alfred-focus: rgba(131, 170, 255, .25);
+  --surface: var(--alfred-panel);
+  --navy: var(--alfred-text);
+  --blue: var(--alfred-accent);
+  --bronze: var(--alfred-accent);
+  --muted: var(--alfred-muted);
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  color: var(--alfred-text);
+  background: var(--alfred-bg);
+}
+html { color-scheme: dark; background: var(--alfred-bg); }
+body {
+  color: var(--alfred-text);
+  background:
+    radial-gradient(ellipse at 78% -12%, rgba(59, 91, 151, .16), transparent 42%),
+    radial-gradient(ellipse at 4% 38%, rgba(37, 69, 119, .08), transparent 36%),
+    var(--alfred-bg);
+}
+.app-shell { color: var(--alfred-text); }
+.topbar, .sidebar-shell { border-color: var(--alfred-border); }
+.main-content { min-width: 0; }
+.welcome h1, .entry-panel h2, .list-heading h2, .agenda-toolbar h2,
+.dashboard-panel-heading h2, .study-progress strong { color: var(--alfred-heading); }
+.welcome-copy, .module-placeholder p { color: #9aa9c0; }
+.eyebrow, .card-label { color: #9bb9f4; }
+.topbar-caption, .nav-caption { color: #71839e; }
+.nav-item { color: #a0aec4; }
+.nav-item:hover { color: #eef4ff; background: rgba(111, 150, 220, .10); }
+.nav-item.active {
+  color: #eef4ff;
+  border-color: rgba(145, 180, 245, .2);
+  background: linear-gradient(100deg, rgba(91, 132, 202, .22), rgba(65, 100, 158, .09));
+}
+.brand { color: #f0f5ff; }
+.brand-mark { color: #c4d7ff; background: linear-gradient(145deg, #263d62, #14243d); }
+.brand-period { color: var(--alfred-accent); }
+.sidebar-note, .mobile-context-icon {
+  border-color: var(--alfred-border);
+  background: rgba(20, 33, 55, .72);
+}
+.overview-card, .module-placeholder, .entry-panel, .dashboard-stat,
+.dashboard-panel, .task-row, .project-card, .appointment-card,
+.study-progress, .discipline-list, .study-content, .study-topic,
+.stored-file, .focus-card, .focus-side-card, .focus-history,
+.dashboard-insight, .empty-state {
+  color: var(--alfred-text);
+  border-color: var(--alfred-border);
+  background: linear-gradient(145deg, rgba(20, 33, 55, .96), rgba(13, 23, 39, .98));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .14);
+}
+.overview-card strong, .dashboard-stat > strong, .dashboard-panel strong,
+.dashboard-task-list li strong, .dashboard-event-list li strong,
+.task-content strong, .project-card h3, .appointment-details h3,
+.stored-file-info strong, .study-topic strong, .discipline-option strong,
+.module-placeholder h2 { color: #eaf1fd; }
+.overview-card p, .dashboard-stat > p, .dashboard-empty,
+.dashboard-task-list li span:not(.dashboard-priority), .dashboard-event-list li span,
+.task-meta, .project-card > p, .appointment-details p,
+.stored-file-info span, .study-topic p { color: #91a1ba; }
+.entry-panel input, .entry-panel select, .entry-panel textarea,
+.filter-control select, .agenda-date-label input, .study-filter select,
+.weather-city-form input, .assistant-composer input {
+  color: #e8eef9;
+  border-color: var(--alfred-control-border);
+  background: var(--alfred-control-bg);
+}
+.entry-panel input::placeholder, .entry-panel textarea::placeholder,
+.weather-city-form input::placeholder { color: #71839e; }
+.field-label, .entry-panel label, .agenda-date-label { color: #aab9cf; }
+.primary-action {
+  color: #0b1423;
+  background: linear-gradient(110deg, #b2caff, #83aaf0);
+  box-shadow: 0 5px 16px rgba(91, 132, 202, .16);
+}
+.primary-action:hover:not(:disabled) { background: #c5d7ff; }
+.secondary-action, .text-action {
+  color: #b7c6df;
+  border-color: var(--alfred-border);
+}
+.agenda-view-switch, .agenda-view-switch button,
+.study-filter select { color: #bdcbe0; border-color: var(--alfred-border); background: #0c1626; }
+.agenda-view-switch button.selected { color: #0b1423; background: #a9c2f6; }
+.progress-track { background: #263750; }
+.progress-track span { background: linear-gradient(90deg, #789fe9, #b3caff); }
+.empty-state { border-style: dashed; }
+.module-error { color: #efc0bc; border-color: rgba(225,135,135,.25); background: rgba(125,52,52,.14); }
+.module-feedback { color: #9aa9c0; }
+.dashboard-link, .app-shell a { color: #a9c5fa; }
+.dashboard-link:hover, .app-shell a:hover { color: #d2e0ff; }
+::selection { color: #fff; background: rgba(103, 145, 222, .45); }
+button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--alfred-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .app-shell { width: 100%; padding-inline: 16px; }
+  .topbar { min-height: 62px; }
+  .topbar-caption { display: none; }
+  .workspace { display: block; }
+  .sidebar-shell { display: none; }
+  .main-content { padding-bottom: 18px; }
+  .main-content .welcome { padding: 34px 0 24px; }
+  .welcome h1 { font-size: clamp(32px, 8vw, 43px); }
+  .mobile-page-context { display: flex; }
+  .mobile-tabbar { display: flex; }
+  .app-footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .dashboard-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-home-grid, .dashboard-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .app-shell { padding-inline: 12px; }
+  .dashboard-summary { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-stat:last-child { grid-column: auto; }
+  .entry-panel { padding: 16px; }
+  .appointment-card { grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
+  .assistant-module { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
