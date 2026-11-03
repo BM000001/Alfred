@@ -20,7 +20,8 @@ export function requestOriginIsValid(req) {
   try {
     const expected = new URL(configured);
     const received = new URL(origin);
-    return expected.origin === received.origin && received.host === host;
+    return expected.protocol === 'https:' && received.protocol === 'https:'
+      && expected.origin === received.origin && received.host === host;
   } catch {
     return false;
   }
