@@ -1,5 +1,5 @@
 import {
-  authConfigurationReady, clientAddress, createSessionToken, jsonError,
+  authConfigurationReady, clientAddress, createSessionToken, jsonError, noStore,
   passwordMatches, requestBody, requestOriginIsValid, setSessionCookie,
 } from '../_lib/security.js';
 
@@ -18,9 +18,16 @@ function isRateLimited(address, now = Date.now()) {
 function recordFailure(address, now = Date.now()) {
   const recent = (attempts.get(address) ?? []).filter((time) => now - time < WINDOW_MS);
   attempts.set(address, [...recent, now]);
+  if (attempts.size > 1_000) {
+    for (const [key, times] of attempts) {
+      if (!times.some((time) => now - time < WINDOW_MS)) attempts.delete(key);
+      if (attempts.size <= 1_000) break;
+    }
+  }
 }
 
 export default function login(req, res) {
+  noStore(res);
   if (req.method !== 'POST') return jsonError(res, 405, 'Método não permitido.');
   if (!requestOriginIsValid(req)) return jsonError(res, 403, 'Origem não autorizada.');
   if (!authConfigurationReady()) return jsonError(res, 503, 'Autenticação ainda não configurada no servidor.');
