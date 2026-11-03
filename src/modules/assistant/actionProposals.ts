@@ -26,12 +26,19 @@ function requestedTaskTitle(prompt: string): string | null {
 export function prepareTaskCompletion(
   prompt: string,
   tasks: readonly Task[],
-  options: { now?: string; proposalId?: string } = {},
+  options: { now?: string; proposalId?: string; referenceTaskId?: string | null } = {},
 ): TaskCompletionPreparation {
   const title = requestedTaskTitle(prompt);
-  if (!title) return { kind: 'not-request' };
+  const refersToRecentTask = /^(?:(?:por favor,?\\s*)?(?:(?:pode|quero|preciso)\\s+)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina|marcar|marque|marca)\\s+)?(?:ela|essa tarefa|esta tarefa|a tarefa anterior|a última tarefa)(?:\\s+como\\s+(?:conclu[ií]da|feita|finalizada))?$/i.test(prompt.trim().replace(/[.!?]+$/, '').trim());
+  if (!title && !refersToRecentTask) return { kind: 'not-request' };
 
-  const matches = tasks.filter((task) => task.title.toLocaleLowerCase('pt-BR') === title.toLocaleLowerCase('pt-BR'));
+  const referencedTask = refersToRecentTask && options.referenceTaskId
+    ? tasks.find((task) => task.id === options.referenceTaskId)
+    : undefined;
+  if (refersToRecentTask && !referencedTask) return { kind: 'not-found', taskTitle: 'a tarefa mencionada anteriormente' };
+  const matches = referencedTask
+    ? [referencedTask]
+    : tasks.filter((task) => task.title.toLocaleLowerCase('pt-BR') === title!.toLocaleLowerCase('pt-BR'));
   if (matches.length === 0) return { kind: 'not-found', taskTitle: title };
   if (matches.length > 1) return { kind: 'ambiguous', taskTitle: title, matches: matches.length };
 
