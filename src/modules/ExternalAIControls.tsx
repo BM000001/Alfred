@@ -141,7 +141,7 @@ export function ExternalAIControls({
           {status === 'checking' ? 'Verificando' : status === 'unavailable' ? 'API indisponível' : status === 'signed-in' ? 'Sessão ativa' : 'Não conectado'}
         </span>
       </header>
-      <p>O modo local continua sendo o padrão. A conexão externa envia somente a mensagem atual — nunca tarefas, agenda, memórias ou histórico local.</p>
+      <p>O modo local continua sendo o padrão. A conexão externa envia somente a mensagem atual — nunca tarefas, agenda, memórias ou histórico local. No modo externo, Alfred não executa alterações nos seus registros.</p>
       {status === 'checking' && <p role="status">Verificando disponibilidade do backend…</p>}
       {status === 'unavailable' && <p className="assistant-remote-note">O backend ainda não está publicado neste domínio. A versão atual continua funcionando localmente.</p>}
       {status === 'signed-out' && <form className="assistant-remote-login" onSubmit={login}>
