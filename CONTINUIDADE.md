@@ -14,7 +14,10 @@
 - PR #43 — criação de tarefas pelo assistente com confirmação explícita — integrada; CI aprovado (run #119).
 - PR #47 — redesign da navegação, identidade visual e refinamentos do assistente — integrada; commit `2e7dd3e` na `main`.
 - PR #49 — histórico local persistente do assistente — integrada em 2026-11-03 após CI verde (125 testes e build aprovados).
-- PR #48 — refinamento visual dos módulos internos — aberta no momento da inspeção; não foi presumida como integrada.
+- PR #50 — memórias locais manuais — integrada; CI verde (134 testes, build aprovado e auditoria npm sem vulnerabilidades reportadas).
+- PR #51 — política provider-neutral de consentimento para exportação manual — integrada; CI verde.
+- PR #52 — painel de exportação manual — integrada após correção de teste de interface; CI verde.
+- PR #48 — refinamento visual dos módulos internos — permanece aberta; não foi presumida como integrada.
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
@@ -36,6 +39,9 @@
 - Interface conversacional responsiva conectada aos dados reais do IndexedDB.
 - Histórico de conversa local persistente em IndexedDB, limitado às 200 mensagens mais recentes, com ação explícita para apagar o histórico. Propostas aguardando confirmação não são restauradas após recarregar a página.
 - Memórias explícitas em IndexedDB: cadastro, edição, exclusão e consulta manual; categorias de preferência, objetivo, projeto, rotina e outro. Não há extração automática nem armazenamento automático de dados sensíveis. Memórias permanecem locais e entram no backup JSON (também no backup criptografado); backups antigos sem o campo continuam compatíveis.
+- Portão de exportação manual: permite selecionar tarefas, tópicos de estudo e memórias, revisar cada item, autorizar as classes pública/pessoal/acadêmica por operação e gerar prévia exata antes de copiar. Não há envio de rede nem provedor remoto conectado.
+- Controles de exportação: preferência global local para desativar/reabilitar novas preparações manuais. Desativar invalida a prévia e limpa seleções/autorizações da interface.
+- Auditoria local: registra apenas data/hora, classes, quantidade de itens e caracteres, e ação de cópia para área de transferência; não armazena texto, títulos ou IDs dos conteúdos. Retenção limitada aos 100 registros mais recentes; pode ser apagada pelo usuário. A auditoria registra cópia, não comprova envio a outro serviço.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
 - Ações de escrita disponíveis: `criar tarefa <título>`, `adicionar tarefa: <título>`, `concluir tarefa <título exato>` ou `marcar tarefa <título exato> como concluída`. O Alfred apresenta uma proposta e só grava após clique em “Confirmar alteração”. Cancelar não altera dados. A criação recusa títulos duplicados e títulos acima do limite; a conclusão recusa títulos ambíguos/inexistentes e exige que a tarefa ainda esteja pendente. Enquanto há uma proposta aberta, o campo de comando fica desativado até confirmar ou cancelar.
 - A memória é manual e baseada em registros estruturados; ainda não há extração automática, busca vetorial/embeddings, nem modelo de IA generativa. O assistente consegue listar o que foi salvo quando perguntado. Também não há voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
@@ -51,7 +57,7 @@
 - A PR #22 restaurou a configuração React/Vite que havia sido substituída por configuração TypeScript independente.
 - Módulos independentes de domínio, armazenamento, privacidade e adaptador manual ainda NÃO estão integrados à aplicação React.
 - A proteção por senha do backup está integrada no módulo atual; os módulos criptográficos independentes da Etapa 1 não foram incorporados.
-- A etapa de consentimento antes de enviar dados a provedores externos ainda não está implementada.
+- O consentimento atual cobre preparação/cópia manual, não chamadas a provedores externos. Não existe integração de IA remota nem envio de rede pelo painel.
 - Testes independentes da Etapa 1 não fazem parte da suíte Vitest do app.
 
 ## Pontos de atenção conhecidos
