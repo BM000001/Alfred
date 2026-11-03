@@ -33,6 +33,7 @@ export function Assistant() {
   const [error, setError] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
   const recentTaskIdRef = useRef<string | null>(null);
+  const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const welcomeMessage = 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar, concluir, ajustar prioridades, definir prazos e editar descrições de tarefas. Nenhuma alteração será feita sem sua confirmação explícita.';
 
@@ -62,7 +63,8 @@ export function Assistant() {
   useEffect(() => {
     if (!historyReady || messages.length === 0) return;
     const retained = messages.slice(-200);
-    void Promise.all(retained.map((message) => assistantMessageRepository.save(message)))
+    persistenceQueueRef.current = persistenceQueueRef.current
+      .then(async () => { await Promise.all(retained.map((message) => assistantMessageRepository.save(message))); })
       .catch(() => setError('Não foi possível salvar o histórico da conversa neste dispositivo.'));
   }, [messages, historyReady]);
 
@@ -343,6 +345,7 @@ export function Assistant() {
   async function clearConversation() {
     if (!confirmClear || loading || approving || pendingProposal) return;
     try {
+      await persistenceQueueRef.current;
       await assistantMessageRepository.clear();
       recentTaskIdRef.current = null;
       setMessages([createMessage('assistant', welcomeMessage)]);
