@@ -88,6 +88,10 @@ export function inspectBackup(raw: string): { createdAt: string; counts: Record<
   if (data.focusSessions === undefined) data.focusSessions = [];
   if (data.memories === undefined) data.memories = [];
   for (const name of ['tasks', 'projects', 'appointments', 'disciplines', 'studyTopics', 'focusSessions', 'memories', 'files']) assertEntities(data[name], name);
+  const validCategories = ['preference', 'goal', 'project', 'routine', 'other'];
+  if (!(data.memories as unknown[]).every((item) => isRecord(item) && typeof item.title === 'string' && item.title.trim().length > 0 && item.title.length <= 80 && typeof item.content === 'string' && item.content.trim().length > 0 && item.content.length <= 500 && validCategories.includes(String(item.category)) && typeof item.createdAt === 'string' && !Number.isNaN(Date.parse(item.createdAt)) && typeof item.updatedAt === 'string' && !Number.isNaN(Date.parse(item.updatedAt)))) {
+    throw new Error('O backup contém memórias inválidas.');
+  }
   const files = data.files as unknown[];
   for (const file of files) {
     if (!isRecord(file) || typeof file.contentBase64 !== 'string' || typeof file.name !== 'string'

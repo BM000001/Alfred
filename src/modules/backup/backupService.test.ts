@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createBackup, inspectBackup } from './backupService';
+import { createBackup, inspectBackup, restoreBackup } from './backupService';
 import { focusSessionRepository, memoryRepository } from '../../storage/repositories';
 import type { AssistantMemory } from '../memory/types';
 import type { FocusSession } from '../productivity/types';
@@ -41,6 +41,22 @@ describe('backupService', () => {
       await memoryRepository.save(memory);
       expect(inspectBackup(await createBackup()).counts.memories).toBe(1);
     } finally { await memoryRepository.delete(memory.id); }
+  });
+
+  it('restaura memórias do backup para o IndexedDB', async () => {
+    const memory: AssistantMemory = { id: 'memory-restore-test', title: 'Objetivo', content: 'Concluir o projeto.', category: 'goal', createdAt: '2026-11-03T10:00:00.000Z', updatedAt: '2026-11-03T10:00:00.000Z' };
+    try {
+      await memoryRepository.save(memory);
+      const preview = inspectBackup(await createBackup());
+      await memoryRepository.delete(memory.id);
+      await restoreBackup(preview.payload);
+      expect(await memoryRepository.getById(memory.id)).toEqual(memory);
+    } finally { await memoryRepository.delete(memory.id); }
+  });
+
+  it('rejeita memórias inválidas no backup', () => {
+    const invalid = { ...validBackup, data: { ...validBackup.data, memories: [{ id: 'm1', title: '', content: 'x', category: 'unknown', createdAt: 'invalid', updatedAt: 'invalid' }] } };
+    expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('memórias inválidas');
   });
 
   it('rejeita JSON inválido', () => {
