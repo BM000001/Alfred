@@ -806,3 +806,66 @@ select:focus-visible, textarea:focus-visible { outline-color: var(--alfred-cyan)
   .mini-calendar-weekday, .mini-calendar-day, .mini-calendar-blank { min-height: 29px; }
   .dashboard-focus-strip { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* Responsive layout fix: keep Alfred full-width on mobile and use the dark theme globally. */
+html, body, #root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  background: #0b101b !important;
+}
+body {
+  min-height: 100vh;
+  color: #f3f5fb;
+  overflow-x: hidden;
+}
+.app-shell {
+  width: calc(100% - 32px) !important;
+  max-width: 1440px !important;
+  min-width: 0 !important;
+  margin-inline: auto;
+}
+.workspace {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 228px minmax(0, 1fr);
+}
+.main-content, .dashboard, .dashboard-home-grid, .dashboard-columns {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .app-shell {
+    width: calc(100% - 24px) !important;
+  }
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .main-content {
+    width: 100%;
+    order: 1;
+  }
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+    order: 2;
+  }
+  .dashboard-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-stat:last-child {
+    grid-column: 1 / -1;
+  }
+  .dashboard-home-grid, .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 360px) {
+  .app-shell { width: calc(100% - 20px) !important; }
+  .dashboard-summary { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-stat:last-child { grid-column: auto; }
+}
