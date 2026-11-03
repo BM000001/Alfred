@@ -632,3 +632,77 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Second visual reference: luminous blue/violet accents and tactile mobile cards. */
+:root {
+  --alfred-cyan: #48d8f2;
+  --alfred-violet: #6b5cff;
+  --alfred-blue: #248cf5;
+}
+.topbar { border-bottom-color: rgb(255 255 255 / 10%); }
+.brand-mark {
+  background: linear-gradient(145deg, #2bbbe8, #5445db);
+  border: 0;
+  box-shadow: 0 0 22px rgb(57 151 255 / 22%);
+}
+.brand-period { color: var(--alfred-cyan); }
+.sidebar {
+  border-color: #343c4c;
+  background: linear-gradient(155deg, #202b3b, #171c26 78%);
+}
+.nav-item.active {
+  color: #ffffff;
+  background: linear-gradient(110deg, rgb(48 194 235 / 22%), rgb(102 84 255 / 25%));
+  box-shadow: inset 3px 0 var(--alfred-cyan), 0 0 18px rgb(63 133 255 / 8%);
+}
+.nav-mark, .eyebrow, .card-label { color: var(--alfred-cyan); }
+.primary-action {
+  background: linear-gradient(105deg, #36cbe9, #5b50ef);
+  box-shadow: 0 5px 18px rgb(63 122 255 / 20%);
+}
+.primary-action:hover { background: linear-gradient(105deg, #62e2f5, #8174ff); }
+.overview-card, .entry-panel, .module-placeholder, .organization-card,
+.study-card, .agenda-card, .productivity-card, .files-card, .settings-card,
+.assistant-panel, .assistant-card {
+  border-color: #354253;
+  background: linear-gradient(145deg, #202b3a 0%, #171d27 100%);
+  box-shadow: 0 14px 30px rgb(8 12 22 / 24%), inset 0 1px rgb(255 255 255 / 3%);
+}
+.overview-card {
+  min-height: 176px;
+  border-radius: 20px;
+  transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+.overview-card:hover {
+  transform: translateY(-3px);
+  border-color: #426b91;
+  box-shadow: 0 18px 34px rgb(8 12 22 / 30%), 0 0 22px rgb(43 155 238 / 7%);
+}
+.overview-card::after {
+  width: 104px; height: 104px; right: -28px; bottom: -38px;
+  border-color: var(--alfred-cyan);
+  box-shadow: 0 0 24px rgb(57 199 244 / 10%);
+}
+.entry-panel, .module-placeholder { border-radius: 20px; }
+.entry-panel input:focus, .entry-panel select:focus, .entry-panel textarea:focus,
+.filter-control select:focus, .assistant-composer input:focus {
+  border-color: var(--alfred-cyan);
+  box-shadow: 0 0 0 3px rgb(72 216 242 / 12%);
+}
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible { outline-color: var(--alfred-cyan); }
+.assistant-conversation { border-color: #354253; background: #151b25; }
+.assistant-message { border-color: #354253; background: #222d3c; }
+.assistant-message.from-user {
+  border-color: #3b6eab;
+  background: linear-gradient(120deg, rgb(43 191 233 / 18%), rgb(98 81 255 / 20%));
+}
+.assistant-message p { color: #f0f3f8; }
+.assistant-capabilities span { color: #c8d4e5; border-color: #354253; background: #1b2431; }
+@media (max-width: 700px) {
+  .sidebar { border-color: #354253; background: linear-gradient(110deg, #202b3b, #171c26); }
+  .nav-item.active { border-color: #426b91; box-shadow: 0 0 15px rgb(63 133 255 / 10%); }
+  .overview { gap: 14px; }
+  .overview-card { min-height: 150px; }
+}
