@@ -74,7 +74,8 @@ export function prepareTaskDueDateUpdate(
   if (dueDate === undefined) return { kind: 'not-request' };
   if (dueDate === null) return { kind: 'invalid-date' };
   const title = extractTitle(prompt);
-  const contextual = !title && /\b(?:ela|essa tarefa|esta tarefa|a tarefa anterior|a ultima tarefa)\b/i.test(prompt.normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+  const normalizedPrompt = prompt.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const contextual = !title && (/\b(?:ela|essa tarefa|esta tarefa|a tarefa anterior|a ultima tarefa)\b/i.test(normalizedPrompt) || /^\s*(?:o\s+)?prazo\s+(?:e|sera)\s+/i.test(normalizedPrompt));
   if (!title && !contextual) return { kind: 'not-request' };
   const referenced = contextual && options.referenceTaskId ? tasks.find((task) => task.id === options.referenceTaskId) : undefined;
   if (contextual && !referenced) return { kind: 'not-found', taskTitle: 'a tarefa mencionada anteriormente' };
