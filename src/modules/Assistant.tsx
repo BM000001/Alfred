@@ -287,7 +287,7 @@ export function Assistant() {
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.task.title + '” foi marcada como concluída.')]);
       } else if (pending.action === 'create') {
         recentTaskIdRef.current = pending.taskId;
-        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.taskTitle + '” foi criada com prioridade média e adicionada às pendências. Agora você pode se referir a ela como “essa tarefa” nesta conversa.')]);
+        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.taskTitle + '” foi criada com prioridade média e adicionada às pendências.')]);
       } else if (pending.action === 'priority') {
         recentTaskIdRef.current = pending.task.id;
         const label = pending.priority === 'high' ? 'alta' : pending.priority === 'low' ? 'baixa' : 'média';
