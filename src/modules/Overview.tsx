@@ -121,7 +121,7 @@ export function Overview({ onNavigate }: Props) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const calendarCells = [...Array(monthStart.getDay()).fill(null), ...Array.from({ length: monthDays }, (_, i) => i + 1)];
-  const eventDays = new Set(appointments.filter((item) => item.status === 'scheduled').map((item) => new Date(item.startsAt).getDate()).filter((day) => Number.isFinite(day)));
+  const eventDays = new Set(appointments.filter((item) => { const date = new Date(item.startsAt); return item.status === 'scheduled' && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth(); }).map((item) => new Date(item.startsAt).getDate()));
 
   function saveCity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
