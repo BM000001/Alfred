@@ -178,6 +178,22 @@ export function Assistant() {
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
         <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span>
       </div>
+      {messages.length === 1 && (
+        <div className="assistant-suggestions" aria-label="Sugestões para começar">
+          <span className="assistant-suggestions-label">EXPERIMENTE PERGUNTAR</span>
+          <div className="assistant-suggestion-list">
+            {[
+              'Quais tarefas estão pendentes?',
+              'Quais são meus próximos compromissos?',
+              'Como está meu progresso nos estudos?',
+            ].map((suggestion) => (
+              <button key={suggestion} type="button" onClick={() => setInput(suggestion)} disabled={loading || approving}>
+                <span aria-hidden="true">↗</span>{suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="assistant-conversation" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((message) => (
           <article className={`assistant-message ${message.role === 'user' ? 'from-user' : 'from-alfred'}`} key={message.id}>
