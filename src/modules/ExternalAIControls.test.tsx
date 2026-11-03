@@ -15,7 +15,7 @@ describe('ExternalAIControls', () => {
     const onAuthorizationChange = vi.fn();
     const onAuthenticatedChange = vi.fn();
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ configured: true, authenticated: false }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ configured: true, authenticated: false, aiEnabled: true }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ authenticated: true }) });
     vi.stubGlobal('fetch', fetchMock);
 
