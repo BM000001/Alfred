@@ -44,6 +44,24 @@ describe('ExternalAIControls', () => {
     });
   });
 
+
+  it('não permite ativar IA quando o servidor mantém o recurso desabilitado', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ configured: true, authenticated: true, aiEnabled: false }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<ExternalAIControls
+      authorized={false}
+      onModeChange={vi.fn()}
+      onAuthorizationChange={vi.fn()}
+      onAuthenticatedChange={vi.fn()}
+    />);
+
+    expect(await screen.findByText(/IA externa ainda não foi habilitada/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ativar IA externa' })).not.toBeInTheDocument();
+  });
+
   it('mantém a IA externa indisponível quando a API não existe', async () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error('Not found'));
     vi.stubGlobal('fetch', fetchMock);
