@@ -37,6 +37,7 @@ export function ManualExportPanel() {
   const [audit, setAudit] = useState<EgressAuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [copying, setCopying] = useState(false);
   const [error, setError] = useState('');
   const [feedback, setFeedback] = useState('');
 
@@ -91,6 +92,7 @@ export function ManualExportPanel() {
 
   function toggle(id: string, checked: boolean) {
     invalidate();
+    setConsent([]);
     setSelected(current => checked ? [...current, id] : current.filter(value => value !== id));
     if (!checked) setSafe(current => current.filter(value => value !== id));
   }
@@ -112,7 +114,8 @@ export function ManualExportPanel() {
   }
 
   async function copy() {
-    if (!settings?.enabled || !preview?.decision.allowed || !preview.text) return;
+    if (copying || !settings?.enabled || !preview?.decision.allowed || !preview.text) return;
+    setCopying(true);
     try {
       await navigator.clipboard.writeText(preview.text);
       const entry = createEgressAuditEntry({
@@ -130,8 +133,14 @@ export function ManualExportPanel() {
       } catch {
         setFeedback('O texto foi copiado, mas não foi possível salvar o registro de auditoria neste dispositivo.');
       }
+      setPreview(null);
+      setSelected([]);
+      setSafe([]);
+      setConsent([]);
     } catch {
       setError('Não foi possível copiar automaticamente. Copie o texto da prévia manualmente; nenhuma cópia foi registrada.');
+    } finally {
+      setCopying(false);
     }
   }
 
@@ -187,11 +196,11 @@ export function ManualExportPanel() {
       <strong>1. Selecione os conteúdos</strong>
       {records.map(({ item, label }) => <div className="assistant-export-record" key={item.id}>
         <label><input type="checkbox" checked={selected.includes(item.id)} onChange={event => toggle(item.id, event.target.checked)} /><span>{label}</span><small>{labels[item.dataClass]}</small></label>
-        {selected.includes(item.id) && <label className="assistant-export-safe"><input type="checkbox" checked={safe.includes(item.id)} onChange={event => { invalidate(); setSafe(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id)); }} /><span>Revisei este conteúdo: não contém dados sensíveis.</span></label>}
+        {selected.includes(item.id) && <label className="assistant-export-safe"><input type="checkbox" checked={safe.includes(item.id)} onChange={event => { invalidate(); setConsent([]); setSafe(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id)); }} /><span>Revisei este conteúdo: não contém dados sensíveis.</span></label>}
       </div>)}
     </div>}
     {settings?.enabled && <label className="assistant-export-instruction" htmlFor="manual-export-instruction"><strong>2. O que a IA deve fazer?</strong>
-      <textarea id="manual-export-instruction" rows={3} maxLength={500} value={instruction} onChange={event => { setInstruction(event.target.value); invalidate(); }} />
+      <textarea id="manual-export-instruction" rows={3} maxLength={500} value={instruction} onChange={event => { setInstruction(event.target.value); setConsent([]); invalidate(); }} />
     </label>}
     {settings?.enabled && <div className="assistant-export-group"><strong>3. Autorize as categorias selecionadas</strong>
       <p>Esta autorização vale somente para esta preparação.</p>
@@ -205,7 +214,7 @@ export function ManualExportPanel() {
       {preview.decision.allowed && preview.text ? <>
         <p>{preview.decision.itemCount} item(ns) · {preview.decision.classes.map(value => labels[value]).join(', ')} · {preview.decision.characterCount} caracteres</p>
         <textarea aria-label="Texto exato que será copiado" readOnly rows={12} value={preview.text} />
-        <button type="button" className="primary-action" onClick={() => void copy()}>Copiar texto revisado</button>
+        <button type="button" className="primary-action" disabled={copying} onClick={() => void copy()}>{copying ? 'Copiando…' : 'Copiar texto revisado'}</button>
       </> : <ul role="alert">{preview.decision.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
     </div>}
     <div className="assistant-export-audit">
