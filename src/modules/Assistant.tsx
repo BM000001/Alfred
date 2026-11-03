@@ -386,6 +386,7 @@ export function Assistant() {
               'Quais tarefas estão pendentes?',
               'Quais são meus próximos compromissos?',
               'Como está meu progresso nos estudos?',
+              'O que você lembra sobre mim?',
             ].map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => setInput(suggestion)} disabled={loading || approving}>
                 <span aria-hidden="true">↗</span>{suggestion}

@@ -22,6 +22,15 @@ describe('LocalAssistantProvider', () => {
     expect(result.warnings[0]).toContain('somente leitura');
   });
 
+  it('consulta memórias salvas quando perguntado o que Alfred lembra', async () => {
+    const provider = new LocalAssistantProvider({ tasks: [], appointments: [], topics: [] }, [
+      { id: 'm1', title: 'Preferência', content: 'Prefiro respostas objetivas.', category: 'preference', createdAt: '', updatedAt: '' },
+    ]);
+    const result = await provider.generate(request('O que você lembra sobre mim?'));
+    expect(result.message).toContain('Prefiro respostas objetivas.');
+    expect(result.usedTools).toEqual(['memory.list']);
+  });
+
   it('não executa ferramentas quando o pedido não é reconhecido', async () => {
     const provider = new LocalAssistantProvider({ tasks, appointments: [], topics: [] });
     const result = await provider.generate(request('Olá Alfred'));

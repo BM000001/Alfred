@@ -19,7 +19,7 @@ describe('backupService', () => {
   });
 
   it('continua lendo backups antigos sem histórico de foco', () => {
-    const { memories: _memories, ...legacyData } = validBackup.data;
+    const { memories: _memories, focusSessions: _focusSessions, ...legacyData } = validBackup.data;
     const legacy = { ...validBackup, data: { ...legacyData, files: [] } };
     expect(inspectBackup(JSON.stringify(legacy)).counts.focusSessions).toBe(0);
   });
