@@ -16,7 +16,7 @@ describe('prepareTaskPriorityUpdate', () => {
     if (result.kind !== 'proposal') return;
     expect(result.task.priority).toBe('medium');
     expect(result.priority).toBe('high');
-    expect(result.proposal.operations).toEqual([{ toolId: 'tasks.update-priority', input: { id: 'task-1', priority: 'high' } }]);
+    expect(result.proposal.operations).toEqual([{ toolId: 'tasks.update-priority', input: { id: 'task-1', priority: 'high', expectedPriority: 'medium' } }]);
   });
 
   it('resolve uma referência contextual somente quando recebe o ID da tarefa', () => {
