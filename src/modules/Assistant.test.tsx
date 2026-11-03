@@ -74,6 +74,22 @@ describe('Assistant task approval UI', () => {
     expect(screen.queryByRole('button', { name: 'Confirmar alteração' })).not.toBeInTheDocument();
   });
 
+  it('só atualiza a descrição depois da confirmação explícita', async () => {
+    const user = userEvent.setup();
+    render(<Assistant />);
+    await user.type(screen.getByLabelText('Mensagem para Alfred'), 'altere a descrição da tarefa Preparar apresentação para Incluir introdução, resultados e conclusão');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByRole('button', { name: 'Confirmar alteração' });
+    expect(await taskRepository.getById(task.id)).toMatchObject({ description: undefined });
+    await user.click(screen.getByRole('button', { name: 'Confirmar alteração' }));
+    await waitFor(async () => {
+      expect(await taskRepository.getById(task.id)).toMatchObject({
+        description: 'Incluir introdução, resultados e conclusão',
+      });
+    });
+    expect(await screen.findByText('Confirmado. A descrição de “Preparar apresentação” foi atualizada.')).toBeInTheDocument();
+  });
+
   it('só cria a tarefa depois da confirmação explícita', async () => {
     const user = userEvent.setup();
     render(<Assistant />);
