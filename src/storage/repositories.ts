@@ -4,6 +4,7 @@ import type { Task } from '../modules/tasks/types';
 import type { Discipline, StudyTopic } from '../modules/studies/types';
 import type { StoredFile } from '../modules/files/types';
 import type { FocusSession } from '../modules/productivity/types';
+import type { AssistantMessage } from '../modules/assistant/contracts';
 import { openAlfredDatabase, runStoreRequest, STORE_NAMES } from './database';
 
 export interface EntityRepository<T extends { id: string }> {
@@ -11,6 +12,7 @@ export interface EntityRepository<T extends { id: string }> {
   getById(id: string): Promise<T | undefined>;
   save(entity: T): Promise<void>;
   delete(id: string): Promise<void>;
+  clear(): Promise<void>;
 }
 
 function createRepository<T extends { id: string }>(storeName: string): EntityRepository<T> {
@@ -36,6 +38,9 @@ function createRepository<T extends { id: string }>(storeName: string): EntityRe
     delete: (id) => withDatabase(async (database) => {
       await runStoreRequest<undefined>(database, storeName, 'readwrite', (store) => store.delete(id));
     }),
+    clear: () => withDatabase(async (database) => {
+      await runStoreRequest<undefined>(database, storeName, 'readwrite', (store) => store.clear());
+    }),
   };
 }
 
@@ -47,3 +52,4 @@ export const studyTopicRepository = createRepository<StudyTopic>(STORE_NAMES.stu
 
 export const fileRepository = createRepository<StoredFile>(STORE_NAMES.files);
 export const focusSessionRepository = createRepository<FocusSession>(STORE_NAMES.focusSessions);
+export const assistantMessageRepository = createRepository<AssistantMessage>(STORE_NAMES.assistantMessages);

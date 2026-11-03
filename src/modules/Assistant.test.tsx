@@ -1,8 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Assistant } from './Assistant';
-import { taskRepository } from '../storage/repositories';
+import { assistantMessageRepository, taskRepository } from '../storage/repositories';
 import type { Task } from './tasks/types';
 
 const task: Task = {
@@ -19,15 +19,22 @@ beforeEach(async () => {
   messageCounter = 0;
   vi.stubGlobal('crypto', { randomUUID: () => `assistant-test-message-${++messageCounter}` });
   Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
+  await assistantMessageRepository.clear();
   const existing = await taskRepository.getAll();
   await Promise.all(existing.map((item) => taskRepository.delete(item.id)));
   await taskRepository.save(task);
 });
 
+async function renderAssistant() {
+  const view = render(<Assistant />);
+  await waitFor(() => expect(screen.getByLabelText('Mensagem para Alfred')).toBeEnabled());
+  return view;
+}
+
 describe('Assistant task approval UI', () => {
   it('não altera a tarefa quando uma proposta é preparada ou cancelada', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'concluir tarefa Preparar apresentação');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
@@ -40,7 +47,7 @@ describe('Assistant task approval UI', () => {
 
   it('só conclui a tarefa depois do clique explícito de confirmação', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'marcar tarefa Preparar apresentação como concluída');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await user.click(await screen.findByRole('button', { name: 'Confirmar alteração' }));
@@ -53,7 +60,7 @@ describe('Assistant task approval UI', () => {
 
   it('não propõe alteração se o título da tarefa não corresponder exatamente', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'concluir tarefa Apresentação');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     expect(await screen.findByText(/Não encontrei uma tarefa com o título exato/)).toBeInTheDocument();
@@ -63,7 +70,7 @@ describe('Assistant task approval UI', () => {
 
   it('não cria tarefa ao preparar ou cancelar uma proposta', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'criar tarefa Revisar capítulo');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await screen.findByRole('button', { name: 'Confirmar alteração' });
@@ -76,7 +83,7 @@ describe('Assistant task approval UI', () => {
 
   it('só atualiza a descrição depois da confirmação explícita', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'altere a descrição da tarefa Preparar apresentação para Incluir introdução, resultados e conclusão');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await screen.findByRole('button', { name: 'Confirmar alteração' });
@@ -92,7 +99,7 @@ describe('Assistant task approval UI', () => {
 
   it('só cria a tarefa depois da confirmação explícita', async () => {
     const user = userEvent.setup();
-    render(<Assistant />);
+    await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'adicionar tarefa: Revisar capítulo');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await user.click(await screen.findByRole('button', { name: 'Confirmar alteração' }));
@@ -105,4 +112,29 @@ describe('Assistant task approval UI', () => {
       title: 'Revisar capítulo', status: 'pending', priority: 'medium',
     }));
   });
+  it('recupera o histórico após remontar e permite apagá-lo com confirmação', async () => {
+    const user = userEvent.setup();
+    const view = await renderAssistant();
+    await user.type(screen.getByLabelText('Mensagem para Alfred'), 'Quais tarefas estão pendentes?');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByText(/Preparar apresentação/);
+    await waitFor(async () => {
+      const saved = await assistantMessageRepository.getAll();
+      expect(saved.some((message) => message.content === 'Quais tarefas estão pendentes?')).toBe(true);
+    });
+
+    view.unmount();
+    await renderAssistant();
+    expect(screen.getByText('Quais tarefas estão pendentes?')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Limpar conversa' }));
+    await user.click(screen.getByRole('button', { name: 'Apagar histórico' }));
+    await waitFor(async () => {
+      const saved = await assistantMessageRepository.getAll();
+      expect(saved).toHaveLength(1);
+      expect(saved[0].content).toContain('À sua disposição.');
+    });
+    expect(within(screen.getByRole('log')).queryByText('Quais tarefas estão pendentes?')).not.toBeInTheDocument();
+  });
+
 });

@@ -10,6 +10,7 @@ function createMemoryRepository<T extends { id: string }>(): EntityRepository<T>
     async getById(id) { return records.get(id); },
     async save(entity) { records.set(entity.id, entity); },
     async delete(id) { records.delete(id); },
+    async clear() { records.clear(); },
   };
 }
 
