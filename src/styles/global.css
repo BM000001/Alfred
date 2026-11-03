@@ -1318,7 +1318,7 @@ select:focus-visible, textarea:focus-visible {
   .main-content .welcome { padding: 34px 0 24px; }
   .welcome h1 { font-size: clamp(32px, 8vw, 43px); }
   .mobile-page-context { display: flex; }
-  .mobile-tabbar { display: flex; }
+  .mobile-tabbar { display: grid; }
   .app-footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   .dashboard-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-home-grid, .dashboard-columns { grid-template-columns: minmax(0, 1fr); }
