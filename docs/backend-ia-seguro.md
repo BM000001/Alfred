@@ -46,7 +46,7 @@ Não peça nem cole segredos em issues, PRs ou no chat. Cadastre-os pelo painel 
 
 ## Limitações e bloqueios antes de produção
 
-1. **A interface ainda não chama essas rotas.** O painel conversacional permanece no provider local. Uma próxima etapa precisa adicionar login, estado de sessão e confirmação visível por envio, sem reaproveitar consentimento antigo.
+1. **A interface agora inclui login, estado de sessão e consentimento por mensagem**, mas depende da publicação do projeto na Vercel para que as rotas estejam disponíveis. GitHub Pages continua apenas local.
 2. **Rate limit de login atual é apenas best-effort em memória.** Instâncias serverless não compartilham esse estado. Antes de expor o login, configurar Vercel Firewall ou um limitador compartilhado.
 3. **Limite de custo obrigatório:** configurar budget/alertas no AI Gateway e regras de tráfego no Vercel Firewall antes de ativar a IA.
 4. **Sem revogação server-side individual:** sair apaga o cookie no navegador; uma sessão copiada permanece válida até expirar ou até rotacionar `ALFRED_SESSION_SECRET`.
