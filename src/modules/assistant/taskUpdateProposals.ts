@@ -20,7 +20,7 @@ function hasUpdateIntent(prompt: string): boolean {
 }
 
 function explicitTitle(prompt: string): string | null {
-  const match = prompt.trim().replace(/[.!?]+$/, '').match(/^(?:por favor,?\s*)?(?:(?:coloque|coloca|mude|mudar|altere|alterar|defina|definir|ajuste|ajustar|deixe|deixa|passe|passar|marque|marcar)\s+)?(?:a\s+)?(?:prioridade\s+(?:baixa|m[eé]dia|alta)\s+(?:da|para a)\s+tarefa|tarefa)\s+(.+)$/i);
+  const match = prompt.trim().replace(/[.!?]+$/, '').match(/^(?:por favor,?\s*)?(?:(?:coloque|coloca|mude|mudar|altere|alterar|defina|definir|ajuste|ajustar|deixe|deixa|passe|passar|marque|marcar)\s+)?(?:(?:prioridade\s+(?:baixa|m[eé]dia|alta)\s+(?:(?:da|para a)\s+)?tarefa)|(?:a\s+)?tarefa)\s+(.+)$/i);
   return match?.[1]?.trim().replace(/^["'“”]|["'“”]$/g, '').trim() ?? null;
 }
 
@@ -50,7 +50,7 @@ export function prepareTaskPriorityUpdate(
     title: 'Alterar prioridade da tarefa',
     explanation: 'Mudar a prioridade de “' + task.title + '” para ' + label + '. A alteração só será salva depois da sua confirmação.',
     affectedRecords: [task.id],
-    operations: [{ toolId: 'tasks.update-priority', input: { id: task.id, priority } }],
+    operations: [{ toolId: 'tasks.update-priority', input: { id: task.id, priority, expectedPriority: task.priority } }],
     createdAt: options.now ?? new Date().toISOString(),
   };
   return { kind: 'proposal', task, priority, proposal };
