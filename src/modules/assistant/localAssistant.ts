@@ -23,7 +23,7 @@ function detectIntent(prompt: string): Intent {
   const value = normalizePrompt(prompt);
   const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
 
-  if (has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) || /\\bo que voce sabe sobre mim\\b/.test(value)) return 'memory';
+  if (has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) || /\bo que voce sabe sobre mim\b/.test(value)) return 'memory';
   if (has([/\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\w*/])) return 'studies';
   if (has([/\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\w*/]) ||
       /\b(quando|que dia|qual dia|o que tenho)\b/.test(value) && /\b(marcad|agendad|programad)\w*/.test(value)) return 'agenda';
