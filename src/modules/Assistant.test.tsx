@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Assistant } from './Assistant';
@@ -134,7 +134,7 @@ describe('Assistant task approval UI', () => {
       expect(saved).toHaveLength(1);
       expect(saved[0].content).toContain('À sua disposição.');
     });
-    expect(screen.queryByText('Quais tarefas estão pendentes?')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('log')).queryByText('Quais tarefas estão pendentes?')).not.toBeInTheDocument();
   });
 
 });

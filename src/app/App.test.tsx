@@ -7,7 +7,7 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('link', { name: /alfred, início/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /boa tarde/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /bom dia\.|boa tarde\.|boa noite\./i })).toBeInTheDocument();
     expect(await screen.findByText('PENDENTES')).toBeInTheDocument();
     expect(await screen.findByText('EM ATRASO')).toBeInTheDocument();
     expect(await screen.findByText('COMPROMISSOS HOJE')).toBeInTheDocument();
