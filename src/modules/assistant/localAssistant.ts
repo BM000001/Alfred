@@ -1,6 +1,8 @@
 import type { AIProvider, AssistantRequest, AssistantResponse } from './contracts';
 import type { ReadToolData } from './readTools';
 import { createReadOnlyTools } from './readTools';
+import type { AssistantMemory } from '../memory/types';
+import { searchMemories } from '../memory/memoryService';
 
 type Intent = 'tasks' | 'agenda' | 'studies' | 'memory' | 'unknown';
 
@@ -40,7 +42,7 @@ function extractTopicQuery(prompt: string): string | undefined {
 export class LocalAssistantProvider implements AIProvider {
   readonly id = 'local-rules';
 
-  constructor(private readonly data: ReadToolData) {}
+  constructor(private readonly data: ReadToolData, private readonly memories: AssistantMemory[] = []) {}
 
   async generate(request: AssistantRequest): Promise<AssistantResponse> {
     const rawPrompt = latestUserMessage(request);
@@ -48,10 +50,11 @@ export class LocalAssistantProvider implements AIProvider {
 
     const intent = detectIntent(rawPrompt);
     if (intent === 'memory') {
-      const memories = request.memories ?? [];
+      const relevant = searchMemories(this.memories, rawPrompt);
+      const memories = relevant.length ? relevant : this.memories;
       return {
         message: memories.length
-          ? `Estas são as informações que o senhor salvou explicitamente na minha memória local:\\n${memories.map((item) => `• ${item.title} (${item.category}): ${item.content}`).join('\\n')}`
+          ? `Estas são as informações que o senhor salvou explicitamente na minha memória local:\n${memories.map((item) => `• ${item.title} (${item.category}): ${item.content}`).join('\n')}`
           : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.',
         usedTools: ['memory.list'],
         warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo.'],

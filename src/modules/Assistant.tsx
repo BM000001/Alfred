@@ -186,11 +186,10 @@ export function Assistant() {
         setMessages((current) => [...current, createMessage('assistant', creation.reason)]);
         return;
       }
-      const provider = new LocalAssistantProvider({ tasks, appointments, topics });
+      const provider = new LocalAssistantProvider({ tasks, appointments, topics }, memories);
       const response = await provider.generate({
         messages: nextMessages,
         context: { locale: 'pt-BR', now: new Date().toISOString(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'local' },
-        memories,
       });
       setMessages((current) => [...current, createMessage('assistant', response.message)]);
     } catch {
