@@ -1334,3 +1334,47 @@ select:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Refinamento visual do Dashboard */
+.dashboard { display:grid; gap:18px; }
+.dashboard-greeting {
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  padding:0 0 5px;
+}
+.dashboard-greeting h2 {
+  margin:6px 0 5px; color:var(--alfred-heading);
+  font-size:22px; font-weight:600; letter-spacing:-.7px;
+}
+.dashboard-greeting p { margin:0; color:var(--alfred-muted); font-size:11px; line-height:1.6; }
+.dashboard-summary { gap:12px; }
+.dashboard-home-grid,.dashboard-columns { gap:14px; }
+.dashboard-panel { border-radius:16px; }
+.dashboard-panel-heading { margin-bottom:16px; }
+.dashboard-panel-heading h2 { color:var(--alfred-heading); letter-spacing:-.35px; }
+.dashboard-stat { border-radius:15px; }
+.dashboard-stat .stat-icon {
+  border:1px solid rgba(151,177,222,.16);
+  background:rgba(105,143,207,.12);
+}
+.dashboard-stat:hover { border-color:rgba(145,180,245,.38); }
+.weather-temperature { color:#eef4ff; letter-spacing:-2px; }
+.weather-main strong { color:#e8eef9; }
+.weather-main span:not(.weather-temperature), .weather-range { color:#91a1ba; }
+.weather-city-form {
+  margin-top:14px; padding:13px; border:1px solid var(--alfred-border);
+  border-radius:12px; background:rgba(8,16,28,.45);
+}
+.dashboard-event-list li,.dashboard-subject-list li { border-color:var(--alfred-border); }
+.dashboard-focus-strip {
+  border-radius:15px; background:linear-gradient(110deg,rgba(25,42,68,.95),rgba(14,25,42,.98));
+}
+.dashboard-focus-strip strong { color:#edf3ff; }
+.dashboard-focus-strip span { color:#91a1ba; }
+@media (max-width:600px) {
+  .dashboard { gap:14px; }
+  .dashboard-greeting { align-items:flex-start; flex-direction:column; gap:8px; }
+  .dashboard-greeting h2 { font-size:20px; }
+  .dashboard-summary { gap:9px; }
+  .dashboard-panel { padding:15px; }
+}
