@@ -33,7 +33,7 @@ jobs:
         run: npm test
 
       - name: Build application
-        run: npm run build
+        run: npm run build:pages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
