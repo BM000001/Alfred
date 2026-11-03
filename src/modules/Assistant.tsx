@@ -92,6 +92,10 @@ export function Assistant() {
     event.preventDefault();
     const content = input.trim();
     if (!content || !historyReady || loading || approving) return;
+    if (externalMode && (!externalAuthenticated || !externalConsent)) {
+      setError('Entre na sessão e autorize explicitamente esta mensagem antes de enviá-la à IA externa.');
+      return;
+    }
     const userMessage = createMessage('user', content);
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
