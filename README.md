@@ -34,8 +34,8 @@ Requisitos: Node.js 20 ou superior.
 
 ```
 npm install
-npm test       # compila e executa os testes automatizados
-npm run build  # gera o site estático em site/
+npm test       # executa os testes automatizados
+npm run build  # verifica os tipos e gera o site estático em dist/
 ```
 
 Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. Para instalar no iPhone, é preciso HTTPS (ver `docs/testes-manuais-iphone.md`).
