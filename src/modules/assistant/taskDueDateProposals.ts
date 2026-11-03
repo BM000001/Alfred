@@ -9,12 +9,6 @@ export type TaskDueDatePreparation =
   | { kind: 'proposal'; task: Task; dueDate: string; proposal: ActionProposal }
   | { kind: 'invalid-date' };
 
-const weekdays: Record<string, number> = {
-  domingo: 0, segunda: 1, 'segunda-feira': 1, terça: 2, 'terça-feira': 2,
-  quarta: 3, 'quarta-feira': 3, quinta: 4, 'quinta-feira': 4,
-  sexta: 5, 'sexta-feira': 5, sábado: 6, 'sábado': 6,
-};
-
 function dateString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
