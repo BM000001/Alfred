@@ -12,6 +12,7 @@ export interface EntityRepository<T extends { id: string }> {
   getById(id: string): Promise<T | undefined>;
   save(entity: T): Promise<void>;
   delete(id: string): Promise<void>;
+  clear(): Promise<void>;
 }
 
 function createRepository<T extends { id: string }>(storeName: string): EntityRepository<T> {
@@ -36,6 +37,9 @@ function createRepository<T extends { id: string }>(storeName: string): EntityRe
     }),
     delete: (id) => withDatabase(async (database) => {
       await runStoreRequest<undefined>(database, storeName, 'readwrite', (store) => store.delete(id));
+    }),
+    clear: () => withDatabase(async (database) => {
+      await runStoreRequest<undefined>(database, storeName, 'readwrite', (store) => store.clear());
     }),
   };
 }

@@ -343,14 +343,13 @@ export function Assistant() {
   async function clearConversation() {
     if (!confirmClear || loading || approving || pendingProposal) return;
     try {
-      const saved = await assistantMessageRepository.getAll();
-      await Promise.all(saved.map((message) => assistantMessageRepository.delete(message.id)));
+      await assistantMessageRepository.clear();
       recentTaskIdRef.current = null;
       setMessages([createMessage('assistant', welcomeMessage)]);
       setConfirmClear(false);
       setError('');
     } catch {
-      setError('Não foi possível apagar o histórico local. Nenhuma mensagem foi removida parcialmente de propósito; tente novamente.');
+      setError('Não foi possível concluir a exclusão do histórico local. Tente novamente.');
     }
   }
 
@@ -432,7 +431,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={!historyReady || loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão, alteração de prioridade, definição de prazos e edição de descrições mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada, concluída ou ajustada enquanto esta conversa estiver aberta; não é memória persistente.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e alterações mediante confirmação explícita. O histórico desta conversa é salvo somente neste dispositivo; o Alfred ainda não possui memória semântica persistente de fatos ou preferências.</p>
     </section>
   );
 }
