@@ -11,9 +11,9 @@ export type TaskCompletionPreparation =
 function requestedTaskTitle(prompt: string): string | null {
   const value = prompt.trim().replace(/[.!?]+$/, '').trim();
   const patterns = [
-    /^(?:por favor,?\\s*)?(?:(?:pode|quero|preciso)\\s+)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina)\\s+(?:(?:a|essa|esta)\\s+)?tarefa\\s+(.+)$/i,
-    /^(?:por favor,?\\s*)?(?:(?:pode|quero|preciso)\\s+)?(?:marcar|marque|marca)\\s+(?:(?:a|essa|esta)\\s+)?tarefa\\s+(.+?)\\s+como\\s+(?:conclu[ií]da|feita|finalizada)$/i,
-    /^(?:por favor,?\\s*)?(?:marque|marca)\\s+(.+?)\\s+como\\s+(?:conclu[ií]da|feita)$/i,
+    /^(?:por favor,?\s*)?(?:(?:pode|quero|preciso)\s+)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina)\s+(?:(?:a|essa|esta)\s+)?tarefa\s+(.+)$/i,
+    /^(?:por favor,?\s*)?(?:(?:pode|quero|preciso)\s+)?(?:marcar|marque|marca)\s+(?:(?:a|essa|esta)\s+)?tarefa\s+(.+?)\s+como\s+(?:conclu[ií]da|feita|finalizada)$/i,
+    /^(?:por favor,?\s*)?(?:marque|marca)\s+(.+?)\s+como\s+(?:conclu[ií]da|feita)$/i,
   ];
   for (const pattern of patterns) {
     const match = value.match(pattern);
