@@ -29,7 +29,7 @@ export function prepareTaskCompletion(
   options: { now?: string; proposalId?: string; referenceTaskId?: string | null } = {},
 ): TaskCompletionPreparation {
   const title = requestedTaskTitle(prompt);
-  const refersToRecentTask = /^(?:(?:por favor,?\\s*)?(?:(?:pode|quero|preciso)\\s+)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina|marcar|marque|marca)\\s+)?(?:ela|essa tarefa|esta tarefa|a tarefa anterior|a última tarefa)(?:\\s+como\\s+(?:conclu[ií]da|feita|finalizada))?$/i.test(prompt.trim().replace(/[.!?]+$/, '').trim());
+  const refersToRecentTask = /^(?:por favor,?\s*)?(?:(?:pode|quero|preciso)\s+)?(?:concluir|conclua|conclui|finalizar|finalize|finaliza|completar|complete|completa|terminar|termine|termina|marcar|marque|marca)\s+(?:ela|essa tarefa|esta tarefa|a tarefa anterior|a última tarefa)(?:\s+como\s+(?:conclu[ií]da|feita|finalizada))?$/i.test(prompt.trim().replace(/[.!?]+$/, '').trim());
   if (!title && !refersToRecentTask) return { kind: 'not-request' };
 
   const referencedTask = refersToRecentTask && options.referenceTaskId
