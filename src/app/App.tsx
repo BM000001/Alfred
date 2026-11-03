@@ -65,6 +65,8 @@ function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('inicio');
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const activeDetails = sectionDetails[activeSection];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bom dia.' : hour < 18 ? 'Boa tarde.' : 'Boa noite.';
   const activeItem = sections.find((item) => item.id === activeSection)!;
 
   const navigate = (id: SectionId) => {
@@ -120,8 +122,8 @@ function App() {
           <div className="mobile-page-context"><span className="mobile-context-icon"><Icon name={activeItem.icon} /></span><span>{activeItem.label}</span></div>
           <section className="welcome" aria-labelledby="welcome-title">
             <p className="eyebrow">{activeSection === 'inicio' ? 'SEU DIA, SOB CONTROLE' : 'ALFRED · ESPAÇO PESSOAL'}</p>
-            <h1 id="welcome-title">{activeSection === 'inicio' ? 'Boa tarde.' : activeDetails.title}</h1>
-            <p className="welcome-copy">{activeSection === 'inicio' ? 'Estou preparando seu espaço. Em breve, suas prioridades estarão reunidas aqui.' : activeDetails.description}</p>
+            <h1 id="welcome-title">{activeSection === 'inicio' ? greeting : activeDetails.title}</h1>
+            <p className="welcome-copy">{activeSection === 'inicio' ? 'Seu espaço está pronto. Vamos organizar o que realmente importa hoje.' : activeDetails.description}</p>
           </section>
 
           {activeSection === 'inicio' ? (
