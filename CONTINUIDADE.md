@@ -17,7 +17,7 @@
 - PR #50 — memórias locais manuais — integrada; CI verde (134 testes, build aprovado e auditoria npm sem vulnerabilidades reportadas).
 - PR #51 — política provider-neutral de consentimento para exportação manual — integrada; CI verde.
 - PR #52 — painel de exportação manual — integrada após correção de teste de interface; CI verde.
-- PR #48 — refinamento visual dos módulos internos — permanece aberta; não foi presumida como integrada.
+- PR #48 — refinamento visual dos módulos internos — integrada em 2026-11-03 após CI verde; alterações somente em `src/styles/global.css`.
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
