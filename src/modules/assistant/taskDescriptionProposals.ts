@@ -19,10 +19,10 @@ function parseDescription(prompt: string): { title: string | null; description: 
     /^(?:por favor,?\s*)?(?:altere|alterar|mude|mudar|atualize|atualizar|defina|definir|adicione|adicionar)\s+(?:a\s+)?descri[cç][aã]o\s+(?:da\s+tarefa\s+)?(.+?)\s+para\s+(.+)$/i,
     /^(?:por favor,?\s*)?(?:altere|alterar|mude|mudar|atualize|atualizar|defina|definir|adicione|adicionar)\s+(?:a\s+)?descri[cç][aã]o\s+(?:dessa|desta)\s+tarefa\s+para\s+(.+)$/i,
   ];
-  const explicit = clean.match(patterns[0]);
-  if (explicit) return { title: explicit[1].trim().replace(/^["'“”]|["'“”]$/g, '').trim(), description: explicit[2].trim().replace(/^["'“”]|["'“”]$/g, '').trim() };
   const contextual = clean.match(patterns[1]);
   if (contextual) return { title: null, description: contextual[1].trim().replace(/^["'“”]|["'“”]$/g, '').trim() };
+  const explicit = clean.match(patterns[0]);
+  if (explicit) return { title: explicit[1].trim().replace(/^["'“”]|["'“”]$/g, '').trim(), description: explicit[2].trim().replace(/^["'“”]|["'“”]$/g, '').trim() };
   const normalized = normalize(clean);
   if (/^(?:altere|alterar|mude|mudar|atualize|atualizar|defina|definir|adicione|adicionar)\s+(?:a\s+)?descricao\b/.test(normalized)) {
     return { title: null, description: '' };
