@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { PersonalOrganization } from '../modules/PersonalOrganization';
 import { Agenda } from '../modules/Agenda';
 import { Overview } from '../modules/Overview';
@@ -46,7 +46,7 @@ const sectionDetails: Record<SectionId, { title: string; description: string }> 
 
 function Icon({ name }: { name: IconName }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  const paths: Record<IconName, React.ReactNode> = {
+  const paths: Record<IconName, ReactNode> = {
     home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-6h6v6" /></>,
     sparkles: <><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" /><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z" /></>,
     check: <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 9" /></>,
@@ -78,6 +78,7 @@ function App() {
       key={section.id}
       type="button"
       aria-current={activeSection === section.id ? 'page' : undefined}
+      aria-label={compact ? `Abrir ${section.label}` : undefined}
       onClick={() => navigate(section.id)}
     >
       <Icon name={section.icon} />
