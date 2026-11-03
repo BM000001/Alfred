@@ -122,7 +122,10 @@ export function ManualExportPanel() {
       });
       try {
         await egressAuditRepository.save(entry);
-        setAudit(current => [entry, ...current]);
+        const savedEntries = await egressAuditRepository.getAll();
+        const orderedEntries = savedEntries.sort((a, b) => b.copiedAt.localeCompare(a.copiedAt));
+        await Promise.all(orderedEntries.slice(100).map(oldEntry => egressAuditRepository.delete(oldEntry.id)));
+        setAudit(orderedEntries.slice(0, 100));
         setFeedback('Copiado. Nenhum dado foi enviado por Alfred. A ação foi registrada apenas com metadados.');
       } catch {
         setFeedback('O texto foi copiado, mas não foi possível salvar o registro de auditoria neste dispositivo.');
