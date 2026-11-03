@@ -1814,3 +1814,82 @@ select:focus-visible, textarea:focus-visible {
   .files-module .stored-file { flex-wrap:wrap; }
   .files-module .stored-file-info { flex-basis:calc(100% - 50px); }
 }
+
+
+/* Alfred — integração final entre início e assistente */
+.main-content > .welcome {
+  position:relative;
+  padding-bottom:30px;
+}
+.main-content > .welcome .eyebrow {
+  color:#91b4f5;
+  letter-spacing:1.7px;
+}
+.main-content > .welcome h1 {
+  color:#edf3ff;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  letter-spacing:-1.7px;
+}
+.main-content > .welcome .welcome-copy {
+  color:#91a1ba;
+  font-size:13px;
+  line-height:1.7;
+}
+.dashboard {
+  max-width:1000px;
+  gap:16px;
+}
+.dashboard-greeting {
+  align-items:center;
+  padding:0 2px 3px;
+}
+.dashboard-greeting h2 {
+  color:#edf3ff;
+  font-size:23px;
+  font-weight:600;
+  letter-spacing:-.8px;
+}
+.dashboard-greeting .card-label { color:#91b4f5; }
+.dashboard-stat {
+  min-height:158px;
+  position:relative;
+  overflow:hidden;
+  padding:17px;
+  text-align:left;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(113,153,222,.1),transparent 54%),
+    linear-gradient(145deg,rgba(20,34,56,.97),rgba(11,20,35,.98));
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.dashboard-stat:hover {
+  transform:translateY(-2px);
+  box-shadow:0 13px 28px rgba(0,0,0,.16);
+}
+.dashboard-stat strong { font-size:30px; letter-spacing:-1.2px; }
+.dashboard-stat p { color:#91a1ba; line-height:1.5; }
+.dashboard-stat .dashboard-link { color:#a9c2f6; }
+.dashboard-panel {
+  border-color:rgba(151,177,222,.16);
+  background:linear-gradient(150deg,rgba(17,29,48,.96),rgba(10,19,33,.98));
+  box-shadow:0 12px 30px rgba(0,0,0,.1);
+}
+.dashboard-panel-heading h2 { font-size:16px; letter-spacing:-.45px; }
+.dashboard-empty { color:#8799b3; line-height:1.7; }
+.dashboard-link {
+  color:#a9c2f6;
+  transition:color .18s ease;
+}
+.dashboard-link:hover { color:#d2e0ff; }
+.dashboard-focus-strip {
+  border-color:rgba(145,180,245,.2);
+  background:radial-gradient(ellipse at 0 50%,rgba(93,132,199,.16),transparent 55%),linear-gradient(110deg,#172a46,#0e192b);
+}
+@media (max-width:700px) {
+  .main-content > .welcome { padding-top:30px; padding-bottom:22px; }
+  .main-content > .welcome h1 { letter-spacing:-1.2px; }
+  .dashboard-stat { min-height:145px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .dashboard-stat,.dashboard-link { transition:none; }
+}
