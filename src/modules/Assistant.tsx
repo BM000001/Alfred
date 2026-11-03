@@ -20,7 +20,7 @@ type PendingTaskProposal =
 
 export function Assistant() {
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar ou concluir tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
+    createMessage('assistant', 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar, concluir ou ajustar prioridades de tarefas. Nenhuma alteração será feita sem sua confirmação explícita.'),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -144,11 +144,12 @@ export function Assistant() {
       async execute(input) {
         if (typeof input !== 'object' || input === null) throw new ActionApprovalError('Entrada inválida para alterar a prioridade.');
         const record = input as Record<string, unknown>;
-        if (typeof record.id !== 'string' || (record.priority !== 'low' && record.priority !== 'medium' && record.priority !== 'high')) {
+        if (typeof record.id !== 'string' || (record.priority !== 'low' && record.priority !== 'medium' && record.priority !== 'high') || (record.expectedPriority !== 'low' && record.expectedPriority !== 'medium' && record.expectedPriority !== 'high')) {
           throw new ActionApprovalError('Os dados da alteração de prioridade são inválidos.');
         }
         const current = await taskRepository.getById(record.id);
         if (!current) throw new ActionApprovalError('A tarefa não existe mais. Nenhuma alteração foi feita.');
+        if (current.priority !== record.expectedPriority) throw new ActionApprovalError('A prioridade dessa tarefa foi alterada desde a proposta. Consulte novamente antes de tentar outra mudança.');
         await taskRepository.save({ ...current, priority: record.priority });
         return { id: current.id, title: current.title, priority: record.priority };
       },
@@ -268,7 +269,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão e alteração de prioridade mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada ou concluída enquanto esta conversa estiver aberta; não é memória persistente.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e criação, conclusão e alteração de prioridade mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada, concluída ou ajustada enquanto esta conversa estiver aberta; não é memória persistente.</p>
     </section>
   );
 }
