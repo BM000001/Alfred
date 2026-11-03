@@ -3,7 +3,12 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypt
 export const SESSION_COOKIE = 'alfred_session';
 export const SESSION_TTL_SECONDS = 4 * 60 * 60;
 
+export function noStore(res) {
+  res.setHeader('Cache-Control', 'no-store');
+}
+
 export function jsonError(res, status, message) {
+  noStore(res);
   return res.status(status).json({ error: message });
 }
 
