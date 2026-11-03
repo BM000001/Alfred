@@ -675,141 +675,17 @@ select:focus-visible, textarea:focus-visible { outline-color: var(--alfred-cyan)
 }
 
 
-/* Responsive layout fix: keep Alfred full-width on mobile and use the dark theme globally. */
-html, body, #root {
-  width: 100%;
-  min-width: 320px;
-  min-height: 100%;
-  margin: 0;
-  background: #0b101b !important;
-}
-body {
-  min-height: 100vh;
-  color: #f3f5fb;
-  overflow-x: hidden;
-}
-.app-shell {
-  width: calc(100% - 32px) !important;
-  max-width: 1440px !important;
-  min-width: 0 !important;
-  margin-inline: auto;
-}
-.workspace {
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: 228px minmax(0, 1fr);
-}
-.main-content, .dashboard, .dashboard-home-grid, .dashboard-columns {
-  min-width: 0;
-  width: 100%;
-}
-@media (max-width: 700px) {
-  .app-shell {
-    width: calc(100% - 24px) !important;
-  }
-  .workspace {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .main-content {
-    width: 100%;
-    order: 1;
-  }
-  .sidebar {
-    width: 100%;
-    max-width: 100%;
-    order: 2;
-  }
-  .dashboard-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .dashboard-stat:last-child {
-    grid-column: 1 / -1;
-  }
-  .dashboard-home-grid, .dashboard-columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 360px) {
-  .app-shell { width: calc(100% - 20px) !important; }
-  .dashboard-summary { grid-template-columns: minmax(0, 1fr); }
-  .dashboard-stat:last-child { grid-column: auto; }
-}
 
-
-/* Final mobile viewport and background correction. */
-:root, html, body, #root {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  margin: 0;
-  background: #0b101b !important;
-}
-body {
-  min-height: 100vh;
-  background: #0b101b !important;
-  background-image: radial-gradient(ellipse at top left, #17283a 0%, #0b101b 58%) !important;
-  background-attachment: fixed;
-}
-#root {
-  min-height: 100vh;
-  overflow-x: clip;
-}
-.app-shell {
-  box-sizing: border-box;
-  width: 100% !important;
-  max-width: 1440px !important;
-  min-width: 0 !important;
-  padding-inline: clamp(12px, 2.5vw, 28px);
-  margin-inline: auto !important;
-}
-.workspace {
-  width: 100%;
-  grid-template-columns: 228px minmax(0, 1fr);
-}
-.main-content {
-  min-width: 0;
-  width: 100%;
-}
-@media (max-width: 700px) {
-  .app-shell {
-    width: 100% !important;
-    padding-inline: 12px;
-  }
-  .workspace {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100%;
-  }
-  .main-content {
-    width: 100% !important;
-    max-width: 100%;
-  }
-  .sidebar {
-    width: 100%;
-    max-width: 100%;
-  }
-  .dashboard, .dashboard-home-grid, .dashboard-summary, .dashboard-columns {
-    width: 100%;
-    min-width: 0;
-  }
-  .dashboard-home-grid, .dashboard-columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-
-/* Alfred dark blue theme — authoritative overrides (remove warm beige theme). */
+/* Alfred — consolidated dark theme and mobile layout. */
 :root {
   color-scheme: dark;
-  color: #f3f5fb;
+  color: #eef3fb;
   background: #0b101b;
-  --navy: #f3f5fb;
+  --navy: #f3f6fc;
   --blue: #48c9ed;
-  --bronze: #8272ff;
+  --bronze: #8b80ff;
   --muted: #a7b4c7;
-  --surface: #171f2c;
+  --surface: #202b3a;
   --alfred-ink: #0b101b;
   --alfred-panel: #202b3a;
   --alfred-panel-raised: #263448;
@@ -817,112 +693,80 @@ body {
   --alfred-orange: #48d8f2;
 }
 html, body, #root {
-  min-height: 100%;
   width: 100%;
-  max-width: 100%;
+  min-width: 320px;
+  min-height: 100%;
   margin: 0;
-  color: #f3f5fb !important;
-  background: #0b101b !important;
+  color: #eef3fb;
+  background: #0b101b;
 }
 body {
   min-height: 100vh;
-  background: radial-gradient(ellipse at 12% 0%, #17283a 0%, #0b101b 62%) fixed !important;
+  overflow-x: hidden;
+  background: radial-gradient(ellipse at 15% 0%, #17283a 0%, #0b101b 62%) fixed;
 }
-.app-shell { color: #f3f5fb; }
-.brand, .welcome h1 { color: #f3f5fb !important; }
-.topbar-caption, .welcome-copy, .app-footer { color: #a7b4c7 !important; }
-.eyebrow, .card-label, .nav-mark { color: #48d8f2 !important; }
-.primary-action { background: linear-gradient(105deg, #36cbe9, #5b50ef) !important; }
-.nav-item.active { color: #fff !important; background: linear-gradient(110deg, rgb(48 194 235 / 22%), rgb(102 84 255 / 25%)) !important; }
+.app-shell {
+  width: min(100% - 32px, 1440px);
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0 auto;
+  color: #eef3fb;
+  background: transparent;
+}
+.topbar { border-bottom-color: #263448; }
+.brand, .welcome h1 { color: #f3f6fc; }
+.topbar-caption, .welcome-copy, .app-footer { color: #a7b4c7; }
+.eyebrow, .card-label, .nav-caption, .nav-mark { color: #48d8f2; }
+.dashboard-stat, .dashboard-panel, .dashboard-insight,
+.assistant-conversation, .assistant-message,
+.module-placeholder, .focus-history, .focus-card,
+.focus-side-card, .task-row, .project-card, .appointment-card {
+  border-color: #354253;
+}
+.dashboard-stat, .dashboard-panel, .dashboard-insight,
+.module-placeholder, .focus-history, .focus-card,
+.focus-side-card, .task-row, .project-card, .appointment-card {
+  color: #e7edf7;
+  background: linear-gradient(145deg, #202b3a 0%, #171d27 100%);
+}
+.dashboard-stat strong, .dashboard-panel h2, .dashboard-panel strong,
+.module-placeholder h2, .focus-card h2, .focus-side-card h3 {
+  color: #f7f9ff;
+}
+.dashboard-stat p, .dashboard-panel p, .module-placeholder p,
+.dashboard-empty, .dashboard-panel small, .task-meta {
+  color: #b6c2d3;
+}
+.dashboard-link, .text-action, .app-shell a { color: #55d8f2; }
+.primary-action {
+  color: #fff;
+  background: linear-gradient(105deg, #36cbe9, #5b50ef);
+}
+.app-shell input, .app-shell textarea, .app-shell select {
+  color: #e7edf7;
+  border-color: #46566b;
+  background: #121b29;
+}
+.app-shell input::placeholder, .app-shell textarea::placeholder { color: #8292a8; }
+.app-shell button { color: inherit; }
+.nav-item.active {
+  color: #fff;
+  background: linear-gradient(110deg, rgb(48 194 235 / 22%), rgb(102 84 255 / 25%));
+}
 @media (max-width: 700px) {
-  html, body, #root { width: 100%; min-width: 320px; }
-  .app-shell { width: 100% !important; max-width: 100% !important; padding-inline: 12px; }
-  .workspace { display: flex !important; flex-direction: column !important; gap: 0 !important; }
-  .main-content, .sidebar { width: 100% !important; max-width: 100%; min-width: 0; }
+  .app-shell { width: 100%; padding-inline: 12px; }
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+  }
+  .main-content, .sidebar { width: 100%; max-width: 100%; min-width: 0; }
   .dashboard-home-grid, .dashboard-columns { grid-template-columns: minmax(0, 1fr); }
 }
-
-
-/* Contrast repair: ensure all dashboard copy remains readable on dark panels. */
-.app-shell, .app-shell * {
-  color: #e7edf7 !important;
-}
-.app-shell h1, .app-shell h2, .app-shell h3,
-.app-shell h4, .app-shell strong, .app-shell b,
-.app-shell label, .app-shell .brand {
-  color: #f7f9ff !important;
-}
-.app-shell p, .app-shell small, .app-shell .muted,
-.app-shell .welcome-copy, .app-shell .topbar-caption,
-.app-shell .task-meta, .app-shell .appointment-time span {
-  color: #b6c2d3 !important;
-}
-.app-shell .eyebrow, .app-shell .card-label,
-.app-shell .nav-mark, .app-shell .dashboard-link,
-.app-shell .text-action, .app-shell a {
-  color: #55d8f2 !important;
-}
-.app-shell input, .app-shell textarea, .app-shell select,
-.app-shell option {
-  color: #17243a !important;
-  background-color: #f7f9fc !important;
-}
-.app-shell input::placeholder, .app-shell textarea::placeholder {
-  color: #667286 !important;
-}
-.app-shell button {
-  color: #edf4ff !important;
-}
-.app-shell .primary-action, .app-shell .danger-action,
-.app-shell .nav-item.active {
-  color: #ffffff !important;
-}
-.app-shell .sr-only { color: inherit !important; }
-
-
-/* Surface/contrast balance: pair light typography with dark cards throughout the app. */
-:root {
-  --navy: #f3f6fc;
-  --blue: #48c9ed;
-  --bronze: #8b80ff;
-  --muted: #b4c0d1;
-  --surface: #202b3a;
-  --alfred-ink: #0b101b;
-  --alfred-panel: #202b3a;
-  --alfred-panel-raised: #263448;
-  --alfred-border: #354253;
-}
-.dashboard-stat, .dashboard-panel, .study-progress, .study-topic,
-.task-row, .project-card, .appointment-card, .focus-card,
-.focus-side-card, .focus-history, .dashboard-insight,
-.discipline-option, .stored-file, .focus-history-item,
-.agenda-view-switch, .focus-mode-switch, .secondary-action,
-.empty-state, .assistant-capabilities span {
-  color: #e7edf7 !important;
-  border-color: #354253 !important;
-  background: linear-gradient(145deg, #202b3a 0%, #171d27 100%) !important;
-}
-.dashboard-stat strong, .dashboard-panel strong, .study-topic strong,
-.task-content strong, .project-card h3, .appointment-details h3,
-.focus-card h2, .focus-side-card h3, .focus-clock,
-.dashboard-insight strong, .entry-panel h2, .list-heading h2,
-.agenda-toolbar h2 {
-  color: #f7f9ff !important;
-}
-.dashboard-stat p, .dashboard-panel p, .study-topic p,
-.task-meta, .appointment-details p, .appointment-time,
-.focus-guidance, .focus-side-card p, .focus-side-card small,
-.dashboard-insight p, .dashboard-empty, .progress-label {
-  color: #b6c2d3 !important;
-}
-.agenda-view-switch button, .focus-mode-switch button,
-.secondary-action, .text-action {
-  color: #d6e1f0 !important;
-}
-.entry-panel input, .entry-panel select, .entry-panel textarea,
-.filter-control select, .agenda-date-label input,
-.focus-task-select, .assistant-composer input,
-.app-shell input, .app-shell textarea, .app-shell select {
-  color: #17243a !important;
-  background: #f7f9fc !important;
+@media (max-width: 380px) {
+  .app-shell { padding-inline: 10px; }
+  .dashboard-summary { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-stat:last-child { grid-column: auto; }
 }
