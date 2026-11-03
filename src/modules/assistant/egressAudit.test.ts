@@ -21,6 +21,12 @@ describe('auditoria de exportação', () => {
     expect(JSON.stringify(entry)).not.toMatch(/conteúdo|senha|título|texto enviado/i);
   });
 
+  it('distingue o envio a uma IA externa da cópia manual', () => {
+    const entry = createEgressAuditEntry({ classes: ['personal'], itemCount: 1, characterCount: 35, action: 'sent_to_ai' });
+    expect(entry.action).toBe('sent_to_ai');
+    expect(JSON.stringify(entry)).not.toMatch(/mensagem|conteúdo|senha/i);
+  });
+
   it('mantém a exportação habilitada por padrão, mas sem consentimento prévio', () => {
     expect(DEFAULT_EGRESS_SETTINGS).toEqual({ id: 'global', enabled: true });
   });
