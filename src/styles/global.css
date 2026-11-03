@@ -1378,3 +1378,233 @@ select:focus-visible, textarea:focus-visible {
   .dashboard-summary { gap:9px; }
   .dashboard-panel { padding:15px; }
 }
+
+
+/* Alfred — linguagem visual unificada dos módulos */
+.organization-module,.agenda-module,.studies-module,.files-module,.productivity-module {
+  display:grid;
+  gap:18px;
+  min-width:0;
+}
+.organization-module .entry-panel,
+.agenda-module .entry-panel,
+.studies-module .entry-panel {
+  position:relative;
+  gap:12px;
+  padding:clamp(18px,2.5vw,24px);
+  border:1px solid rgba(151,177,222,.19);
+  border-radius:17px;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(91,132,202,.12),transparent 42%),
+    linear-gradient(145deg,rgba(20,33,55,.98),rgba(11,20,35,.98));
+}
+.organization-module .entry-panel h2,
+.agenda-module .entry-panel h2,
+.studies-module .entry-panel h2 {
+  margin:4px 0 7px;
+  font-size:18px;
+  letter-spacing:-.45px;
+}
+.organization-module .field-label,
+.agenda-module .field-label,
+.studies-module .field-label,
+.files-module .field-label {
+  display:block;
+  margin:3px 0 0;
+  color:#b1bfd4;
+  font-size:10px;
+  font-weight:650;
+}
+.organization-module .entry-panel input,
+.organization-module .entry-panel select,
+.organization-module .entry-panel textarea,
+.agenda-module .entry-panel input,
+.agenda-module .entry-panel select,
+.agenda-module .entry-panel textarea,
+.studies-module .entry-panel input,
+.studies-module .entry-panel select,
+.studies-module .entry-panel textarea {
+  width:100%;
+  min-height:40px;
+  padding:10px 12px;
+  border:1px solid rgba(151,174,211,.2);
+  border-radius:9px;
+  color:#e8eef9;
+  background:rgba(7,15,27,.72);
+  font:inherit;
+  font-size:11px;
+  transition:border-color .18s ease,background .18s ease;
+}
+.organization-module .entry-panel textarea,
+.agenda-module .entry-panel textarea,
+.studies-module .entry-panel textarea { min-height:76px; resize:vertical; }
+.organization-module .entry-panel input:hover,
+.organization-module .entry-panel select:hover,
+.agenda-module .entry-panel input:hover,
+.agenda-module .entry-panel select:hover,
+.studies-module .entry-panel input:hover,
+.studies-module .entry-panel select:hover { border-color:rgba(145,180,245,.38); }
+.organization-module .primary-action,
+.agenda-module .primary-action,
+.studies-module .primary-action,
+.productivity-module .primary-action {
+  min-height:40px;
+  padding:0 16px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
+}
+.organization-module .list-heading,
+.studies-module .list-heading,
+.productivity-module .list-heading {
+  padding:2px 1px 0;
+}
+.organization-module .list-heading h2,
+.studies-module .list-heading h2,
+.productivity-module .list-heading h2 { margin:4px 0 0; font-size:18px; letter-spacing:-.45px; }
+.organization-module .task-row {
+  min-width:0;
+  padding:13px 15px;
+  border:1px solid var(--alfred-border);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(19,31,51,.94),rgba(12,21,36,.96));
+  transition:border-color .18s ease,transform .18s ease;
+}
+.organization-module .task-row:hover,
+.organization-module .project-card:hover,
+.agenda-module .appointment-card:hover,
+.files-module .stored-file:hover {
+  border-color:rgba(145,180,245,.32);
+}
+.organization-module .task-row input[type="checkbox"],
+.studies-module .study-topic input[type="checkbox"] { accent-color:#91b4f5; }
+.organization-module .task-content strong { font-size:12px; line-height:1.45; }
+.organization-module .task-meta { display:flex; flex-wrap:wrap; gap:7px 10px; margin-top:7px; font-size:10px; }
+.organization-module .project-card {
+  padding:17px;
+  border:1px solid var(--alfred-border);
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(19,31,51,.96),rgba(12,21,36,.98));
+}
+.organization-module .project-card h3 { margin:8px 0 5px; font-size:14px; letter-spacing:-.2px; }
+.organization-module .progress-track { height:6px; margin-top:9px; border-radius:99px; }
+.agenda-module .agenda-toolbar {
+  align-items:center;
+  padding:2px 1px 5px;
+}
+.agenda-module .agenda-toolbar h2 { margin:6px 0 0; font-size:22px; letter-spacing:-.65px; }
+.agenda-module .agenda-controls {
+  padding:11px 13px;
+  border:1px solid var(--alfred-border);
+  border-radius:12px;
+  background:rgba(14,24,41,.76);
+}
+.agenda-module .agenda-date-label input {
+  min-height:34px;
+  padding:6px 9px;
+  border:1px solid var(--alfred-control-border);
+  border-radius:8px;
+  color:#e8eef9;
+  background:#0b1423;
+  font:inherit;
+  font-size:10px;
+}
+.agenda-module .appointment-card {
+  padding:14px;
+  border-radius:13px;
+  transition:border-color .18s ease;
+}
+.agenda-module .appointment-details h3 { font-size:12px; }
+.agenda-module .appointment-actions .text-action { min-height:30px; padding:0 9px; border-radius:7px; }
+.studies-module .study-progress {
+  position:relative;
+  overflow:hidden;
+  padding:20px;
+  border-radius:16px;
+}
+.studies-module .study-progress::after {
+  position:absolute;
+  top:-48px;
+  right:-35px;
+  width:145px;
+  height:145px;
+  border:1px solid rgba(151,185,245,.1);
+  border-radius:50%;
+  box-shadow:0 0 0 18px rgba(151,185,245,.025),0 0 0 38px rgba(151,185,245,.02);
+  content:"";
+  pointer-events:none;
+}
+.studies-module .study-layout { gap:12px; }
+.studies-module .discipline-list,
+.studies-module .study-content { border-radius:15px; }
+.studies-module .discipline-option { min-height:55px; border-radius:10px; }
+.studies-module .study-topic {
+  border-radius:11px;
+  transition:border-color .18s ease,background .18s ease;
+}
+.studies-module .study-topic:hover { border-color:rgba(145,180,245,.3); }
+.files-module .files-toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:14px;
+  border:1px solid var(--alfred-border);
+  border-radius:13px;
+  background:rgba(15,26,43,.76);
+}
+.files-module .stored-file {
+  min-height:62px;
+  border-radius:12px;
+  transition:border-color .18s ease,background .18s ease;
+}
+.files-module .stored-file-icon { flex-basis:38px; height:38px; }
+.files-module .stored-file-info strong { font-size:11px; }
+.productivity-module .focus-card {
+  padding:clamp(20px,3vw,30px);
+  border-radius:19px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(94,137,211,.18),transparent 54%),
+    linear-gradient(145deg,#14243c,#0b1525);
+}
+.productivity-module .focus-card-heading { margin-bottom:18px; }
+.productivity-module .focus-clock {
+  font-size:clamp(56px,10vw,86px);
+  font-weight:550;
+  line-height:1.05;
+}
+.productivity-module .focus-progress { height:6px; margin:17px 0; }
+.productivity-module .focus-actions { display:flex; justify-content:center; gap:9px; flex-wrap:wrap; }
+.productivity-module .focus-side-card,
+.productivity-module .focus-cycle,
+.productivity-module .focus-history {
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(19,31,51,.95),rgba(12,21,36,.97));
+}
+.organization-module .empty-state,
+.agenda-module .empty-state,
+.studies-module .empty-state,
+.files-module .empty-state,
+.productivity-module .empty-state {
+  padding:25px 18px;
+  border-radius:14px;
+  text-align:center;
+}
+@media (max-width:760px) {
+  .organization-module,.agenda-module,.studies-module,.files-module,.productivity-module { gap:14px; }
+  .agenda-module .agenda-toolbar { align-items:stretch; }
+  .agenda-module .agenda-toolbar .primary-action { width:100%; }
+  .agenda-module .agenda-controls { align-items:stretch; flex-direction:column; }
+  .agenda-module .agenda-date-label { justify-content:space-between; }
+  .agenda-module .agenda-view-switch { width:100%; }
+  .agenda-module .agenda-view-switch button { flex:1; }
+  .files-module .files-toolbar { align-items:stretch; }
+  .files-module .file-upload-button { width:100%; }
+  .productivity-module .focus-card { padding:20px 16px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .organization-module *, .agenda-module *, .studies-module *, .files-module *, .productivity-module * {
+    transition:none!important;
+  }
+}
