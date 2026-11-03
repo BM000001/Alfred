@@ -67,6 +67,12 @@ describe('ManualExportPanel', () => {
     });
     expect(writeText).toHaveBeenCalledOnce();
     expect(await screen.findByText(/A ação foi registrada apenas com metadados/)).toBeInTheDocument();
+
+    // A autorização é consumida: uma nova preparação exige consentimento novamente.
+    await user.click(screen.getByLabelText(/Tarefa · Preparar apresentação/));
+    await user.click(screen.getByLabelText('Revisei este conteúdo: não contém dados sensíveis.'));
+    await user.click(screen.getByRole('button', { name: 'Gerar prévia exata' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Confirme o envio de informações da classe pessoal/);
   });
 
   it('permite bloquear novas preparações e persiste o bloqueio', async () => {
