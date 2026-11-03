@@ -4,7 +4,7 @@ export interface EgressAuditEntry {
   readonly classes: readonly ('public' | 'personal' | 'academic')[];
   readonly itemCount: number;
   readonly characterCount: number;
-  readonly action: 'copied_to_clipboard';
+  readonly action: 'copied_to_clipboard' | 'sent_to_ai';
 }
 
 export interface EgressSettings {
@@ -22,6 +22,7 @@ export function createEgressAuditEntry(input: {
   classes: readonly ('public' | 'personal' | 'academic')[];
   itemCount: number;
   characterCount: number;
+  action?: 'copied_to_clipboard' | 'sent_to_ai';
   copiedAt?: string;
   id?: string;
 }): EgressAuditEntry {
@@ -37,6 +38,6 @@ export function createEgressAuditEntry(input: {
     classes: [...new Set(input.classes)],
     itemCount: input.itemCount,
     characterCount: input.characterCount,
-    action: 'copied_to_clipboard',
+    action: input.action ?? 'copied_to_clipboard',
   };
 }

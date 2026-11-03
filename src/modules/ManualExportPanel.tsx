@@ -223,7 +223,7 @@ export function ManualExportPanel() {
       {audit.length === 0 ? <p>Nenhuma cópia registrada.</p> : <ul>{audit.slice(0, 10).map(entry => <li key={entry.id}>
         <span>{new Date(entry.copiedAt).toLocaleString('pt-BR')}</span>
         <span>{entry.classes.map(value => labels[value]).join(', ') || 'Sem categoria'}</span>
-        <span>{entry.itemCount} item(ns) · {entry.characterCount} caracteres</span>
+        <span>{entry.itemCount} item(ns) · {entry.characterCount} caracteres · {entry.action === 'sent_to_ai' ? 'Enviado à IA' : 'Copiado'}</span>
       </li>)}</ul>}
     </div>
     {error && <p className="module-error" role="alert">{error}</p>}

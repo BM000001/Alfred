@@ -354,3 +354,29 @@
 .assistant-export-audit li span:first-child{color:#cbd8eb}
 .assistant-export-audit li span:last-child{grid-column:1/-1;color:#8294ad}
 @media(max-width:600px){.assistant-export-controls{grid-template-columns:1fr}.assistant-export-controls button{width:100%}}
+
+
+.assistant-remote-panel{display:grid;gap:12px;padding:16px;border:1px solid rgba(145,174,224,.18);border-radius:14px;background:rgba(7,15,27,.38)}
+.assistant-remote-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.assistant-remote-panel>header>div{display:grid;gap:4px}
+.assistant-remote-panel h3{margin:0;color:#dce7f7;font-size:13px;font-weight:650}
+.assistant-remote-panel>p{margin:0;color:#91a2bb;font-size:10px;line-height:1.6}
+.assistant-remote-status{padding:5px 8px;border:1px solid rgba(145,174,224,.18);border-radius:20px;color:#aab8cc;font-size:9px;white-space:nowrap}
+.assistant-remote-status.ready{border-color:rgba(112,190,155,.3);color:#91d2b2}
+.assistant-remote-login,.assistant-remote-controls{display:grid;gap:10px}
+.assistant-remote-login>label{color:#cbd8eb;font-size:10px;font-weight:600}
+.assistant-remote-login>div{display:flex;gap:8px}
+.assistant-remote-login input{flex:1;min-width:0}
+.assistant-remote-login button,.assistant-remote-controls button{min-height:36px;padding:0 12px;border-radius:8px;font-size:9px}
+.assistant-remote-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid rgba(145,174,224,.12);border-radius:10px}
+.assistant-remote-toggle>div{display:grid;gap:4px}
+.assistant-remote-toggle strong,.assistant-remote-controls>strong{color:#cbd8eb;font-size:10px}
+.assistant-remote-toggle small,.assistant-remote-controls>small{color:#91a2bb;font-size:9px;line-height:1.5}
+.assistant-remote-classes{display:flex;flex-wrap:wrap;gap:12px}
+.assistant-remote-classes label,.assistant-remote-review{display:flex;align-items:center;gap:7px;color:#aebbd0;font-size:10px}
+.assistant-remote-review{align-items:flex-start;line-height:1.5}
+.assistant-remote-classes input,.assistant-remote-review input{accent-color:#9cb8e7}
+.assistant-remote-note{margin:0;padding:9px 10px;border-left:2px solid #8da9d2;background:rgba(141,169,210,.07);color:#9eafc8;font-size:9px;line-height:1.5}
+.assistant-remote-warning{padding-top:8px;border-top:1px solid rgba(145,174,224,.1);color:#8294ad!important;font-size:9px!important}
+.assistant-remote-logout{justify-self:start;background:transparent;border:0;color:#a8b6ca;text-decoration:underline}
+@media(max-width:600px){.assistant-remote-panel>header,.assistant-remote-toggle{align-items:flex-start;flex-direction:column}.assistant-remote-toggle button{width:100%}.assistant-remote-login>div{flex-direction:column}.assistant-remote-login button{width:100%}}
