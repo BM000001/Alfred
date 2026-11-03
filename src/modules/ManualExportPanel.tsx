@@ -175,7 +175,7 @@ export function ManualExportPanel() {
     </header>
     <p>Selecione dados locais e prepare um texto para copiar. Alfred não envia nada a outro serviço.</p>
     {!loading && settings && <div className="assistant-export-controls">
-      <div><strong>Permitir preparação manual</strong><small>Desativar bloqueia novas prévias e cópias neste painel.</small></div>
+      <div><strong>Permitir preparação manual</strong><small>Desativar bloqueia novas prévias e cópias futuras neste painel; não apaga o que já foi copiado.</small></div>
       <button type="button" className={settings.enabled ? 'secondary-action' : 'primary-action'} disabled={savingSettings} onClick={() => void changeExportAvailability(!settings.enabled)}>
         {savingSettings ? 'Salvando…' : settings.enabled ? 'Desativar exportação' : 'Reativar exportação'}
       </button>
