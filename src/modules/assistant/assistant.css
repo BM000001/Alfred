@@ -202,3 +202,58 @@
   .assistant-loading { animation:none; }
   .assistant-suggestion-list button { transition:none; }
 }
+
+/* Refinamento premium do assistente */
+.assistant-module { max-width: 900px; gap: 18px; }
+.assistant-heading {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(111,153,225,.16), transparent 42%),
+    linear-gradient(145deg, rgba(19,34,56,.96), rgba(11,20,35,.96));
+  box-shadow: 0 16px 38px rgba(0,0,0,.16);
+}
+.assistant-heading::after {
+  position:absolute; right:0; bottom:0; left:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(160,190,246,.28),transparent);
+  content:"";
+}
+.assistant-heading h2 { font-size:21px; letter-spacing:-.7px; }
+.assistant-status { white-space:nowrap; }
+.assistant-conversation {
+  min-height:320px;
+  max-height: min(58vh, 620px);
+  padding:22px;
+  border-radius:17px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(70,101,153,.08), transparent 48%),
+    linear-gradient(160deg, rgba(15,27,45,.96), rgba(9,17,30,.98));
+}
+.assistant-message { gap:7px; }
+.assistant-message > span { color:#91a4c0; font-size:9px; }
+.assistant-message p { padding:13px 15px; font-size:12px; line-height:1.75; }
+.assistant-message.from-user p {
+  border-color:rgba(145,180,245,.28);
+  background:linear-gradient(135deg,rgba(61,91,139,.88),rgba(34,54,85,.94));
+}
+.assistant-proposal { border-radius:16px; }
+.assistant-proposal-record { gap:8px; padding:14px; }
+.assistant-composer {
+  position:sticky;
+  bottom:12px;
+  z-index:2;
+  border-radius:15px;
+  background:rgba(13,23,39,.97);
+  backdrop-filter:blur(18px);
+}
+.assistant-composer input { font-size:12px; }
+.assistant-suggestion-list button { min-height:39px; border-radius:11px; }
+.assistant-suggestion-list button:focus-visible,
+.assistant-proposal-actions button:focus-visible { outline:2px solid #a9c2f6; outline-offset:3px; }
+@media (max-width:600px) {
+  .assistant-conversation { min-height:280px; max-height:56vh; padding:14px; }
+  .assistant-heading { border-radius:15px; }
+  .assistant-message p { font-size:11px; }
+  .assistant-composer { bottom: calc(82px + env(safe-area-inset-bottom)); }
+}
