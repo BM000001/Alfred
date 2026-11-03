@@ -26,7 +26,7 @@ beforeEach(async () => {
 });
 
 async function renderAssistant() {
-  const view = await renderAssistant();
+  const view = render(<Assistant />);
   await waitFor(() => expect(screen.getByLabelText('Mensagem para Alfred')).toBeEnabled());
   return view;
 }
@@ -112,4 +112,29 @@ describe('Assistant task approval UI', () => {
       title: 'Revisar capítulo', status: 'pending', priority: 'medium',
     }));
   });
+  it('recupera o histórico após remontar e permite apagá-lo com confirmação', async () => {
+    const user = userEvent.setup();
+    const view = await renderAssistant();
+    await user.type(screen.getByLabelText('Mensagem para Alfred'), 'Quais tarefas estão pendentes?');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByText(/Preparar apresentação/);
+    await waitFor(async () => {
+      const saved = await assistantMessageRepository.getAll();
+      expect(saved.some((message) => message.content === 'Quais tarefas estão pendentes?')).toBe(true);
+    });
+
+    view.unmount();
+    await renderAssistant();
+    expect(screen.getByText('Quais tarefas estão pendentes?')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Limpar conversa' }));
+    await user.click(screen.getByRole('button', { name: 'Apagar histórico' }));
+    await waitFor(async () => {
+      const saved = await assistantMessageRepository.getAll();
+      expect(saved).toHaveLength(1);
+      expect(saved[0].content).toContain('À sua disposição.');
+    });
+    expect(screen.queryByText('Quais tarefas estão pendentes?')).not.toBeInTheDocument();
+  });
+
 });
