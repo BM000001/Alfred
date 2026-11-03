@@ -10,6 +10,7 @@ function memoryRepository(): EntityRepository<StoredFile> {
     async getById(id) { return items.get(id); },
     async save(item) { items.set(item.id, item); },
     async delete(id) { items.delete(id); },
+    async clear() { items.clear(); },
   };
 }
 describe('fileService', () => {
