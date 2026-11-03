@@ -4,7 +4,7 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { ALFRED_DATABASE_NAME } from './database';
-import { appointmentRepository, projectRepository, taskRepository } from './repositories';
+import { appointmentRepository, egressAuditRepository, egressSettingsRepository, projectRepository, taskRepository } from './repositories';
 
 const task: Task = {
   id: 'task-1',
@@ -88,5 +88,29 @@ describe('appointmentRepository', () => {
 
     await appointmentRepository.delete(appointment.id);
     expect(await appointmentRepository.getById(appointment.id)).toBeUndefined();
+  });
+});
+
+
+describe('repositórios de privacidade de exportação', () => {
+  it('persiste somente metadados de auditoria e permite apagar o histórico', async () => {
+    const entry = {
+      id: 'egress-audit-1',
+      copiedAt: '2026-11-03T10:00:00.000Z',
+      classes: ['academic'] as const,
+      itemCount: 1,
+      characterCount: 42,
+      action: 'copied_to_clipboard' as const,
+    };
+    await egressAuditRepository.save(entry);
+    expect(await egressAuditRepository.getById(entry.id)).toEqual(entry);
+    await egressAuditRepository.clear();
+    expect(await egressAuditRepository.getAll()).toEqual([]);
+  });
+
+  it('persiste a preferência global de bloqueio', async () => {
+    const disabled = { id: 'global' as const, enabled: false };
+    await egressSettingsRepository.save(disabled);
+    expect(await egressSettingsRepository.getById('global')).toEqual(disabled);
   });
 });
