@@ -117,11 +117,6 @@ export function Overview({ onNavigate }: Props) {
   const todayTopics = topics.filter((topic) => topic.status === 'pending').slice(0, 4);
   const studyProgress = summarizeStudyProgress(topics);
   const focusSummary = summarizeFocusSessions(focusSessions, now);
-  const weekdays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const calendarCells = [...Array(monthStart.getDay()).fill(null), ...Array.from({ length: monthDays }, (_, i) => i + 1)];
-  const eventDays = new Set(appointments.filter((item) => { const date = new Date(item.startsAt); return item.status === 'scheduled' && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth(); }).map((item) => new Date(item.startsAt).getDate()));
 
   function saveCity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -143,17 +138,17 @@ export function Overview({ onNavigate }: Props) {
 
         <div className="dashboard-summary">
           <button type="button" className="dashboard-stat stat-overdue" onClick={() => onNavigate('tarefas')}>
-            <span className="stat-icon" aria-hidden="true">!</span><span className="card-label">EM ATRASO</span>
+            <span className="stat-icon stat-icon-alert" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg></span><span className="card-label">EM ATRASO</span>
             <strong>{overdueTasks.length}</strong><p>{overdueTasks.length === 1 ? 'tarefa vencida' : 'tarefas vencidas'}</p>
             <span className="dashboard-link">Revisar tarefas →</span>
           </button>
           <button type="button" className="dashboard-stat" onClick={() => onNavigate('tarefas')}>
-            <span className="stat-icon" aria-hidden="true">○</span><span className="card-label">PENDENTES</span>
+            <span className="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><span className="card-label">PENDENTES</span>
             <strong>{pendingTasks.length}</strong><p>tarefas esperando por você</p>
             <span className="dashboard-link">Ver pendências →</span>
           </button>
           <button type="button" className="dashboard-stat" onClick={() => onNavigate('agenda')}>
-            <span className="stat-icon" aria-hidden="true">◷</span><span className="card-label">COMPROMISSOS HOJE</span>
+            <span className="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4m8-4v4M3.5 10h17m-12 4h3"/></svg></span><span className="card-label">COMPROMISSOS HOJE</span>
             <strong>{todayAppointments.length}</strong><p>{todayAppointments.length === 1 ? 'compromisso no dia' : 'compromissos no dia'}</p>
             <span className="dashboard-link">Ver agenda →</span>
           </button>
@@ -176,15 +171,6 @@ export function Overview({ onNavigate }: Props) {
             <div className="study-mini-progress"><span>Progresso dos estudos</span><strong>{studyProgress.percentage}%</strong><div className="progress-track" role="progressbar" aria-label="Progresso dos estudos" aria-valuenow={studyProgress.percentage} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${studyProgress.percentage}%` }}/></div></div>
           </section>
         </div>
-
-        <section className="dashboard-panel mini-calendar-panel" aria-labelledby="mini-calendar-title">
-          <div className="dashboard-panel-heading"><div><span className="card-label">CALENDÁRIO</span><h2 id="mini-calendar-title">{now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</h2></div><button type="button" className="dashboard-link" onClick={() => onNavigate('agenda')}>Calendário completo →</button></div>
-          <div className="mini-calendar" aria-label="Calendário mensal resumido">
-            {weekdays.map((day, index) => <span className="mini-calendar-weekday" key={`${day}-${index}`}>{day}</span>)}
-            {calendarCells.map((day, index) => day === null ? <span className="mini-calendar-blank" key={`blank-${index}`}/> : <span key={day} className={`mini-calendar-day ${day === now.getDate() ? 'is-today' : ''} ${eventDays.has(day) ? 'has-event' : ''}`} aria-label={`${day}${eventDays.has(day) ? ', tem compromisso' : ''}`}>{day}</span>)}
-          </div>
-          <p className="calendar-legend"><span/> Hoje <i/> Dia com compromisso</p>
-        </section>
 
         <div className="dashboard-columns">
           <section className="dashboard-panel">
