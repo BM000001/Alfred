@@ -26,6 +26,7 @@ export function Assistant() {
   const [pendingProposal, setPendingProposal] = useState<PendingTaskProposal | null>(null);
   const [error, setError] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
+  const recentTaskIdRef = useRef<string | null>(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, loading, pendingProposal]);
 
@@ -43,7 +44,7 @@ export function Assistant() {
       const [tasks, appointments, topics] = await Promise.all([
         taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(),
       ]);
-      const preparation = prepareTaskCompletion(content, tasks);
+      const preparation = prepareTaskCompletion(content, tasks, { referenceTaskId: recentTaskIdRef.current });
       if (preparation.kind === 'proposal') {
         setPendingProposal({ action: 'complete', task: preparation.task, proposal: preparation.proposal });
         setMessages((current) => [...current, createMessage('assistant', 'Preparei uma proposta. Revise os detalhes abaixo e confirme somente se quiser executar a alteração.')]);
@@ -152,9 +153,11 @@ export function Assistant() {
       await executeApprovedProposal(proposal, decision, tools);
       setPendingProposal(null);
       if (pending.action === 'complete') {
+        recentTaskIdRef.current = pending.task.id;
         setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.task.title + '” foi marcada como concluída.')]);
       } else {
-        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.taskTitle + '” foi criada com prioridade média e adicionada às pendências.')]);
+        recentTaskIdRef.current = pending.taskId;
+        setMessages((current) => [...current, createMessage('assistant', 'Confirmado. A tarefa “' + pending.taskTitle + '” foi criada com prioridade média e adicionada às pendências. Agora você pode se referir a ela como “essa tarefa” nesta conversa.')]);
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível executar a ação. Nenhuma confirmação de sucesso foi registrada.');
@@ -223,7 +226,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e criação/conclusão de tarefas mediante confirmação explícita. Ainda não há modelo de IA remoto, voz ou memória persistente.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e criação/conclusão de tarefas mediante confirmação explícita. O Alfred mantém apenas uma referência temporária à última tarefa criada ou concluída enquanto esta conversa estiver aberta; não é memória persistente.</p>
     </section>
   );
 }
