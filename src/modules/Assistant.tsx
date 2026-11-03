@@ -9,7 +9,8 @@ import { prepareTaskDueDateUpdate } from './assistant/taskDueDateProposals';
 import { prepareTaskDescriptionUpdate } from './assistant/taskDescriptionProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
-import { appointmentRepository, assistantMessageRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
+import { AssistantMemoryPanel } from './AssistantMemoryPanel';
+import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return { id: crypto.randomUUID(), role, content, createdAt: new Date().toISOString() };
@@ -81,8 +82,8 @@ export function Assistant() {
     setLoading(true);
     setError('');
     try {
-      const [tasks, appointments, topics] = await Promise.all([
-        taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(),
+      const [tasks, appointments, topics, memories] = await Promise.all([
+        taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(), memoryRepository.getAll(),
       ]);
       const priorityUpdate = prepareTaskPriorityUpdate(content, tasks, { referenceTaskId: recentTaskIdRef.current });
       if (priorityUpdate.kind === 'proposal') {
@@ -189,6 +190,7 @@ export function Assistant() {
       const response = await provider.generate({
         messages: nextMessages,
         context: { locale: 'pt-BR', now: new Date().toISOString(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'local' },
+        memories,
       });
       setMessages((current) => [...current, createMessage('assistant', response.message)]);
     } catch {
@@ -372,6 +374,7 @@ export function Assistant() {
           <button type="button" className="secondary-action" onClick={() => setConfirmClear(true)} disabled={!historyReady || loading || approving || pendingProposal !== null}>Limpar conversa</button>
         </div>
       </header>
+      <AssistantMemoryPanel />
       {!historyReady && <p className="assistant-loading" role="status">Recuperando conversa local…</p>}
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
         <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span><span>Definir prazos com confirmação</span><span>Editar descrições com confirmação</span>
@@ -434,7 +437,7 @@ export function Assistant() {
         <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={!historyReady || loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">Versão local: consultas por regras e alterações mediante confirmação explícita. O histórico desta conversa é salvo somente neste dispositivo; o Alfred ainda não possui memória semântica persistente de fatos ou preferências.</p>
+      <p className="assistant-disclaimer">Versão local: consultas por regras e alterações mediante confirmação explícita. O histórico e as memórias são salvos somente neste dispositivo. As memórias são cadastradas manualmente e não são enviadas a serviços externos.</p>
     </section>
   );
 }

@@ -16,6 +16,7 @@ export interface AssistantContext {
 export interface AssistantRequest {
   messages: AssistantMessage[];
   context: AssistantContext;
+  memories?: Array<{ title: string; content: string; category: string }>;
 }
 
 export interface AssistantResponse {

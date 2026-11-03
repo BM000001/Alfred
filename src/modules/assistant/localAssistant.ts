@@ -2,7 +2,7 @@ import type { AIProvider, AssistantRequest, AssistantResponse } from './contract
 import type { ReadToolData } from './readTools';
 import { createReadOnlyTools } from './readTools';
 
-type Intent = 'tasks' | 'agenda' | 'studies' | 'unknown';
+type Intent = 'tasks' | 'agenda' | 'studies' | 'memory' | 'unknown';
 
 function latestUserMessage(request: AssistantRequest): string {
   return [...request.messages].reverse().find((message) => message.role === 'user')?.content.trim() ?? '';
@@ -47,6 +47,16 @@ export class LocalAssistantProvider implements AIProvider {
     if (!rawPrompt) return { message: 'Diga o que deseja consultar.', usedTools: [], warnings: [] };
 
     const intent = detectIntent(rawPrompt);
+    if (intent === 'memory') {
+      const memories = request.memories ?? [];
+      return {
+        message: memories.length
+          ? `Estas são as informações que o senhor salvou explicitamente na minha memória local:\\n${memories.map((item) => `• ${item.title} (${item.category}): ${item.content}`).join('\\n')}`
+          : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.',
+        usedTools: ['memory.list'],
+        warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo.'],
+      };
+    }
     const tools = createReadOnlyTools(this.data);
     const selectedId = intent === 'agenda' ? 'agenda.upcoming'
       : intent === 'studies' ? 'studies.progress'
