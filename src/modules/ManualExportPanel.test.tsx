@@ -52,7 +52,7 @@ describe('ManualExportPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Gerar prévia exata' }));
 
     const preview = await screen.findByLabelText('Texto exato que será copiado');
-    expect(preview).toHaveValue(expect.stringContaining('Preparar apresentação'));
+    expect((preview as HTMLTextAreaElement).value).toContain('Preparar apresentação');
     await user.click(screen.getByRole('button', { name: 'Copiar texto revisado' }));
 
     await waitFor(async () => {
