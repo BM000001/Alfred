@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ActionProposal, ApprovalDecision, AssistantMessage, ToolDefinition } from './assistant/contracts';
 import './assistant/assistant.css';
 import { ActionApprovalError, executeApprovedProposal } from './assistant/actionApproval';
@@ -11,9 +11,7 @@ import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
 import { AssistantMemoryPanel } from './AssistantMemoryPanel';
 import { ManualExportPanel } from './ManualExportPanel';
-import { ExternalAIControls, type RemoteAIConsent } from './ExternalAIControls';
-import { createEgressAuditEntry } from './assistant/egressAudit';
-import { appointmentRepository, assistantMessageRepository, egressAuditRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
+import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return { id: crypto.randomUUID(), role, content, createdAt: new Date().toISOString() };
@@ -35,20 +33,6 @@ export function Assistant() {
   const [approving, setApproving] = useState(false);
   const [pendingProposal, setPendingProposal] = useState<PendingTaskProposal | null>(null);
   const [error, setError] = useState('');
-  const [externalAuthenticated, setExternalAuthenticated] = useState(false);
-  const [externalMode, setExternalMode] = useState(false);
-  const [externalConsent, setExternalConsent] = useState<RemoteAIConsent | null>(null);
-  const handleExternalAuthenticated = useCallback((authenticated: boolean) => {
-    setExternalAuthenticated(authenticated);
-    if (!authenticated) { setExternalMode(false); setExternalConsent(null); }
-  }, []);
-  const handleExternalMode = useCallback((enabled: boolean) => {
-    setExternalMode(enabled);
-    setExternalConsent(null);
-  }, []);
-  const handleExternalAuthorization = useCallback((consent: RemoteAIConsent | null) => {
-    setExternalConsent(consent);
-  }, []);
   const endRef = useRef<HTMLDivElement>(null);
   const recentTaskIdRef = useRef<string | null>(null);
   const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -92,10 +76,6 @@ export function Assistant() {
     event.preventDefault();
     const content = input.trim();
     if (!content || !historyReady || loading || approving) return;
-    if (externalMode && (!externalAuthenticated || !externalConsent)) {
-      setError('Entre na sessão e autorize explicitamente esta mensagem antes de enviá-la à IA externa.');
-      return;
-    }
     const userMessage = createMessage('user', content);
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
@@ -103,40 +83,6 @@ export function Assistant() {
     setLoading(true);
     setError('');
     try {
-      if (externalMode) {
-        const consent = externalConsent;
-        setExternalConsent(null);
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{ role: 'user', content }],
-            consent,
-          }),
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || 'A IA externa não conseguiu processar a mensagem.');
-        const answer = typeof result.message === 'string' ? result.message : '';
-        if (!answer.trim()) throw new Error('A IA externa retornou uma resposta vazia.');
-        let auditWarning = '';
-        try {
-          const entry = createEgressAuditEntry({
-            classes: consent!.classes,
-            itemCount: 1,
-            characterCount: content.length,
-            action: 'sent_to_ai',
-          });
-          await egressAuditRepository.save(entry);
-          const savedEntries = await egressAuditRepository.getAll();
-          const orderedEntries = savedEntries.sort((a, b) => b.copiedAt.localeCompare(a.copiedAt));
-          await Promise.all(orderedEntries.slice(100).map((oldEntry) => egressAuditRepository.delete(oldEntry.id)));
-        } catch {
-          auditWarning = '\n\nAviso: a resposta chegou, mas o registro local de auditoria não pôde ser salvo.';
-        }
-        setMessages((current) => [...current, createMessage('assistant', answer.trim() + auditWarning)]);
-        return;
-      }
       const [tasks, appointments, topics, memories] = await Promise.all([
         taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(), memoryRepository.getAll(),
       ]);
@@ -422,18 +368,12 @@ export function Assistant() {
   return (
     <section className="assistant-module" aria-label="Assistente Alfred">
       <header className="assistant-heading">
-        <div><span className="card-label">ALFRED · ASSISTENTE</span><h2>Como posso ajudar?</h2><p>Modo local por padrão. A IA externa é opcional e exige login e autorização individual para cada mensagem.</p></div>
+        <div><span className="card-label">ALFRED · ASSISTENTE</span><h2>Como posso ajudar?</h2><p>Modo local: seus dados permanecem neste dispositivo. Para usar uma IA externa, utilize a exportação manual após revisar e autorizar o conteúdo.</p></div>
         <div className="assistant-heading-actions">
-          <span className="assistant-status"><i aria-hidden="true" /> {externalMode ? "IA externa" : "Local"}</span>
+          <span className="assistant-status"><i aria-hidden="true" /> Local</span>
           <button type="button" className="secondary-action" onClick={() => setConfirmClear(true)} disabled={!historyReady || loading || approving || pendingProposal !== null}>Limpar conversa</button>
         </div>
       </header>
-      <ExternalAIControls
-        authorized={externalConsent !== null}
-        onModeChange={handleExternalMode}
-        onAuthorizationChange={handleExternalAuthorization}
-        onAuthenticatedChange={handleExternalAuthenticated}
-      />
       <AssistantMemoryPanel />
       <ManualExportPanel />
       {!historyReady && <p className="assistant-loading" role="status">Recuperando conversa local…</p>}
@@ -464,7 +404,7 @@ export function Assistant() {
             <p>{message.content}</p>
           </article>
         ))}
-        {loading && <p className="assistant-loading" role="status">{externalMode ? 'Consultando IA externa…' : 'Consultando seus dados locais…'}</p>}
+        {loading && <p className="assistant-loading" role="status">Consultando seus dados locais…</p>}
         <div ref={endRef} />
       </div>
       {confirmClear && (
@@ -496,10 +436,10 @@ export function Assistant() {
       {error && <p className="module-error" role="alert">{error}</p>}
       <form className="assistant-composer" onSubmit={submit}>
         <label className="sr-only" htmlFor="assistant-prompt">Mensagem para Alfred</label>
-        <input id="assistant-prompt" value={input} onChange={(event) => { setInput(event.target.value); if (externalConsent) setExternalConsent(null); }} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
+        <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
         <button type="submit" className="primary-action" disabled={!historyReady || loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
       </form>
-      <p className="assistant-disclaimer">O modo local consulta dados deste dispositivo. No modo externo, somente a mensagem atual é enviada após consentimento individual; nenhum dado local ou histórico é anexado. Alterações em tarefas continuam exigindo confirmação explícita no modo local.</p>
+      <p className="assistant-disclaimer">O modo local consulta somente dados deste dispositivo. Nenhuma mensagem é enviada automaticamente para serviços externos. Para usar outro modelo de IA, utilize a exportação manual, revise o conteúdo e faça o envio por sua própria conta. Alterações em tarefas continuam exigindo confirmação explícita.</p>
     </section>
   );
 }
