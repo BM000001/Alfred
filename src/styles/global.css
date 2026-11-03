@@ -841,3 +841,40 @@ body {
   .main-content, .sidebar { width: 100% !important; max-width: 100%; min-width: 0; }
   .dashboard-home-grid, .dashboard-columns { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Contrast repair: ensure all dashboard copy remains readable on dark panels. */
+.app-shell, .app-shell * {
+  color: #e7edf7 !important;
+}
+.app-shell h1, .app-shell h2, .app-shell h3,
+.app-shell h4, .app-shell strong, .app-shell b,
+.app-shell label, .app-shell .brand {
+  color: #f7f9ff !important;
+}
+.app-shell p, .app-shell small, .app-shell .muted,
+.app-shell .welcome-copy, .app-shell .topbar-caption,
+.app-shell .task-meta, .app-shell .appointment-time span {
+  color: #b6c2d3 !important;
+}
+.app-shell .eyebrow, .app-shell .card-label,
+.app-shell .nav-mark, .app-shell .dashboard-link,
+.app-shell .text-action, .app-shell a {
+  color: #55d8f2 !important;
+}
+.app-shell input, .app-shell textarea, .app-shell select,
+.app-shell option {
+  color: #17243a !important;
+  background-color: #f7f9fc !important;
+}
+.app-shell input::placeholder, .app-shell textarea::placeholder {
+  color: #667286 !important;
+}
+.app-shell button {
+  color: #edf4ff !important;
+}
+.app-shell .primary-action, .app-shell .danger-action,
+.app-shell .nav-item.active {
+  color: #ffffff !important;
+}
+.app-shell .sr-only { color: inherit !important; }
