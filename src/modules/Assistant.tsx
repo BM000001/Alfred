@@ -10,6 +10,7 @@ import { prepareTaskDescriptionUpdate } from './assistant/taskDescriptionProposa
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
 import { AssistantMemoryPanel } from './AssistantMemoryPanel';
+import { ManualExportPanel } from './ManualExportPanel';
 import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
@@ -374,6 +375,7 @@ export function Assistant() {
         </div>
       </header>
       <AssistantMemoryPanel />
+      <ManualExportPanel />
       {!historyReady && <p className="assistant-loading" role="status">Recuperando conversa local…</p>}
       <div className="assistant-capabilities" aria-label="Consultas disponíveis">
         <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span><span>Definir prazos com confirmação</span><span>Editar descrições com confirmação</span>

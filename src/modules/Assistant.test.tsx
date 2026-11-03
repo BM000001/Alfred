@@ -117,7 +117,7 @@ describe('Assistant task approval UI', () => {
     const view = await renderAssistant();
     await user.type(screen.getByLabelText('Mensagem para Alfred'), 'Quais tarefas estão pendentes?');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
-    await screen.findByText(/Preparar apresentação/);
+    await within(screen.getByRole('log')).findByText(/Preparar apresentação/);
     await waitFor(async () => {
       const saved = await assistantMessageRepository.getAll();
       expect(saved.some((message) => message.content === 'Quais tarefas estão pendentes?')).toBe(true);
