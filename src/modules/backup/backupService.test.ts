@@ -1,24 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { createBackup, inspectBackup } from './backupService';
-import { focusSessionRepository } from '../../storage/repositories';
+import { createBackup, inspectBackup, restoreBackup } from './backupService';
+import { focusSessionRepository, memoryRepository } from '../../storage/repositories';
+import type { AssistantMemory } from '../memory/types';
 import type { FocusSession } from '../productivity/types';
 
 const validBackup = {
   format: 'alfred-local-backup',
   version: 1,
   createdAt: '2026-11-02T12:00:00.000Z',
-  data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], focusSessions: [], files: [] },
+  data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], focusSessions: [], memories: [], files: [] },
 };
 
 describe('backupService', () => {
   it('inspeciona um backup válido e contabiliza os dados', () => {
     const result = inspectBackup(JSON.stringify(validBackup));
     expect(result.createdAt).toBe(validBackup.createdAt);
-    expect(result.counts).toEqual({ tasks: 0, projects: 0, appointments: 0, disciplines: 0, studyTopics: 0, focusSessions: 0, files: 0 });
+    expect(result.counts).toEqual({ tasks: 0, projects: 0, appointments: 0, disciplines: 0, studyTopics: 0, focusSessions: 0, memories: 0, files: 0 });
   });
 
   it('continua lendo backups antigos sem histórico de foco', () => {
-    const legacy = { ...validBackup, data: { tasks: [], projects: [], appointments: [], disciplines: [], studyTopics: [], files: [] } };
+    const { memories: _memories, focusSessions: _focusSessions, ...legacyData } = validBackup.data;
+    const legacy = { ...validBackup, data: { ...legacyData, files: [] } };
     expect(inspectBackup(JSON.stringify(legacy)).counts.focusSessions).toBe(0);
   });
 
@@ -31,6 +33,30 @@ describe('backupService', () => {
     } finally {
       await focusSessionRepository.delete(id);
     }
+  });
+
+  it('inclui memórias explícitas no backup', async () => {
+    const memory: AssistantMemory = { id: 'memory-backup-test', title: 'Preferência', content: 'Prefiro planos objetivos.', category: 'preference', createdAt: '2026-11-03T10:00:00.000Z', updatedAt: '2026-11-03T10:00:00.000Z' };
+    try {
+      await memoryRepository.save(memory);
+      expect(inspectBackup(await createBackup()).counts.memories).toBe(1);
+    } finally { await memoryRepository.delete(memory.id); }
+  });
+
+  it('restaura memórias do backup para o IndexedDB', async () => {
+    const memory: AssistantMemory = { id: 'memory-restore-test', title: 'Objetivo', content: 'Concluir o projeto.', category: 'goal', createdAt: '2026-11-03T10:00:00.000Z', updatedAt: '2026-11-03T10:00:00.000Z' };
+    try {
+      await memoryRepository.save(memory);
+      const preview = inspectBackup(await createBackup());
+      await memoryRepository.delete(memory.id);
+      await restoreBackup(preview.payload);
+      expect(await memoryRepository.getById(memory.id)).toEqual(memory);
+    } finally { await memoryRepository.delete(memory.id); }
+  });
+
+  it('rejeita memórias inválidas no backup', () => {
+    const invalid = { ...validBackup, data: { ...validBackup.data, memories: [{ id: 'm1', title: '', content: 'x', category: 'unknown', createdAt: 'invalid', updatedAt: 'invalid' }] } };
+    expect(() => inspectBackup(JSON.stringify(invalid))).toThrow('memórias inválidas');
   });
 
   it('rejeita JSON inválido', () => {

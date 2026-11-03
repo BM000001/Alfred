@@ -6,7 +6,7 @@ type BackupPreview = ReturnType<typeof inspectBackup>;
 
 const labels: Record<string, string> = {
   tasks: 'Tarefas', projects: 'Projetos', appointments: 'Compromissos',
-  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo', focusSessions: 'Sessões Pomodoro', files: 'Arquivos',
+  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo', focusSessions: 'Sessões Pomodoro', memories: 'Memórias do Alfred', files: 'Arquivos',
 };
 
 function downloadJson(content: string, filename: string) {
@@ -105,7 +105,7 @@ export function BackupSettings() {
     <article className="entry-panel">
       <span className="card-label">PROTEÇÃO DOS SEUS DADOS</span>
       <h2>Backup local</h2>
-      <p>Exporte tarefas, projetos, agenda, estudos, histórico Pomodoro e arquivos em um único documento. O Alfred não envia esses dados para um servidor.</p>
+      <p>Exporte tarefas, projetos, agenda, estudos, histórico Pomodoro, memórias e arquivos em um único documento. O Alfred não envia esses dados para um servidor. O histórico de mensagens não é incluído no backup e permanece neste dispositivo.</p>
       <button className="primary-action" type="button" disabled={busy} onClick={() => void exportData()}>{busy ? 'Processando...' : 'Exportar backup JSON'}</button>
     </article>
     <article className="entry-panel">

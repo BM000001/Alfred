@@ -5,6 +5,7 @@ import type { Discipline, StudyTopic } from '../modules/studies/types';
 import type { StoredFile } from '../modules/files/types';
 import type { FocusSession } from '../modules/productivity/types';
 import type { AssistantMessage } from '../modules/assistant/contracts';
+import type { AssistantMemory } from '../modules/memory/types';
 import { openAlfredDatabase, runStoreRequest, STORE_NAMES } from './database';
 
 export interface EntityRepository<T extends { id: string }> {
@@ -53,3 +54,4 @@ export const studyTopicRepository = createRepository<StudyTopic>(STORE_NAMES.stu
 export const fileRepository = createRepository<StoredFile>(STORE_NAMES.files);
 export const focusSessionRepository = createRepository<FocusSession>(STORE_NAMES.focusSessions);
 export const assistantMessageRepository = createRepository<AssistantMessage>(STORE_NAMES.assistantMessages);
+export const memoryRepository = createRepository<AssistantMemory>(STORE_NAMES.memories);

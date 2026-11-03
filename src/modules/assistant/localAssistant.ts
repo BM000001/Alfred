@@ -1,8 +1,10 @@
 import type { AIProvider, AssistantRequest, AssistantResponse } from './contracts';
 import type { ReadToolData } from './readTools';
 import { createReadOnlyTools } from './readTools';
+import type { AssistantMemory } from '../memory/types';
+import { searchMemories } from '../memory/memoryService';
 
-type Intent = 'tasks' | 'agenda' | 'studies' | 'unknown';
+type Intent = 'tasks' | 'agenda' | 'studies' | 'memory' | 'unknown';
 
 function latestUserMessage(request: AssistantRequest): string {
   return [...request.messages].reverse().find((message) => message.role === 'user')?.content.trim() ?? '';
@@ -21,6 +23,7 @@ function detectIntent(prompt: string): Intent {
   const value = normalizePrompt(prompt);
   const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
 
+  if (has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) || /\bo que voce sabe sobre mim\b/.test(value)) return 'memory';
   if (has([/\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\w*/])) return 'studies';
   if (has([/\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\w*/]) ||
       /\b(quando|que dia|qual dia|o que tenho)\b/.test(value) && /\b(marcad|agendad|programad)\w*/.test(value)) return 'agenda';
@@ -40,13 +43,24 @@ function extractTopicQuery(prompt: string): string | undefined {
 export class LocalAssistantProvider implements AIProvider {
   readonly id = 'local-rules';
 
-  constructor(private readonly data: ReadToolData) {}
+  constructor(private readonly data: ReadToolData, private readonly memories: AssistantMemory[] = []) {}
 
   async generate(request: AssistantRequest): Promise<AssistantResponse> {
     const rawPrompt = latestUserMessage(request);
     if (!rawPrompt) return { message: 'Diga o que deseja consultar.', usedTools: [], warnings: [] };
 
     const intent = detectIntent(rawPrompt);
+    if (intent === 'memory') {
+      const relevant = searchMemories(this.memories, rawPrompt);
+      const memories = relevant.length ? relevant : this.memories;
+      return {
+        message: memories.length
+          ? `Estas são as informações que o senhor salvou explicitamente na minha memória local:\n${memories.map((item) => `• ${item.title} (${item.category}): ${item.content}`).join('\n')}`
+          : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.',
+        usedTools: ['memory.list'],
+        warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo.'],
+      };
+    }
     const tools = createReadOnlyTools(this.data);
     const selectedId = intent === 'agenda' ? 'agenda.upcoming'
       : intent === 'studies' ? 'studies.progress'
