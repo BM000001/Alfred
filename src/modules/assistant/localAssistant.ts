@@ -55,7 +55,7 @@ export class LocalAssistantProvider implements AIProvider {
 
     if (!selected) {
       return {
-        message: 'Posso ajudar com três áreas: tarefas e pendências, compromissos da agenda e progresso dos estudos. Experimente perguntar, por exemplo: “O que preciso fazer?”, “Tenho algo marcado esta semana?” ou “Como estão meus estudos?”.',
+        message: 'Posso ajudar com três áreas: tarefas e pendências, compromissos da agenda e progresso dos estudos. Experimente perguntar, por exemplo: “O que preciso fazer?”, “Tenho algo marcado esta semana?” ou “Como estão meus estudos?”. Ainda não utilizo um modelo de IA generativa; esta versão interpreta comandos por regras locais.',
         usedTools: [],
         warnings: ['Assistente local: a compreensão é feita por regras e não por um modelo de IA.'],
       };
