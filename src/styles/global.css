@@ -706,3 +706,103 @@ select:focus-visible, textarea:focus-visible { outline-color: var(--alfred-cyan)
   .overview { gap: 14px; }
   .overview-card { min-height: 150px; }
 }
+
+
+/* Home dashboard: glanceable summary, local forecast, study queue and compact calendar. */
+.dashboard { display: grid; gap: 18px; }
+.dashboard-greeting { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 2px; }
+.dashboard-greeting h2 { margin: 4px 0 7px; color: #f3f5fb; font-size: clamp(22px, 3vw, 30px); font-weight: 550; letter-spacing: -.04em; }
+.dashboard-greeting p { margin: 0; color: #a7b4c7; font-size: 12px; }
+.dashboard-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.dashboard-stat {
+  position: relative; min-width: 0; padding: 20px; display: flex; flex-direction: column; align-items: flex-start;
+  border: 1px solid #354253; border-radius: 17px; text-align: left; cursor: pointer;
+  color: #f4f5fa; background: linear-gradient(145deg, #202b3a, #171d27);
+  box-shadow: 0 12px 28px rgb(8 12 22 / 20%); transition: transform 160ms ease, border-color 160ms ease;
+}
+.dashboard-stat:hover { transform: translateY(-2px); border-color: #4b7194; }
+.dashboard-stat .card-label { margin: 10px 0 12px; font-size: 9px; }
+.dashboard-stat strong { font-size: clamp(28px, 4vw, 38px); font-weight: 500; line-height: 1; }
+.dashboard-stat p { margin: 8px 0 16px; color: #a7b4c7; font-size: 11px; }
+.dashboard-stat .dashboard-link { margin-top: auto; }
+.stat-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; color: #55d9f3; background: rgb(72 216 242 / 10%); font-size: 17px; }
+.stat-overdue .stat-icon { color: #ff8d72; background: rgb(240 100 58 / 13%); }
+.dashboard-home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.dashboard-panel {
+  min-width: 0; padding: 20px; border: 1px solid #354253; border-radius: 17px;
+  color: #f3f5fb; background: linear-gradient(145deg, #202b3a 0%, #171d27 100%);
+  box-shadow: 0 12px 28px rgb(8 12 22 / 18%);
+}
+.dashboard-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+.dashboard-panel-heading .card-label { margin: 0 0 7px; font-size: 9px; }
+.dashboard-panel-heading h2 { margin: 0; color: #f3f5fb; font-size: 17px; font-weight: 550; letter-spacing: -.025em; }
+.dashboard-link { padding: 0; border: 0; color: #55d9f3; background: transparent; font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.dashboard-link:hover { color: #a3f1ff; }
+.dashboard-empty { color: #9caabd; font-size: 12px; line-height: 1.65; }
+.weather-symbol { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 14px; color: #5de0f6; background: linear-gradient(135deg, rgb(47 196 235 / 18%), rgb(93 80 239 / 18%)); font-size: 28px; }
+.weather-main { display: flex; align-items: center; gap: 15px; padding: 6px 0 18px; }
+.weather-temperature { color: #f6f8ff; font-size: 52px; font-weight: 450; line-height: 1; letter-spacing: -.07em; }
+.weather-main > div { display: grid; gap: 5px; }
+.weather-main strong { font-size: 13px; font-weight: 600; }
+.weather-main span { color: #a7b4c7; font-size: 11px; }
+.weather-range { display: flex; align-items: center; gap: 16px; padding-top: 13px; border-top: 1px solid #354253; color: #a7b4c7; font-size: 11px; }
+.weather-range strong { color: #f3f5fb; }
+.weather-range .dashboard-link { margin-left: auto; }
+.weather-empty p { color: #a7b4c7; font-size: 12px; line-height: 1.6; }
+.weather-city-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid #354253; }
+.weather-city-form label { display: block; margin-bottom: 7px; color: #c7d1df; font-size: 11px; }
+.weather-city-form > div { display: flex; gap: 8px; }
+.weather-city-form input { min-width: 0; width: 100%; padding: 10px 12px; border: 1px solid #354253; border-radius: 9px; color: #f3f5fb; background: #121822; font: inherit; font-size: 12px; }
+.weather-city-form .primary-action { min-height: 38px; margin: 0; padding: 0 13px; }
+.weather-source { margin: 14px 0 0; color: #75859a; font-size: 9px; line-height: 1.5; }
+.dashboard-subject-list, .dashboard-event-list { margin: 0; padding: 0; list-style: none; }
+.dashboard-subject-list { display: grid; gap: 3px; }
+.dashboard-subject-list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgb(53 66 83 / 65%); }
+.dashboard-subject-list li:last-child { border-bottom: 0; }
+.subject-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #55d9f3; box-shadow: 0 0 10px rgb(85 217 243 / 35%); }
+.dashboard-subject-list li > div, .dashboard-event-list li > div:last-child { min-width: 0; display: grid; gap: 4px; }
+.dashboard-subject-list strong, .dashboard-event-list li > div:last-child strong { overflow-wrap: anywhere; color: #f3f5fb; font-size: 12px; font-weight: 550; }
+.dashboard-subject-list li > div span, .dashboard-event-list li > div:last-child span { color: #96a5b9; font-size: 10px; }
+.subject-status { margin-left: auto; color: #92a5ba; font-size: 9px; white-space: nowrap; }
+.study-mini-progress { margin-top: 14px; padding-top: 14px; display: grid; grid-template-columns: 1fr auto; gap: 9px; border-top: 1px solid #354253; color: #9eacc0; font-size: 10px; }
+.study-mini-progress strong { color: #55d9f3; }
+.study-mini-progress .progress-track { grid-column: 1 / -1; background: #303b4c; }
+.study-mini-progress .progress-track span { background: linear-gradient(90deg, #37c9eb, #6755f5); }
+.mini-calendar-panel { max-width: 100%; }
+.mini-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.mini-calendar-weekday, .mini-calendar-day, .mini-calendar-blank { min-height: 31px; display: grid; place-items: center; }
+.mini-calendar-weekday { color: #75869c; font-size: 10px; }
+.mini-calendar-day { position: relative; border-radius: 9px; color: #bdc8d8; font-size: 11px; }
+.mini-calendar-day.is-today { color: #101722; background: linear-gradient(135deg, #42d6ee, #8272ff); font-weight: 800; }
+.mini-calendar-day.has-event:not(.is-today)::after { content: ""; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: #55d9f3; }
+.calendar-legend { display: flex; align-items: center; gap: 7px; margin: 14px 0 0; color: #8e9db1; font-size: 10px; }
+.calendar-legend span, .calendar-legend i { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #42d6ee, #8272ff); }
+.calendar-legend i { background: #55d9f3; }
+.dashboard-event-list { display: grid; gap: 4px; }
+.dashboard-event-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgb(53 66 83 / 65%); }
+.dashboard-event-list li:last-child { border-bottom: 0; }
+.event-date { width: 58px; flex: 0 0 auto; display: grid; gap: 4px; }
+.event-date strong { color: #55d9f3; font-size: 11px; font-weight: 650; }
+.event-date span { color: #7f91a8; font-size: 10px; }
+.dashboard-focus-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.dashboard-focus-strip > div { display: grid; gap: 5px; }
+.dashboard-focus-strip .card-label { margin: 0; }
+.dashboard-focus-strip strong { color: #f4f6fc; font-size: 24px; }
+.dashboard-focus-strip > div > span:last-child { color: #9caabd; font-size: 10px; }
+@media (max-width: 900px) {
+  .dashboard-home-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .dashboard { gap: 12px; }
+  .dashboard-greeting { align-items: flex-start; flex-direction: column; }
+  .dashboard-summary { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .dashboard-stat { padding: 14px; border-radius: 14px; }
+  .dashboard-stat:last-child { grid-column: 1 / -1; }
+  .dashboard-stat .card-label { font-size: 8px; letter-spacing: 1px; }
+  .dashboard-panel { padding: 16px; border-radius: 15px; }
+  .dashboard-panel-heading h2 { font-size: 15px; }
+  .weather-temperature { font-size: 46px; }
+  .mini-calendar { gap: 3px; }
+  .mini-calendar-weekday, .mini-calendar-day, .mini-calendar-blank { min-height: 29px; }
+  .dashboard-focus-strip { align-items: flex-start; flex-direction: column; }
+}
