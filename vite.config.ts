@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => ({
-  // Vercel usa a raiz do domínio; GitHub Pages usa o caminho do repositório.
+  // GitHub Pages publica o site no caminho do repositório.
   base: mode === 'github-pages' ? '/Alfred/' : '/',
   plugins: [react()],
   test: {
