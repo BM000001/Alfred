@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Assistant } from './Assistant';
-import { taskRepository } from '../storage/repositories';
+import { assistantMessageRepository, taskRepository } from '../storage/repositories';
 import type { Task } from './tasks/types';
 
 const task: Task = {
@@ -19,10 +19,17 @@ beforeEach(async () => {
   messageCounter = 0;
   vi.stubGlobal('crypto', { randomUUID: () => `assistant-test-message-${++messageCounter}` });
   Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
+  const savedMessages = await assistantMessageRepository.getAll();
+  await Promise.all(savedMessages.map((message) => assistantMessageRepository.delete(message.id)));
   const existing = await taskRepository.getAll();
   await Promise.all(existing.map((item) => taskRepository.delete(item.id)));
   await taskRepository.save(task);
 });
+
+async function renderAssistant() {
+  render(<Assistant />);
+  await waitFor(() => expect(screen.getByLabelText('Mensagem para Alfred')).toBeEnabled());
+}
 
 describe('Assistant task approval UI', () => {
   it('não altera a tarefa quando uma proposta é preparada ou cancelada', async () => {

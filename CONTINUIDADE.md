@@ -1,6 +1,6 @@
 # Continuidade do Alfred
 
-## Estado atual — 2026-11-02
+## Estado atual — 2026-11-03
 - `main` é a fonte da verdade; desenvolver em branches e PRs.
 - PR #29 — análise arquitetural do Jarvis — integrada.
 - PR #30 — fundação segura do assistente — integrada.
@@ -12,6 +12,8 @@
 - PR #40 — relatório detalhado de auditoria de dependências no CI — integrada.
 - PR #41 — atualização de Vite/Vitest — integrada; CI aprovado (run #114), testes e build concluídos.
 - PR #43 — criação de tarefas pelo assistente com confirmação explícita — integrada; CI aprovado (run #119).
+- PR #47 — redesign da navegação, identidade visual e refinamentos do assistente — integrada; commit `2e7dd3e` na `main`.
+- PR #48 — refinamento visual dos módulos internos — aberta no momento da inspeção; não foi presumida como integrada.
 - Não criar dados fictícios ou de demonstração.
 
 ## Funcionalidades integradas
@@ -30,10 +32,11 @@
 - Contratos provider-independent para mensagens, contexto, providers, ferramentas, propostas e decisões de aprovação.
 - Ferramentas locais somente leitura para tarefas pendentes, próximos compromissos e progresso dos estudos.
 - Provider inicial baseado em regras locais; não chama APIs externas nem envia dados pessoais.
-- Interface conversacional responsiva conectada aos dados reais do IndexedDB; mensagens existem somente na sessão atual.
+- Interface conversacional responsiva conectada aos dados reais do IndexedDB.
+- Histórico de conversa local persistente em IndexedDB, limitado às 200 mensagens mais recentes, com ação explícita para apagar o histórico. Propostas aguardando confirmação não são restauradas após recarregar a página.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
 - Ações de escrita disponíveis: `criar tarefa <título>`, `adicionar tarefa: <título>`, `concluir tarefa <título exato>` ou `marcar tarefa <título exato> como concluída`. O Alfred apresenta uma proposta e só grava após clique em “Confirmar alteração”. Cancelar não altera dados. A criação recusa títulos duplicados e títulos acima do limite; a conclusão recusa títulos ambíguos/inexistentes e exige que a tarefa ainda esteja pendente. Enquanto há uma proposta aberta, o campo de comando fica desativado até confirmar ou cancelar.
-- Ainda não há memória persistente, modelo de IA remoto, voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
+- Ainda não há memória semântica de longo prazo (fatos/preferências extraídos e gerenciáveis), modelo de IA remoto, voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
 
 ## Integração Jarvis — análise concluída, código não copiado
 - Documento: `docs/ANALISE-JARVIS.md`.
@@ -58,12 +61,13 @@
 - Verificar licenças e atribuições de dependências/assets antes de distribuir.
 
 ## Próximas etapas prioritárias
-1. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
-2. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
-3. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
-4. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
-5. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
-6. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
+1. Evoluir do histórico de mensagens para memória semântica explícita e gerenciável, sem inferir nem salvar fatos sensíveis automaticamente.
+2. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
+3. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
+4. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
+5. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
+6. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
+7. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
