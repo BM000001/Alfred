@@ -13,6 +13,8 @@ Assistente pessoal de produtividade e estudos, com foco em **privacidade** e **f
 
 ## O que o Alfred não faz (ainda)
 
+- A API serverless de autenticação e chat está em preparação, mas ainda não foi publicada nem conectada à interface. A URL do GitHub Pages continua sendo apenas a versão estática.
+
 - Não envia dados a nenhum serviço de IA automaticamente.
 - Não integra com o Canvas LMS (planejado, aguardando verificação das políticas institucionais).
 - Não sincroniza entre dispositivos (planejado para etapa futura, com a estrutura de dados já preparada).
@@ -43,6 +45,7 @@ Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. P
 - `docs/decisoes.md`: decisões registradas e seus motivos.
 - `docs/arquitetura.md`: camadas, formato de backup e regras de privacidade.
 - `docs/status-etapa-1.md`: o que foi feito, testes executados e limitações conhecidas.
+- `docs/backend-ia-seguro.md`: arquitetura, configuração e bloqueios antes de ativar o backend de IA.
 - `docs/testes-manuais-iphone.md`: roteiro de testes que exigem dispositivo real.
 - `NOTICE.md` e `THIRD_PARTY.md`: atribuições e licenças de dependências.
 
