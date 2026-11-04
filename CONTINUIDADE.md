@@ -3,7 +3,7 @@
 ## Estado atual — 2026-11-04
 - PR #58 — remoção da dependência da Vercel e manutenção da arquitetura local-first — integrada à `main` por squash merge; commit `ad5b47feb357bdf92a08df3b4e5af26e8c50c40d`.
 - PR #59 — atualização deste documento após a remoção da Vercel — integrada; CI aprovado.
-- PR #60 — recuperação contextual explicável de memórias — integrada por squash merge; commit `76fc8828c3121e99dcc8015f9dfd8f6609cc3758`; CI da PR aprovado (workflow run `41744682867`). CI e publicação da `main` após esse merge ainda aguardam conclusão.
+- PR #60 — recuperação contextual explicável de memórias — integrada por squash merge; commit `76fc8828c3121e99dcc8015f9dfd8f6609cc3758`; CI da PR aprovado (workflow run `41744682867`); CI da `main` aprovado (run `41744807746`) e GitHub Pages publicado (runs `41744807822` e `41744806967`).
 - CI da `main` após a PR #58 aprovado: workflow run `41744079705`.
 - Publicação do GitHub Pages após a PR #58 concluída com sucesso: workflow run `41744079731`; deploy do Pages `41744079350`.
 - Aplicação publicada: https://bm000001.github.io/Alfred/.
