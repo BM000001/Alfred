@@ -68,14 +68,30 @@ export function createAgendaService(
       return appointment;
     },
 
-    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedCalendarId?: string; importedCalendarName?: string }): Promise<Appointment> {
-      const existing = (await repository.getAll()).find((item) => item.importedUid === input.importedUid);
+    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedStableUid?: string; importedCalendarId?: string; importedCalendarName?: string }): Promise<Appointment> {
+      const all = await repository.getAll();
+      const exactMatch = all.find((item) => item.importedUid === input.importedUid);
+      const stableMatches = input.importedStableUid
+        ? all.filter((item) => item.importedStableUid === input.importedStableUid)
+        : [];
+      // Prefer the exact EventKit occurrence ID. If it changed (for example,
+      // after moving an event), migrate only when the stable external identity
+      // resolves unambiguously. Never merge two copied calendar entries.
+      const sameCalendarMatches = stableMatches.filter((item) => item.importedCalendarId === input.importedCalendarId);
+      const stableMatch = sameCalendarMatches.length === 1
+        ? sameCalendarMatches[0]
+        : sameCalendarMatches.length === 0 && stableMatches.length === 1
+          ? stableMatches[0]
+          : undefined;
+      const existing = exactMatch ?? stableMatch;
       if (existing) {
         const updated: Appointment = {
           ...existing,
           title: input.title.trim(),
           type: input.type,
           status: 'scheduled',
+          importedUid: input.importedUid,
+          ...(input.importedStableUid ? { importedStableUid: input.importedStableUid } : {}),
           importedCalendarId: input.importedCalendarId ?? existing.importedCalendarId,
           importedCalendarName: input.importedCalendarName ?? existing.importedCalendarName,
           startsAt: input.startsAt,
@@ -103,6 +119,7 @@ export function createAgendaService(
         ...(input.isRecurring ? { isRecurring: true } : {}),
         createdAt: now().toISOString(),
         importedUid: input.importedUid,
+        ...(input.importedStableUid ? { importedStableUid: input.importedStableUid } : {}),
         ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
         ...(input.importedCalendarName ? { importedCalendarName: input.importedCalendarName } : {}),
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
