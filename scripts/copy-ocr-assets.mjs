@@ -18,9 +18,9 @@ async function findFile(directory, predicate) {
   return undefined;
 }
 
+// OEM.LSTM_ONLY needs only the LSTM engines. Keep SIMD and non-SIMD
+// variants for modern phones and older browsers without WebAssembly SIMD.
 const requiredCoreFiles = [
-  'tesseract-core.wasm.js',
-  'tesseract-core-simd.wasm.js',
   'tesseract-core-lstm.wasm.js',
   'tesseract-core-simd-lstm.wasm.js',
 ];
@@ -52,7 +52,8 @@ await mkdir(path.join(output, 'lang'), { recursive: true });
 await cp(worker, path.join(output, 'worker.min.js'));
 
 const coreFiles = (await readdir(coreDirectory, { withFileTypes: true }))
-  .filter((entry) => entry.isFile() && entry.name.startsWith('tesseract-core'));
+  .filter((entry) => entry.isFile() && entry.name.startsWith('tesseract-core') &&
+    /(?:simd-)?lstm\\.wasm(?:\\.js)?$/.test(entry.name));
 for (const entry of coreFiles) {
   await cp(path.join(coreDirectory, entry.name), path.join(output, 'core', entry.name));
 }
