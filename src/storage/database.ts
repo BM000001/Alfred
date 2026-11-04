@@ -1,5 +1,5 @@
 export const ALFRED_DATABASE_NAME = 'alfred';
-export const ALFRED_DATABASE_VERSION = 9;
+export const ALFRED_DATABASE_VERSION = 10;
 export const STORE_NAMES = {
   tasks: 'tasks',
   projects: 'projects',
@@ -7,6 +7,8 @@ export const STORE_NAMES = {
   disciplines: 'disciplines',
   studyTopics: 'studyTopics',
   studyFlashcards: 'studyFlashcards',
+  studyQuestions: 'studyQuestions',
+  studyQuizAttempts: 'studyQuizAttempts',
   files: 'files',
   focusSessions: 'focusSessions',
   assistantMessages: 'assistantMessages',
