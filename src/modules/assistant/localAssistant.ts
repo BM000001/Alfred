@@ -2,7 +2,7 @@ import type { AIProvider, AssistantRequest, AssistantResponse } from './contract
 import type { ReadToolData } from './readTools';
 import { createReadOnlyTools } from './readTools';
 import type { AssistantMemory } from '../memory/types';
-import { searchMemories } from '../memory/memoryService';
+import { retrieveRelevantMemories } from '../memory/memoryService';
 
 type Intent = 'tasks' | 'agenda' | 'studies' | 'memory' | 'unknown';
 
@@ -51,14 +51,24 @@ export class LocalAssistantProvider implements AIProvider {
 
     const intent = detectIntent(rawPrompt);
     if (intent === 'memory') {
-      const relevant = searchMemories(this.memories, rawPrompt);
-      const memories = relevant.length ? relevant : this.memories;
+      const normalizedPrompt = normalizePrompt(rawPrompt);
+      const broadRequest = /\b(sobre mim|tudo que voce sabe|todas as memorias|quais memorias|listar memorias)\b/.test(normalizedPrompt);
+      const topicMatch = rawPrompt.match(/\bsobre\s+(?!mim\b)(.+)$/i);
+      const topic = topicMatch?.[1]?.replace(/[?.!]+$/, '').trim();
+      const matches = topic
+        ? retrieveRelevantMemories(this.memories, topic, 3)
+        : broadRequest
+          ? this.memories.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 10).map(memory => ({ memory, matchedTerms: [], score: 0 }))
+          : retrieveRelevantMemories(this.memories, rawPrompt, 3);
+      const message = matches.length
+        ? \`Encontrei estas memórias locais relevantes:\n\${matches.map(({ memory, matchedTerms }) => \`• \${memory.title} (\${memory.category}): \${memory.content}\${matchedTerms.length ? \` — relação: \${matchedTerms.join(', ')}\` : ' — listada a pedido geral'}\`).join('\n')}\`
+        : this.memories.length
+          ? 'Não encontrei uma memória relacionada a esse assunto. Não vou listar informações sem relação com o pedido. Se desejar, tente outro termo ou consulte todas as memórias salvas.'
+          : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.';
       return {
-        message: memories.length
-          ? `Estas são as informações que o senhor salvou explicitamente na minha memória local:\n${memories.map((item) => `• ${item.title} (${item.category}): ${item.content}`).join('\n')}`
-          : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.',
-        usedTools: ['memory.list'],
-        warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo.'],
+        message,
+        usedTools: ['memory.retrieve'],
+        warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo. A relação exibida é baseada em correspondência textual, não em compreensão semântica.'],
       };
     }
     const tools = createReadOnlyTools(this.data);
