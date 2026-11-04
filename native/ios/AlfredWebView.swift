@@ -74,7 +74,11 @@ struct AlfredWebView: UIViewRepresentable {
         }
 
         private func isTrustedAlfredURL(_ url: URL?) -> Bool {
-            url?.scheme == "https" && url?.host == "bm000001.github.io"
+            guard let url, url.scheme == "https", url.host == "bm000001.github.io" else {
+                return false
+            }
+            let path = url.path
+            return path == "/Alfred" || path.hasPrefix("/Alfred/")
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -92,6 +96,7 @@ struct AlfredWebView: UIViewRepresentable {
                   message.frameInfo.isMainFrame,
                   message.frameInfo.securityOrigin.protocol == "https",
                   message.frameInfo.securityOrigin.host == "bm000001.github.io",
+                  isTrustedAlfredURL(message.frameInfo.request.url),
                   let body = message.body as? [String: Any],
                   let action = body["action"] as? String,
                   let requestId = body["requestId"] as? String,
@@ -108,6 +113,12 @@ struct AlfredWebView: UIViewRepresentable {
                         send(["requestId": requestId, "status": "connected",
                               "calendars": calendars.map { ["id": $0.id, "title": $0.title, "source": $0.source] }])
                     case "sync":
+                        guard let calendarIds, !calendarIds.isEmpty,
+                              Set(calendarIds).count == calendarIds.count else {
+                            send(["requestId": requestId, "status": "error",
+                                  "message": "Selecione ao menos um calendário válido antes de sincronizar."])
+                            return
+                        }
                         let snapshot = try calendarAccess.snapshot(calendarIds: calendarIds)
                         send(["requestId": requestId, "status": "success",
                               "snapshotComplete": true,
