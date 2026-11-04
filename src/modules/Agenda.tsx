@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { Appointment, AppointmentType } from './agenda/types';
-import { findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agendaRules';
+import { classifyImportedAppointment, findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agendaRules';
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
@@ -69,7 +69,7 @@ export function Agenda() {
         importedUid: `apple:${event.id}`,
         importedCalendarId: event.calendarId,
         title: (event.title || 'Sem título').slice(0, 120),
-        type: 'other',
+        type: classifyImportedAppointment(event.title || ''),
         startsAt: event.startsAt,
         endsAt: event.endsAt,
         ...(event.location ? { location: event.location } : {}),
