@@ -38,6 +38,41 @@ struct AlfredWebView: UIViewRepresentable {
         weak var webView: WKWebView?
         private let calendarAccess = AlfredCalendarAccess()
 
+        override init() {
+            super.init()
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(calendarStoreDidChange),
+                name: .EKEventStoreChanged,
+                object: nil
+            )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(applicationDidBecomeActive),
+                name: UIApplication.didBecomeActiveNotification,
+                object: nil
+            )
+        }
+
+        deinit {
+            NotificationCenter.default.removeObserver(self)
+        }
+
+        @objc private func calendarStoreDidChange() {
+            notifyWebAppOfCalendarChange()
+        }
+
+        @objc private func applicationDidBecomeActive() {
+            notifyWebAppOfCalendarChange()
+        }
+
+        private func notifyWebAppOfCalendarChange() {
+            guard let webView, isTrustedAlfredURL(webView.url) else { return }
+            webView.evaluateJavaScript(
+                "window.dispatchEvent(new Event('alfred-native-calendar-changed'));"
+            )
+        }
+
         private func isTrustedAlfredURL(_ url: URL?) -> Bool {
             url?.scheme == "https" && url?.host == "bm000001.github.io"
         }
