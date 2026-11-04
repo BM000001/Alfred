@@ -32,6 +32,14 @@ export function createFileService(repository: EntityRepository<StoredFile>, crea
       };
     },
     async get(id: string): Promise<StoredFile | undefined> { return repository.getById(id); },
+    async updateDiscipline(id: string, disciplineId?: string): Promise<void> {
+      const stored = await repository.getById(id);
+      if (!stored) throw new Error('Arquivo não encontrado.');
+      const updated = { ...stored };
+      if (disciplineId) updated.disciplineId = disciplineId;
+      else delete updated.disciplineId;
+      await repository.save(updated);
+    },
     async saveExtraction(id: string, extraction: StoredTextExtraction): Promise<void> {
       const stored = await repository.getById(id);
       if (!stored) throw new Error('Arquivo não encontrado.');
