@@ -16,4 +16,13 @@ export class ToolRegistry {
   list(): readonly ToolDefinition<unknown, unknown>[] {
     return [...this.tools.values()];
   }
+
+  async executeRead(id: string, input: unknown): Promise<unknown> {
+    const tool = this.get(id);
+    if (!tool) throw new Error('Ferramenta não registrada: ' + id);
+    if (tool.risk !== 'read' || tool.approval !== 'never') {
+      throw new Error('A ferramenta não está autorizada para execução automática de leitura.');
+    }
+    return tool.execute(input);
+  }
 }
