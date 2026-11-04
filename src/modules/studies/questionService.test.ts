@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { EntityRepository } from '../../storage/repositories';
 import type { StudyQuestion, StudyQuizAttempt } from './questionTypes';
-import { createQuestionService, gradeStudyAnswer, summarizeQuiz } from './questionService';
+import { createQuestionService, gradeStudyAnswer, summarizeQuiz, selectQuizQuestions } from './questionService';
 
 function memoryRepository<T extends { id: string }>(): EntityRepository<T> {
   const items = new Map<string, T>();
@@ -58,5 +58,28 @@ describe('questionService', () => {
     await service.saveAttempt(attempt);
     expect(await service.listAttempts()).toEqual([attempt]);
     await expect(service.saveAttempt({ ...attempt, correctAnswers: 0 })).rejects.toThrow('não confere');
+  });
+});
+
+
+describe('selectQuizQuestions', () => {
+  const questions: StudyQuestion[] = [
+    { id: 'q1', disciplineId: 'math', topicId: 'limits', prompt: 'Q1', options: ['A', 'B'], correctOptionIndex: 0, difficulty: 'easy', createdAt: '2026-11-01T00:00:00.000Z' },
+    { id: 'q2', disciplineId: 'math', topicId: 'limits', prompt: 'Q2', options: ['A', 'B'], correctOptionIndex: 0, difficulty: 'hard', createdAt: '2026-11-01T00:00:00.000Z' },
+    { id: 'q3', disciplineId: 'math', topicId: 'derivatives', prompt: 'Q3', options: ['A', 'B'], correctOptionIndex: 0, difficulty: 'hard', createdAt: '2026-11-01T00:00:00.000Z' },
+  ];
+
+  it('filters by topic and difficulty', () => {
+    expect(selectQuizQuestions(questions, { topicId: 'limits', difficulty: 'hard' }).map(item => item.id)).toEqual(['q2']);
+  });
+
+  it('shuffles the question order and respects the requested limit', () => {
+    const result = selectQuizQuestions(questions, { limit: 2, random: () => 0 });
+    expect(result).toHaveLength(2);
+    expect(result.map(item => item.id)).not.toEqual(['q1', 'q2']);
+  });
+
+  it('returns an empty list when no question matches the filters', () => {
+    expect(selectQuizQuestions(questions, { topicId: 'missing' })).toEqual([]);
   });
 });
