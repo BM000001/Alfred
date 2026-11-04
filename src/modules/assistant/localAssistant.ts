@@ -42,8 +42,11 @@ function extractTopicQuery(prompt: string): string | undefined {
 
 export class LocalAssistantProvider implements AIProvider {
   readonly id = 'local-rules';
+  readonly tools: ReturnType<typeof createReadOnlyTools>;
 
-  constructor(private readonly data: ReadToolData, private readonly memories: AssistantMemory[] = []) {}
+  constructor(private readonly data: ReadToolData, private readonly memories: AssistantMemory[] = []) {
+    this.tools = createReadOnlyTools(data);
+  }
 
   async generate(request: AssistantRequest): Promise<AssistantResponse> {
     const rawPrompt = latestUserMessage(request);
@@ -74,7 +77,7 @@ export class LocalAssistantProvider implements AIProvider {
         warnings: ['Memórias cadastradas manualmente e armazenadas somente neste dispositivo. A relação exibida é baseada em correspondência textual, não em compreensão semântica.'],
       };
     }
-    const tools = createReadOnlyTools(this.data);
+    const tools = this.tools;
     const selectedId = intent === 'agenda' ? 'agenda.upcoming'
       : intent === 'studies' ? 'studies.progress'
         : intent === 'tasks' ? 'tasks.list' : undefined;
