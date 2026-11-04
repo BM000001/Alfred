@@ -177,7 +177,7 @@ export function Files() {
       <p className="optional-label">{preview.wordCount} palavras · {preview.characterCount} caracteres</p>
       {preview.pages ? <div className="pdf-page-preview">{preview.pages.map((page) => <section className="pdf-page" key={page.pageNumber}>
         <h3>Página {page.pageNumber}</h3>
-        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{page.text || 'Nenhum texto reconhecido nesta página.'}{'confidence' in page && page.confidence !== null && page.confidence !== undefined ? <small className="ocr-confidence">Confiança estimada: {Math.round(page.confidence)}% · {'method' in page && page.method === 'ocr' ? (page.confidence < 60 ? 'OCR · revise com atenção' : 'OCR') : 'texto original'}</small> : null}</p>
+        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{page.text || 'Nenhum texto reconhecido nesta página.'}{page.confidence !== null && page.confidence !== undefined ? <small className="ocr-confidence">Confiança estimada: {Math.round(page.confidence)}% · {page.method === 'ocr' ? (page.confidence < 60 ? 'OCR · revise com atenção' : 'OCR') : 'texto original'}</small> : null}</p>
       </section>)}</div> : <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '24rem', overflowY: 'auto' }}>{preview.text}</pre>}
       <button className="text-action" type="button" onClick={() => setPreview(null)}>Fechar leitura</button>
     </article>}
