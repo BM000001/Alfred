@@ -16,11 +16,27 @@ export function normalizeIntentText(value: string): string {
     .trim();
 }
 
+function matchesTerm(normalized: string, words: ReadonlySet<string>, term: string): boolean {
+  // Single words must match a complete token; multi-word terms match a phrase.
+  return term.includes(' ')
+    ? (' ' + normalized + ' ').includes(' ' + term + ' ')
+    : words.has(term);
+}
+
 export function classifyIntent(message: string): IntentClassification {
   const normalized = normalizeIntentText(message);
-  for (const rule of rules) {
-    const matchedTerms = rule.terms.filter((term) => normalized.includes(term));
-    if (matchedTerms.length) return { intent: rule.intent, confidence: 'high', matchedTerms };
-  }
-  return { intent: 'unknown', confidence: 'low', matchedTerms: [] };
+  const words = new Set(normalized.split(' ').filter(Boolean));
+  const matches = rules
+    .map((rule) => ({ intent: rule.intent, matchedTerms: rule.terms.filter((term) => matchesTerm(normalized, words, term)) }))
+    .filter((rule) => rule.matchedTerms.length > 0);
+
+  if (matches.length === 0) return { intent: 'unknown', confidence: 'low', matchedTerms: [] };
+
+  // Preserve deterministic precedence, but surface ambiguity instead of claiming certainty.
+  const selected = matches[0];
+  return {
+    intent: selected.intent,
+    confidence: matches.length === 1 ? 'high' : 'low',
+    matchedTerms: selected.matchedTerms,
+  };
 }
