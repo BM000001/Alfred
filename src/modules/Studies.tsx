@@ -3,6 +3,7 @@ import type { Discipline, StudyTopic } from './studies/types';
 import { StudyFlashcards } from './studies/StudyFlashcards';
 import { QuestionBank } from './studies/QuestionBank';
 import { StudyMaterialImporter } from './studies/StudyMaterialImporter';
+import { StudyPerformance } from './studies/StudyPerformance';
 import { createStudyService } from './studies/studyService';
 import { summarizeStudyProgress } from './studies/studyRules';
 import { disciplineRepository, studyFlashcardRepository, studyQuestionRepository, studyQuizAttemptRepository, studyTopicRepository } from '../storage/repositories';
@@ -156,6 +157,7 @@ export function Studies() {
           <StudyFlashcards disciplineId={selectedDiscipline} />
           <QuestionBank disciplineId={selectedDiscipline} topics={topics.filter((topic) => topic.disciplineId === selectedDiscipline)} />
           <StudyMaterialImporter disciplineId={selectedDiscipline} topics={topics} />
+          <StudyPerformance disciplineId={selectedDiscipline} topics={topics} />
         </div>
       </div>
     </>}
