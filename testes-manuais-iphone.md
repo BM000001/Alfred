@@ -1,82 +1,97 @@
 # Roteiro de testes manuais no iPhone
 
-Estes testes exigem dispositivo real e não são executados por testes automatizados. Registre o resultado de cada item na tabela ao final.
+Estes testes exigem um iPhone real e não são substituídos pelo CI. Registre o resultado de cada item na tabela ao final.
 
-**Pré-requisitos:** iPhone com iOS atualizado; Safari; o endereço HTTPS publicado do Alfred (ver pendência P6); um backup de teste (exportado no computador ou no próprio iPhone).
+**Pré-requisitos:** iPhone com iOS atualizado, Safari e acesso a https://bm000001.github.io/Alfred/.
+
+**Segurança do teste:** use apenas registros descartáveis. A restauração de backup substitui os dados atuais do Alfred neste dispositivo. Não use dados pessoais importantes como amostra.
 
 ## T1. Acesso por HTTPS
 
 1. Abra o endereço do Alfred no Safari.
-2. Esperado: a página carrega sem alerta de certificado, com a tela de tarefas.
+2. Esperado: a página carrega sem alerta de certificado e mostra o painel inicial, com a identidade Alfred e os cartões do dia.
 
-## T2. Instalação na tela de início
+## T2. Instalação na Tela de Início
 
-1. Toque em Compartilhar → Adicionar à Tela de Início.
-2. Esperado: o ícone "A" aparece na tela de início, com fundo azul e sem borda transparente.
-3. Abra o app pelo ícone.
-4. Esperado: abre em tela cheia, sem barra do Safari, e o título é "Alfred".
+1. No Safari, toque em Compartilhar → Adicionar à Tela de Início.
+2. Confira o nome e o ícone apresentados antes de adicionar.
+3. Abra o Alfred pelo ícone recém-criado.
+4. Esperado: o app abre no modo standalone, sem a barra normal de navegação do Safari, e carrega o painel inicial.
 
-## T3. Layout e responsividade
+## T3. Navegação e responsividade
 
-1. Em modo retrato, percorra as abas Tarefas, Disciplinas, Notas, IA manual e Backup.
-2. Esperado: abas rolam horizontalmente sem cortar o conteúdo; formulários ocupam a largura da tela; nenhum campo fica escondido sob o entalhe ou a barra inferior.
-3. Gire para paisagem e repita.
-4. Esperado: o conteúdo se reorganiza sem rolagem horizontal da página.
+1. Em modo retrato, use a navegação inferior: Início, Alfred, Tarefas e Agenda.
+2. Abra o menu de áreas adicionais e visite Projetos, Estudos, Arquivos, Produtividade e Configurações.
+3. Verifique formulários, listas, botões, títulos e rolagem em cada área.
+4. Gire para paisagem e repita a navegação.
+5. Esperado: nenhum conteúdo ou controle fica cortado; não há rolagem horizontal involuntária da página; o menu móvel abre e fecha corretamente.
 
 ## T4. Funcionamento offline
 
-1. Com o app já aberto uma vez com conexão, ative o modo avião.
-2. Feche o app completamente (deslize para cima no alternador de apps) e reabra pelo ícone.
-3. Esperado: o app abre e as tarefas criadas anteriormente aparecem. Aparece o aviso "Sem conexão".
+1. Abra o Alfred com conexão e navegue pelas principais áreas para permitir o cache dos recursos.
+2. Ative o modo avião.
+3. Feche completamente o app e reabra pelo ícone da Tela de Início.
+4. Esperado: a interface carregada anteriormente abre a partir do cache e os dados locais continuam visíveis. Registre qualquer tela em branco, erro ou recurso essencial indisponível.
 
 ## T5. Persistência após fechar o app
 
-1. Crie uma tarefa "Teste persistência", uma disciplina e uma nota.
-2. Feche o app, aguarde 5 minutos e reabra.
-3. Esperado: os três registros permanecem.
-4. Repita após 2 dias sem abrir o app (registre a data).
-5. Esperado: os registros permanecem. **Se apagados, anote: é o caso de risco descrito em docs/status-etapa-1.md, seção "Limitações".**
+1. Em Tarefas, crie uma tarefa descartável chamada "Teste persistência".
+2. Em Estudos, crie uma disciplina descartável e um conteúdo vinculado a ela.
+3. Feche completamente o app e reabra após cinco minutos.
+4. Esperado: tarefa, disciplina e conteúdo continuam presentes.
+5. Repita a conferência após dois dias sem abrir o app e registre a data.
 
-## T6. Exportação de backup
+## T6. Exportação de backup JSON
 
-1. Na aba Backup, toque em Exportar backup, sem senha.
-2. Esperado: o iOS mostra a folha de compartilhamento ou abre o arquivo `alfred-backup-AAAA-MM-DD.json`.
-3. Salve o arquivo em Arquivos.
+1. Abra Configurações.
+2. Em Backup local, toque em "Exportar backup JSON".
+3. Esperado: o Safari/iOS inicia o download do arquivo JSON com nome semelhante a `alfred-backup-AAAA-MM-DD.json`.
+4. Salve o arquivo em Arquivos e confirme que ele pode ser localizado.
 
-## T7. Exportação cifrada
+## T7. Exportação de backup criptografado
 
-1. Digite uma senha com 8 ou mais caracteres e exporte.
-2. Esperado: o arquivo se chama `alfred-backup-AAAA-MM-DD.cifrado.json`. Abra-o em um editor de texto: não deve aparecer nenhum título digitado.
+1. Em Backup criptografado, informe e confirme uma senha com pelo menos 12 caracteres.
+2. Toque em "Exportar backup criptografado".
+3. Esperado: o arquivo é baixado com nome semelhante a `alfred-backup-criptografado-AAAA-MM-DD.json`.
+4. Abra uma cópia em um editor de texto. O conteúdo deve estar criptografado, sem títulos ou dados legíveis dos registros.
+5. Guarde a senha separadamente. Sem ela, o arquivo não pode ser recuperado.
 
-## T8. Importação e recuperação
+## T8. Importação e restauração
 
-1. Apague a tarefa "Teste persistência" (Remover).
-2. Na aba Backup, escolha o arquivo sem senha e importe.
-3. Esperado: o relatório mostra 1 registro restaurado (ou atualizado, conforme a exclusão).
-4. Repita com o arquivo cifrado, primeiro sem senha (esperado: mensagem pedindo a senha), depois com senha errada (esperado: mensagem de falha, nada gravado), depois com a senha correta.
+1. **Confirme que possui um backup dos dados que deseja preservar.** A restauração substitui todos os dados atuais do Alfred neste dispositivo.
+2. Use um backup de teste criado com registros descartáveis.
+3. Em Configurações → Restaurar backup, selecione o JSON sem senha.
+4. Confira a prévia e a quantidade de registros; só confirme a restauração se estiver usando dados descartáveis.
+5. Repita com o arquivo criptografado: senha incorreta deve falhar sem gravar dados; senha correta deve permitir visualizar a prévia.
+6. Esperado: a restauração só ocorre após confirmação explícita e os registros do backup ficam disponíveis após recarregar a página.
 
-## T9. Cópia da IA manual
+## T9. Preparação manual para IA externa
 
-1. Na aba IA manual, selecione uma tarefa, marque a confirmação da classe pessoal, escolha "Resumir" e toque em Gerar texto.
-2. Esperado: aparece o texto para copiar.
-3. Toque em Copiar texto. Cole em qualquer campo de texto (por exemplo, Notas).
-4. Esperado: o texto foi copiado.
-5. Gere um texto sem marcar a confirmação.
-6. Esperado: aparece "Envio não autorizado" com o motivo, e o registro de envio mostra "Bloqueado".
+1. Abra a área Alfred (Assistente).
+2. No painel "Preparar conteúdo para uma IA externa", selecione uma tarefa descartável.
+3. Marque a revisão "Revisei este conteúdo: não contém dados sensíveis".
+4. Autorize a categoria Pessoal e gere a prévia.
+5. Esperado: o texto exato aparece para revisão; nada é enviado automaticamente.
+6. Use "Copiar texto" e cole em um campo de texto para verificar a área de transferência.
+7. Gere uma nova prévia sem a revisão individual ou sem consentimento da categoria.
+8. Esperado: a preparação é bloqueada com a justificativa correspondente.
 
-## T10. Modo escuro
+## T10. Aparência no modo claro/escuro
 
-1. Ative o modo escuro do iOS e abra o app.
-2. Esperado: fundo escuro, texto legível, botões visíveis.
+1. Abra o Alfred com o modo claro do iOS e observe contraste e legibilidade.
+2. Ative o modo escuro do iOS e reabra o Alfred.
+3. Registre o comportamento observado. **A adaptação completa ao modo escuro ainda não está implementada; este item é uma verificação de limitação, não um critério de aprovação funcional nesta versão.**
 
 ## T11. Teclado e campos
 
-1. Ao focar um campo de texto, o teclado não deve cobrir o botão de envio do formulário.
-2. Esperado: é possível rolar até o botão enquanto o teclado está aberto.
+1. Abra um formulário em Tarefas, Agenda ou Estudos.
+2. Toque em cada campo e preencha dados de teste.
+3. Com o teclado aberto, tente alcançar o botão de salvar/enviar rolando a tela.
+4. Esperado: o teclado não impede o acesso aos campos nem ao botão principal; não há sobreposição que torne o formulário impossível de concluir.
 
 ## Registro de resultados
 
-| Teste | Resultado (OK / Falhou / Não testado) | iOS | Observações |
+| Teste | Resultado (OK / Falhou / Não testado) | Versão do iOS | Observações |
 |---|---|---|---|
 | T1 | | | |
 | T2 | | | |
