@@ -2827,3 +2827,13 @@ select:focus-visible, textarea:focus-visible {
   line-height:1.65;
   overflow-wrap:anywhere;
 }
+
+.stored-file-info { min-width: 0; flex: 1; display: grid; gap: 6px; }
+.stored-file-info > strong { overflow-wrap: anywhere; }
+.stored-file-info > span { color: var(--muted); font-size: 11px; }
+.stored-file-discipline { width: min(100%, 240px); min-height: 34px; padding: 6px 9px; border: 1px solid #DDE2E9; border-radius: 7px; color: var(--navy); background: white; font-size: 11px; }
+@media (max-width: 700px) {
+  .stored-file { flex-wrap: wrap; }
+  .stored-file-info { flex-basis: calc(100% - 42px); }
+  .stored-file-discipline { width: 100%; }
+}
