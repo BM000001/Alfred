@@ -91,7 +91,6 @@ export async function extractPdfDocument(
     }
     throw error;
   } finally {
-    if (document) await document.destroy();
-    else await loadingTask.destroy();
+    await loadingTask.destroy();
   }
 }
