@@ -115,4 +115,5 @@ Estes testes exigem um iPhone real e não são substituídos pelo CI. Registre o
 | T8 | | | |
 | T9 | | | |
 | T10 | | | |
-| T11 | | | |\n| T12 | | | |
+| T11 | | | |
+| T12 | | | |
