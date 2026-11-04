@@ -92,7 +92,7 @@ describe('ManualExportPanel', () => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
     render(<ManualExportPanel />);
 
-    await user.click(await screen.findByLabelText(/Material acadêmico · limites.pdf \\(Cálculo I\\)/));
+    await user.click(await screen.findByRole('checkbox', { name: /Material acadêmico · limites\\.pdf/ }));
     await user.click(screen.getByLabelText('Revisei este conteúdo: não contém dados sensíveis.'));
     await user.click(screen.getByLabelText('Autorizo incluir informações da categoria acadêmica.'));
     await user.selectOptions(screen.getByLabelText('Tipo de material de estudo'), 'flashcards');
