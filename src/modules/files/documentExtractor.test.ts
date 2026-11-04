@@ -3,14 +3,14 @@ import { extractTextDocument } from './documentExtractor';
 
 describe('extractTextDocument', () => {
   it('extrai texto UTF-8, remove BOM e normaliza quebras de linha', async () => {
-    const file = new File(['\\uFEFFPrimeira linha\\r\\nSegunda linha'], 'aula.txt', { type: 'text/plain' });
+    const file = new File(['\uFEFFPrimeira linha\r\nSegunda linha'], 'aula.txt', { type: 'text/plain' });
     const result = await extractTextDocument(file, () => new Date('2026-11-04T12:00:00.000Z'));
 
     expect(result).toMatchObject({
       fileName: 'aula.txt',
       format: 'txt',
-      text: 'Primeira linha\\nSegunda linha',
-      characterCount: 26,
+      text: 'Primeira linha\nSegunda linha',
+      characterCount: 28,
       wordCount: 4,
       extractedAt: '2026-11-04T12:00:00.000Z',
     });
@@ -32,6 +32,6 @@ describe('extractTextDocument', () => {
   });
 
   it('rejeita documentos sem texto útil', async () => {
-    await expect(extractTextDocument(new File(['   \\n  '], 'branco.txt'))).rejects.toThrow(/texto/);
+    await expect(extractTextDocument(new File(['   \n  '], 'branco.txt'))).rejects.toThrow(/texto/);
   });
 });
