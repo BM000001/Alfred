@@ -75,7 +75,10 @@ final class AlfredCalendarAccess {
         return store.events(matching: predicate)
             .sorted { $0.startDate < $1.startDate }
             .compactMap { event in
-                guard let stableId = event.eventIdentifier ?? event.calendarItemIdentifier else {
+                // calendarItemIdentifier may identify the recurring series rather than
+                // this specific occurrence. Using it as a fallback would collapse
+                // multiple occurrences into one imported appointment.
+                guard let stableId = event.eventIdentifier else {
                     return nil
                 }
                 return CalendarEvent(
