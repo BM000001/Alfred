@@ -116,7 +116,7 @@ describe('ManualExportPanel', () => {
         title: 'Flashcards — limites.pdf',
         status: 'pending',
       });
-      expect(saved[0].notes).toContain('Definição de limite e continuidade.');
+      expect(saved[0].notes).toContain('Material gerado a partir de: limites.pdf');
       expect(saved[0].notes).toContain('Flashcard 1: O que é limite?');
     });
   });
