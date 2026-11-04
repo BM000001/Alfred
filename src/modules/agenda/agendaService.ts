@@ -57,6 +57,7 @@ export function createAgendaService(
         status: 'scheduled',
         startsAt: input.startsAt,
         endsAt: input.endsAt,
+        ...(input.isAllDay ? { isAllDay: true } : {}),
         createdAt: now().toISOString(),
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
         ...(input.location?.trim() ? { location: input.location.trim() } : {}),
@@ -77,6 +78,7 @@ export function createAgendaService(
           importedCalendarId: input.importedCalendarId ?? existing.importedCalendarId,
           startsAt: input.startsAt,
           endsAt: input.endsAt,
+          ...(input.isAllDay ? { isAllDay: true } : { isAllDay: false }),
           ...(input.location?.trim() ? { location: input.location.trim() } : {}),
         };
         if (!input.location?.trim()) delete updated.location;
@@ -94,6 +96,7 @@ export function createAgendaService(
         status: 'scheduled',
         startsAt: input.startsAt,
         endsAt: input.endsAt,
+        ...(input.isAllDay ? { isAllDay: true } : {}),
         createdAt: now().toISOString(),
         importedUid: input.importedUid,
         ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
