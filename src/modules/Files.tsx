@@ -140,6 +140,7 @@ export function Files() {
     <div className="files-toolbar">
       <label className="file-upload-button">Adicionar arquivo<input type="file" onChange={addFile} aria-label="Selecionar arquivo" /></label>
       <span className="optional-label">Armazenamento local · até 10 MB por arquivo</span>
+      <span className="optional-label">OCR em português: processamento neste dispositivo, até 20 páginas por operação. Na primeira utilização, os componentes são carregados do próprio Alfred e ficam em cache para uso offline.</span>
     </div>
     <label className="field-label" htmlFor="file-discipline">Vincular novo arquivo à disciplina <span className="optional-label">· opcional</span></label>
     <select id="file-discipline" value={uploadDiscipline} onChange={(event) => setUploadDiscipline(event.target.value)}>
