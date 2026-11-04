@@ -78,9 +78,12 @@ export function Agenda() {
     }
     const syncStart = new Date();
     const syncEnd = new Date(syncStart.getTime() + 90 * 86400_000);
-    const snapshotUids = events.map((event) => `apple:${event.id}`);
     let removed = 0;
     for (const calendarId of selectedAppleCalendars) {
+      // Reconcile each source calendar only against its own event snapshot.
+      const snapshotUids = events
+        .filter((event) => event.calendarId === calendarId)
+        .map((event) => `apple:${event.id}`);
       removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, syncStart.toISOString(), syncEnd.toISOString());
     }
     await refresh();
