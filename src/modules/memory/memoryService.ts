@@ -41,8 +41,7 @@ function canonicalizeTerm(term: string): string {
 function termsOf(value: string): string[] {
   return [...new Set(
     normalize(value).split(' ')
-      .filter(term => term.length > 2 && !STOP_WORDS.has(term))
-      .map(canonicalizeTerm),
+      .filter(term => term.length > 2 && !STOP_WORDS.has(term)),
   )];
 }
 
@@ -102,12 +101,12 @@ export function retrieveRelevantMemories(memories: AssistantMemory[], query: str
   if (!terms.length || !Number.isInteger(limit) || limit < 1) return [];
 
   return memories.map(memory => {
-    const titleTerms = new Set(termsOf(memory.title));
-    const contentTerms = new Set(termsOf(memory.content));
-    const categoryTerms = new Set(termsOf(memory.category));
-    const title = terms.filter(term => titleTerms.has(term));
-    const content = terms.filter(term => contentTerms.has(term));
-    const category = terms.filter(term => categoryTerms.has(term));
+    const titleTerms = new Set(termsOf(memory.title).map(canonicalizeTerm));
+    const contentTerms = new Set(termsOf(memory.content).map(canonicalizeTerm));
+    const categoryTerms = new Set(termsOf(memory.category).map(canonicalizeTerm));
+    const title = terms.filter(term => titleTerms.has(canonicalizeTerm(term)));
+    const content = terms.filter(term => contentTerms.has(canonicalizeTerm(term)));
+    const category = terms.filter(term => categoryTerms.has(canonicalizeTerm(term)));
     const matchedTerms = [...new Set([...title, ...content, ...category])];
     const score = title.length * 3 + content.length + category.length;
     return { memory, score, matchedTerms };
