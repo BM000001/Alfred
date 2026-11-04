@@ -19,18 +19,19 @@ function normalizePrompt(value: string): string {
     .trim();
 }
 
-function detectIntent(prompt: string): Intent {
+function detectIntents(prompt: string): Intent[] {
   const value = normalizePrompt(prompt);
   const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
+  const intents: Intent[] = [];
 
-  if (has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) || /\bo que voce sabe sobre mim\b/.test(value)) return 'memory';
-  if (has([/\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\w*/])) return 'studies';
-  if (has([/\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\w*/]) ||
-      /\b(quando|que dia|qual dia|o que tenho)\b/.test(value) && /\b(marcad|agendad|programad)\w*/.test(value)) return 'agenda';
-  if (has([/\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\w*/]) ||
-      /\b(o que|quais|qual) (preciso|devo|tenho que) fazer\b/.test(value) ||
-      /\b(minhas coisas|meus afazeres)\b/.test(value)) return 'tasks';
-  return 'unknown';
+  if (has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) || /\\bo que voce sabe sobre mim\\b/.test(value)) intents.push('memory');
+  if (has([/\\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\\w*/])) intents.push('studies');
+  if (has([/\\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\\w*/]) ||
+      /\\b(quando|que dia|qual dia|o que tenho)\\b/.test(value) && /\\b(marcad|agendad|programad)\\w*/.test(value)) intents.push('agenda');
+  if (has([/\\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\\w*/]) ||
+      /\\b(o que|quais|qual) (preciso|devo|tenho que) fazer\\b/.test(value) ||
+      /\\b(minhas coisas|meus afazeres)\\b/.test(value)) intents.push('tasks');
+  return intents;
 }
 
 function extractTopicQuery(prompt: string): string | undefined {
@@ -49,7 +50,17 @@ export class LocalAssistantProvider implements AIProvider {
     const rawPrompt = latestUserMessage(request);
     if (!rawPrompt) return { message: 'Diga o que deseja consultar.', usedTools: [], warnings: [] };
 
-    const intent = detectIntent(rawPrompt);
+    const detectedIntents = detectIntents(rawPrompt);
+    if (detectedIntents.length > 1) {
+      const labels: Record<Exclude<Intent, 'unknown'>, string> = { tasks: 'tarefas', agenda: 'agenda', studies: 'estudos', memory: 'memórias' };
+      const areas = detectedIntents.map((intent) => labels[intent as Exclude<Intent, 'unknown'>]);
+      return {
+        message: `Identifiquei mais de um assunto no pedido (${areas.join(' e ')}). Para evitar consultar a área errada, diga qual deles deseja priorizar.`,
+        usedTools: [],
+        warnings: ['Pedido ambíguo: nenhuma ferramenta foi executada.'],
+      };
+    }
+    const intent = detectedIntents[0] ?? 'unknown';
     if (intent === 'memory') {
       const normalizedPrompt = normalizePrompt(rawPrompt);
       const broadRequest = /\b(sobre mim|tudo que voce sabe|todas as memorias|quais memorias|listar memorias|o que voce lembra|o que voce recorda|o que voce sabe)\b/.test(normalizedPrompt);
