@@ -84,6 +84,19 @@ struct AlfredWebView: UIViewRepresentable {
                         send(["requestId": requestId, "status": "error",
                               "message": "Ação de calendário desconhecida."])
                     }
+                } catch let error as AlfredCalendarAccess.CalendarAccessError {
+                    let message: String
+                    switch error {
+                    case .incompleteSnapshot:
+                        message = "O iPhone retornou um evento sem identificador estável. A sincronização foi interrompida para proteger os compromissos existentes."
+                    case .invalidCalendarSelection:
+                        message = "Um ou mais calendários selecionados não estão mais disponíveis. Atualize a lista antes de sincronizar."
+                    case .invalidDateRange:
+                        message = "O intervalo solicitado para leitura do calendário é inválido."
+                    case .permissionDenied:
+                        message = "O Alfred não tem permissão de acesso completo ao Calendário Apple."
+                    }
+                    send(["requestId": requestId, "status": "error", "message": message])
                 } catch {
                     send(["requestId": requestId, "status": "error",
                           "message": "Não foi possível acessar o Calendário Apple. Verifique a permissão do Alfred."])
