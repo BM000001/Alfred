@@ -66,7 +66,7 @@ function assetUrl(relativePath: string): string {
 async function createLocalOcrWorker(onStatus?: (status: string) => void): Promise<OcrWorker> {
   return createWorker('por', OEM.LSTM_ONLY, {
     workerPath: assetUrl('worker.min.js'),
-    corePath: assetUrl('core/'),
+    corePath: assetUrl('core'),
     langPath: assetUrl('lang'),
     gzip: true,
     cacheMethod: 'write',
@@ -133,24 +133,27 @@ export async function extractPdfWithLocalOcr(
         const context = canvas.getContext('2d', { alpha: false });
         if (!context) throw new Error('Não foi possível preparar a imagem da página para OCR.');
 
-        await page.render({ canvas, canvasContext: context, viewport }).promise;
-        assertNotAborted(signal);
-        const recognized = await ocrWorker.recognize(canvas);
-        const recognizedText = recognized.data.text.trim();
-        pages.push({
-          pageNumber,
-          text: recognizedText,
-          confidence: Number.isFinite(recognized.data.confidence) ? recognized.data.confidence : null,
-          method: 'ocr',
-        });
-        canvas.width = 0;
-        canvas.height = 0;
-        onProgress?.({
-          currentPage: pageNumber,
-          totalPages: document.numPages,
-          progress: pageNumber / document.numPages,
-          status: recognizedText ? 'Página reconhecida' : 'Nenhum texto reconhecido nesta página',
-        });
+        try {
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
+          assertNotAborted(signal);
+          const recognized = await ocrWorker.recognize(canvas);
+          const recognizedText = recognized.data.text.trim();
+          pages.push({
+            pageNumber,
+            text: recognizedText,
+            confidence: Number.isFinite(recognized.data.confidence) ? recognized.data.confidence : null,
+            method: 'ocr',
+          });
+          onProgress?.({
+            currentPage: pageNumber,
+            totalPages: document.numPages,
+            progress: pageNumber / document.numPages,
+            status: recognizedText ? 'Página reconhecida' : 'Nenhum texto reconhecido nesta página',
+          });
+        } finally {
+          canvas.width = 0;
+          canvas.height = 0;
+        }
       } finally {
         page.cleanup();
       }
