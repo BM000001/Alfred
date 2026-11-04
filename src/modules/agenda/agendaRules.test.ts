@@ -13,12 +13,19 @@ const first: Appointment = {
 };
 
 describe('agendaRules', () => {
-  it('classifies imported calendar events from Portuguese titles', () => {
+  it('classifies imported calendar events from Portuguese titles, including accents', () => {
     expect(classifyImportedAppointment('Prova de Matemática')).toBe('exam');
+    expect(classifyImportedAppointment('Avaliação final')).toBe('exam');
     expect(classifyImportedAppointment('Aula de programação')).toBe('class');
     expect(classifyImportedAppointment('Entrega do trabalho final')).toBe('deadline');
     expect(classifyImportedAppointment('Consulta com dentista')).toBe('personal');
     expect(classifyImportedAppointment('Reunião com equipe')).toBe('other');
+  });
+
+  it('matches category keywords as complete words, not inside unrelated words', () => {
+    expect(classifyImportedAppointment('Provação de conceito')).toBe('other');
+    expect(classifyImportedAppointment('Viagem de estudos')).toBe('personal');
+    expect(classifyImportedAppointment('Aulas de reforço')).toBe('class');
   });
 
   it('requires a title and a valid time range', () => {
