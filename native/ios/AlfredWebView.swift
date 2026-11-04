@@ -73,9 +73,13 @@ struct AlfredWebView: UIViewRepresentable {
                         send(["requestId": requestId, "status": "connected",
                               "calendars": calendars.map { ["id": $0.id, "title": $0.title, "source": $0.source] }])
                     case "sync":
-                        let events = try calendarAccess.events(calendarIds: calendarIds)
+                        let snapshot = try calendarAccess.snapshot(calendarIds: calendarIds)
                         send(["requestId": requestId, "status": "success",
-                              "events": events.map(Self.serialize)])
+                              "snapshotComplete": true,
+                              "rangeStart": snapshot.rangeStart,
+                              "rangeEnd": snapshot.rangeEnd,
+                              "calendarIds": snapshot.calendarIds,
+                              "events": snapshot.events.map(Self.serialize)])
                     default:
                         send(["requestId": requestId, "status": "error",
                               "message": "Ação de calendário desconhecida."])
