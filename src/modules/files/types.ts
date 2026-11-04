@@ -1,6 +1,8 @@
 export interface ExtractedPage {
   pageNumber: number;
   text: string;
+  confidence?: number | null;
+  method?: 'text' | 'ocr';
 }
 
 export interface StoredTextExtraction {
@@ -9,6 +11,8 @@ export interface StoredTextExtraction {
   characterCount: number;
   wordCount: number;
   extractedAt: string;
+  extractionMethod?: 'text' | 'ocr';
+  language?: string;
   pageCount?: number;
   pages?: ExtractedPage[];
 }
