@@ -1,4 +1,4 @@
-import type { AIProvider, AssistantMessage, AssistantResponse, AssistantContext } from '../../assistant/contracts';
+import type { AIProvider, AssistantMessage, AssistantResponse, AssistantContext, ToolDefinition } from '../../assistant/contracts';
 import { buildAssistantRequest } from '../context/contextBuilder';
 import { classifyIntent } from '../intent/intentEngine';
 import type { AssistantIntent } from '../intent/intentTypes';
@@ -21,6 +21,9 @@ export class Brain {
   constructor(options: BrainOptions) {
     this.provider = options.provider;
     this.tools = options.tools ?? new ToolRegistry();
+    for (const tool of options.provider.tools ?? []) {
+      if (!this.tools.get(tool.id)) this.tools.register(tool as ToolDefinition<unknown, unknown>);
+    }
   }
 
   async process(messages: readonly AssistantMessage[], context: AssistantContext): Promise<BrainResult> {
