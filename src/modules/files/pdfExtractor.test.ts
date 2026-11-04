@@ -60,7 +60,7 @@ describe('extractPdfDocument', () => {
 
   it('trata documentos protegidos por senha com uma mensagem compreensível', async () => {
     const error = Object.assign(new Error('password required'), { name: 'PasswordException' });
-    mockedGetDocument.mockReturnValue({ promise: Promise.reject(error), destroy: vi.fn() });
+    mockedGetDocument.mockImplementation(() => ({ promise: Promise.reject(error), destroy: vi.fn() }));
     await expect(extractPdfDocument(new File(['pdf'], 'protegido.pdf'))).rejects.toThrow(/protegido por senha/);
   });
 });
