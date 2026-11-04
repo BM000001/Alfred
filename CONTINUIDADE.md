@@ -1,9 +1,12 @@
 # Continuidade do Alfred
 
-## Estado atual — 2026-11-04
+## Estado atual — 2026-11-04 (atualizado após PR #63)
 - PR #58 — remoção da dependência da Vercel e manutenção da arquitetura local-first — integrada à `main` por squash merge; commit `ad5b47feb357bdf92a08df3b4e5af26e8c50c40d`.
 - PR #59 — atualização deste documento após a remoção da Vercel — integrada; CI aprovado.
 - PR #60 — recuperação contextual explicável de memórias — integrada por squash merge; commit `76fc8828c3121e99dcc8015f9dfd8f6609cc3758`; CI da PR aprovado (workflow run `41744682867`); CI da `main` aprovado (run `41744807746`) e GitHub Pages publicado (runs `41744807822` e `41744806967`).
+- PR #61 — documentação do marco de memória contextual — integrada após CI verde; commit de merge `a0e32f8`.
+- PR #62 — normalização conservadora de plurais comuns em português na busca lexical de memórias — integrada após CI verde; CI da PR aprovado (workflow run `41746233559`); CI da `main` aprovado (run `41746358115`) e GitHub Pages publicado (runs `41746357148` e `41746358082`).
+- PR #63 — atualização do roadmap para refletir funcionalidades entregues e pendências reais — integrada após CI verde; commit `32650fb9a1433e71359ab35991fc7b3f4d388b66`; CI da PR aprovado (workflow run `41746527048`). CI e publicação da `main` após merge estão em execução (runs `41746683516` e `41746683604`).
 - CI da `main` após a PR #58 aprovado: workflow run `41744079705`.
 - Publicação do GitHub Pages após a PR #58 concluída com sucesso: workflow run `41744079731`; deploy do Pages `41744079350`.
 - Aplicação publicada: https://bm000001.github.io/Alfred/.
@@ -52,7 +55,7 @@
 - Auditoria local: registra apenas data/hora, classes, quantidade de itens e caracteres, e ação de cópia para área de transferência; não armazena texto, títulos ou IDs dos conteúdos. Retenção limitada aos 100 registros mais recentes; pode ser apagada pelo usuário. Auditoria e preferência de bloqueio não entram nos backups. A auditoria registra cópia, não comprova envio a outro serviço. Desativar impede novas preparações neste painel, mas não apaga texto já copiado para a área de transferência ou colado em serviços externos.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
 - Ações de escrita disponíveis: `criar tarefa <título>`, `adicionar tarefa: <título>`, `concluir tarefa <título exato>` ou `marcar tarefa <título exato> como concluída`. O Alfred apresenta uma proposta e só grava após clique em “Confirmar alteração”. Cancelar não altera dados. A criação recusa títulos duplicados e títulos acima do limite; a conclusão recusa títulos ambíguos/inexistentes e exige que a tarefa ainda esteja pendente. Enquanto há uma proposta aberta, o campo de comando fica desativado até confirmar ou cancelar.
-- A memória é manual e baseada em registros estruturados; recuperação contextual usa correspondência lexical explicável, não embeddings ou compreensão semântica. Ainda não há extração automática nem modelo de IA generativa. Também não há voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
+- A memória é manual e baseada em registros estruturados; recuperação contextual usa correspondência lexical explicável, com normalização de acentos e flexões regulares comuns de singular/plural em português (PR #62), não embeddings ou compreensão semântica. Ainda não há extração automática nem modelo de IA generativa. Também não há voz nem ações de escrita para compromissos/estudos. O assistente não é ainda um agente geral.
 
 ## Integração Jarvis — análise concluída, código não copiado
 - Documento: `docs/ANALISE-JARVIS.md`.
@@ -77,12 +80,13 @@
 - Verificar licenças e atribuições de dependências/assets antes de distribuir.
 
 ## Próximas etapas prioritárias
-1. Projetar e testar recuperação contextual das memórias manuais, com relevância explicável, controle do usuário e sem inferir nem salvar fatos sensíveis automaticamente.
-2. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
-3. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
-4. Avaliar integração futura com IA somente se houver arquitetura independente de hospedagem, credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
-5. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
-6. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
+1. Executar e registrar os 11 testes manuais no Safari/iPhone; automação e deploy verde não comprovam funcionamento real no dispositivo.
+2. Corrigir problemas encontrados em instalação PWA, navegação mobile, teclado, funcionamento offline, backup/restauração e persistência após períodos sem uso.
+3. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
+4. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
+5. Avaliar integração futura com IA somente se houver arquitetura independente de hospedagem, credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
+6. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
+7. Verificar licenças e atribuições de dependências/assets antes de distribuir.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
