@@ -17,6 +17,7 @@ Não devemos simular uma conexão automática nem pedir credenciais do iCloud. A
 3. Solicitar permissão somente quando o usuário tocar em “Conectar Calendário Apple”.
 4. Usar EventKit para listar eventos futuros e devolver ao Alfred os campos de título, início, fim, dia inteiro, calendário, local e observações.
 5. Fazer correspondência pelo identificador nativo do evento para atualizar registros importados sem duplicá-los.
+6. Manter a leitura mínima necessária: título, datas, dia inteiro, calendário e local; não transferir notas privadas do evento.
 6. Manter a agenda manual independente e permitir desconectar/revogar o acesso.
 
 O serviço EventKit está em `native/ios/AlfredCalendarAccess.swift`. A casca SwiftUI/WebView está em `native/ios/AlfredApp.swift` e `native/ios/AlfredWebView.swift`. O cliente TypeScript da ponte está em `src/modules/agenda/nativeCalendarBridge.ts`.
@@ -27,14 +28,18 @@ O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A respos
 
 Os eventos sem identificador estável do EventKit são ignorados para evitar que uma nova leitura gere cópias difíceis de reconciliar. Os eventos são lidos em uma janela padrão de 90 dias.
 
-**Configuração necessária no projeto Xcode:** adicionar os três arquivos Swift ao target iOS, definir deployment target iOS 17 ou superior e incluir no Info.plist:
+**Projeto iOS configurado:** `native/ios/project.yml` define o target iOS 17+ e os três arquivos Swift; `native/ios/Info.plist` declara a mensagem de permissão do EventKit. O projeto Xcode é gerado com XcodeGen. Para gerar e abrir no Mac:
 
-```xml
-<key>NSCalendarsFullAccessUsageDescription</key>
-<string>O Alfred precisa ler seus calendários para organizar seus compromissos e mostrar sua agenda.</string>
+```bash
+brew install xcodegen
+cd native/ios
+xcodegen generate --spec project.yml
+open Alfred.xcodeproj
 ```
 
-Esta estrutura ainda não é um projeto Xcode completo e não foi compilada em Xcode. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
+O workflow `Alfred iOS Build` gera o projeto e tenta compilar para o simulador iOS no GitHub Actions. A instalação em iPhone ainda exige assinatura Apple Developer e perfil de provisionamento.
+
+O projeto Xcode agora pode ser gerado a partir da especificação XcodeGen; a compilação automática está configurada, mas ainda precisa concluir com sucesso. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
 
 ## Etapa Google (segunda)
 
@@ -54,7 +59,8 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Importação manual de arquivos .ics na versão web.
 - [x] Serviço Swift inicial para leitura via EventKit.
 - [x] Ponte com identificador por solicitação e validação HTTPS da origem.
-- [ ] Aplicativo iOS nativo e configuração de permissões.
+- [x] Especificação XcodeGen, Info.plist e workflow de compilação iOS.
+- [ ] Compilação iOS confirmada, assinatura e instalação em dispositivo real.
 - [x] Interface nativa de conectar/sincronizar e upsert local idempotente dos eventos Apple.
 - [ ] Sincronização incremental, exclusões/alterações de origem e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
