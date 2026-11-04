@@ -34,7 +34,7 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 - [x] Flashcards interativos com fila de revisão e agendamento inicial de repetição espaçada.
 - [x] Banco de questões e simulados com filtros por disciplina/dificuldade e ordem aleatória.
 - [x] Desempenho por assunto e conversão de questões erradas em flashcards.
-- [ ] OCR local para PDFs digitalizados — arquitetura aceita em `docs/decisoes/ADR-0001-OCR-local-PDF.md`; implementação pendente.
+- [ ] OCR local para PDFs digitalizados — implementação em andamento na branch `feat/studies-local-pdf-ocr`; usa Tesseract.js com worker, WebAssembly e modelo português servidos pelo próprio Alfred, limite de 20 páginas por operação e cache offline após o primeiro uso. Pendente de CI, revisão de assets e teste real em iPhone.
 - [ ] Extração local de DOCX e PPTX.
 - [ ] Repetição espaçada mais robusta, com calibração por histórico real de acertos.
 - [ ] Testes de ponta a ponta da Central de Estudos em iPhone/Safari.
@@ -75,7 +75,7 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 
 ## Próximas prioridades
 1. Confirmar a conclusão do CI e da publicação da última integração da Central de Estudos; não considerar publicada enquanto os workflows estiverem pendentes.
-2. Implementar OCR local seguindo o ADR-0001, com assets servidos pelo próprio Alfred, carregamento sob demanda e sem CDN/serviço externo.
+2. Validar o OCR local em CI, medir o peso dos assets e testar em iPhone/Safari antes de considerá-lo concluído.
 3. Executar o roteiro manual no iPhone/Safari, incluindo upload, leitura, flashcards, simulados, offline e persistência.
 4. Adicionar extração local de DOCX/PPTX após estabilizar o fluxo PDF/OCR.
 5. Só então avaliar recursos generativos ou integrações externas, mantendo contexto mínimo e autorização explícita.
