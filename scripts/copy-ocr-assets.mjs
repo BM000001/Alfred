@@ -18,10 +18,17 @@ async function findFile(directory, predicate) {
   return undefined;
 }
 
+const requiredCoreFiles = [
+  'tesseract-core.wasm.js',
+  'tesseract-core-simd.wasm.js',
+  'tesseract-core-lstm.wasm.js',
+  'tesseract-core-simd-lstm.wasm.js',
+];
+
 async function findCoreDirectory(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const names = new Set(entries.filter((entry) => entry.isFile()).map((entry) => entry.name));
-  if (names.has('tesseract-core.wasm.js') && [...names].some((name) => name.endsWith('.wasm'))) return directory;
+  if (requiredCoreFiles.every((name) => names.has(name))) return directory;
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const found = await findCoreDirectory(path.join(directory, entry.name));
