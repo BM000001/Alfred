@@ -37,6 +37,31 @@ describe('fileService', () => {
     });
     expect((await service.list()).find((item) => item.id === 'legacy-file')).not.toHaveProperty('disciplineId');
   });
+  it('persiste o texto extraído e o reutiliza sem alterar o arquivo original', async () => {
+    const repository = memoryRepository();
+    const service = createFileService(repository, () => 'file-extracted');
+    await service.add(new File(['material original'], 'aula.txt', { type: 'text/plain' }));
+    const extraction = {
+      format: 'txt' as const,
+      text: 'Material original',
+      characterCount: 17,
+      wordCount: 2,
+      extractedAt: '2026-11-04T15:00:00.000Z',
+    };
+
+    await service.saveExtraction('file-extracted', extraction);
+
+    const stored = await service.get('file-extracted');
+    expect(stored?.blob.size).toBe(17);
+    expect(stored?.extraction).toEqual(extraction);
+    expect(await service.list()).toEqual([
+      expect.objectContaining({
+        id: 'file-extracted',
+        hasExtractedText: true,
+        extractedAt: extraction.extractedAt,
+      }),
+    ]);
+  });
   it('rejeita arquivos vazios e acima do limite', async () => {
     const service = createFileService(memoryRepository());
     await expect(service.add(new File([], 'vazio.txt'))).rejects.toThrow(/vazio/);
