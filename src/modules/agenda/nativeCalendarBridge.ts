@@ -4,6 +4,7 @@ export interface NativeCalendarEvent {
   startsAt: string;
   endsAt: string;
   isAllDay: boolean;
+  isRecurring: boolean;
   calendarTitle: string;
   calendarId: string;
   location: string | null;
