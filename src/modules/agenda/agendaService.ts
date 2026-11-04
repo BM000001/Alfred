@@ -66,13 +66,15 @@ export function createAgendaService(
       return appointment;
     },
 
-    async upsertImported(input: CreateAppointmentInput & { importedUid: string }): Promise<Appointment> {
+    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedCalendarId?: string }): Promise<Appointment> {
       const existing = (await repository.getAll()).find((item) => item.importedUid === input.importedUid);
       if (existing) {
         const updated: Appointment = {
           ...existing,
           title: input.title.trim(),
           type: input.type,
+          status: 'scheduled',
+          importedCalendarId: input.importedCalendarId ?? existing.importedCalendarId,
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           ...(input.location?.trim() ? { location: input.location.trim() } : {}),
@@ -94,11 +96,31 @@ export function createAgendaService(
         endsAt: input.endsAt,
         createdAt: now().toISOString(),
         importedUid: input.importedUid,
+        ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
         ...(input.location?.trim() ? { location: input.location.trim() } : {}),
       };
       await repository.save(imported);
       return imported;
+    },
+
+
+    async reconcileImportedCalendar(calendarId: string, seenImportedUids: string[], from: string, to: string): Promise<number> {
+      const seen = new Set(seenImportedUids);
+      const start = Date.parse(from);
+      const end = Date.parse(to);
+      if (!calendarId || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+        throw new Error('Intervalo inválido para reconciliar o Calendário Apple.');
+      }
+      let cancelled = 0;
+      for (const item of await repository.getAll()) {
+        if (item.importedCalendarId !== calendarId || !item.importedUid || item.status === 'cancelled') continue;
+        const eventStart = Date.parse(item.startsAt);
+        if (!Number.isFinite(eventStart) || eventStart < start || eventStart >= end || seen.has(item.importedUid)) continue;
+        await repository.save({ ...item, status: 'cancelled' });
+        cancelled += 1;
+      }
+      return cancelled;
     },
 
     update,
