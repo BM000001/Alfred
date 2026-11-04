@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: alfred-ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-ios:
     name: Generate Xcode project and compile iOS app
