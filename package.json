@@ -16,8 +16,9 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "pdfjs-dist": "6.5.438",
-    "tesseract.js": "^7.0.0",
-    "@tesseract.js-data/por": "^1.0.0"
+    "tesseract.js": "7.0.0",
+    "@tesseract.js-data/por": "1.0.0",
+    "tesseract.js-core": "7.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.4",
