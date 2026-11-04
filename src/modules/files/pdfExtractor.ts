@@ -42,10 +42,10 @@ export async function extractPdfDocument(
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent();
       const pageText = content.items
-        .map((item) => ('str' in item ? item.str : ''))
-        .filter(Boolean)
-        .join(' ')
-        .replace(/\s+/g, ' ')
+        .map((item) => ('str' in item ? item.str + ('hasEOL' in item && item.hasEOL ? '\n' : ' ') : ''))
+        .join('')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
         .trim();
 
       pages.push({ pageNumber, text: pageText });
