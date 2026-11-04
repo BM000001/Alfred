@@ -380,3 +380,12 @@
 .assistant-remote-warning{padding-top:8px;border-top:1px solid rgba(145,174,224,.1);color:#8294ad!important;font-size:9px!important}
 .assistant-remote-logout{justify-self:start;background:transparent;border:0;color:#a8b6ca;text-decoration:underline}
 @media(max-width:600px){.assistant-remote-panel>header,.assistant-remote-toggle{align-items:flex-start;flex-direction:column}.assistant-remote-toggle button{width:100%}.assistant-remote-login>div{flex-direction:column}.assistant-remote-login button{width:100%}}
+
+
+.assistant-export-result{display:grid;gap:9px;padding:14px;border:1px solid rgba(145,180,245,.24);border-radius:10px;background:rgba(9,18,31,.55)}
+.assistant-export-result>strong{color:#cbd8eb;font-size:10px}
+.assistant-export-result>p{margin:0;color:#91a2bb;font-size:9px;line-height:1.6}
+.assistant-export-result>label{color:#cbd8eb;font-size:9px;font-weight:600}
+.assistant-export-result input,.assistant-export-result select,.assistant-export-result textarea{width:100%;min-height:36px;box-sizing:border-box;padding:9px 10px;border:1px solid rgba(145,174,224,.18);border-radius:8px;color:#dce6f6;background:rgba(5,12,22,.65);font:inherit;font-size:10px;line-height:1.55}
+.assistant-export-result textarea{resize:vertical}
+.assistant-export-result button{min-height:38px;padding:0 13px;border-radius:8px;font-size:10px}

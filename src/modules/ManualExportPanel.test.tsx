@@ -103,6 +103,22 @@ describe('ManualExportPanel', () => {
     expect((preview as HTMLTextAreaElement).value).toContain('Disciplina: Cálculo I');
     expect((preview as HTMLTextAreaElement).value).toContain('flashcards');
     expect((preview as HTMLTextAreaElement).value).toContain('Páginas: 2');
+
+    await user.click(screen.getByRole('button', { name: 'Copiar texto revisado' }));
+    await user.type(await screen.findByLabelText('Resposta gerada pela IA'), 'Flashcard 1: O que é limite? Resposta: valor ao qual a função se aproxima.');
+    await user.click(screen.getByRole('button', { name: 'Salvar conteúdo de estudo' }));
+
+    await waitFor(async () => {
+      const saved = await studyTopicRepository.getAll();
+      expect(saved).toHaveLength(1);
+      expect(saved[0]).toMatchObject({
+        disciplineId: 'discipline-calc',
+        title: 'Flashcards — limites.pdf',
+        status: 'pending',
+      });
+      expect(saved[0].notes).toContain('Material gerado a partir de: limites.pdf');
+      expect(saved[0].notes).toContain('Flashcard 1: O que é limite?');
+    });
   });
 
   it('permite bloquear novas preparações e persiste o bloqueio', async () => {
