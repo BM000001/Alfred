@@ -1,7 +1,15 @@
 import type { EntityRepository } from '../../storage/repositories';
 import type { AssistantMemory, MemoryCategory } from './types';
 export interface MemoryInput { title: string; content: string; category: MemoryCategory; }
+export interface MemoryMatch { memory: AssistantMemory; score: number; matchedTerms: string[]; }
 const CATEGORIES: MemoryCategory[] = ['preference', 'goal', 'project', 'routine', 'other'];
+const STOP_WORDS = new Set(['sobre', 'para', 'como', 'qual', 'quais', 'quando', 'onde', 'voce', 'voces', 'mim', 'meu', 'minha', 'meus', 'minhas', 'isso', 'essa', 'esse', 'aquela', 'aquele', 'lembra', 'lembro', 'memoria', 'memorias', 'sabe', 'sab e', 'quero', 'gostaria', 'pode', 'poderia', 'alfred', 'informacao', 'informacoes']);
+function normalize(value: string): string {
+  return value.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
+}
+function termsOf(value: string): string[] {
+  return [...new Set(normalize(value).split(' ').filter(term => term.length > 2 && !STOP_WORDS.has(term)))];
+}
 function validate(input: MemoryInput): MemoryInput {
   const title = input.title.trim(); const content = input.content.trim();
   if (!title) throw new Error('Informe um título para a memória.');
@@ -26,11 +34,21 @@ export async function deleteMemory(repository: EntityRepository<AssistantMemory>
 export async function listMemories(repository: EntityRepository<AssistantMemory>): Promise<AssistantMemory[]> {
   return (await repository.getAll()).sort((a,b) => b.updatedAt.localeCompare(a.updatedAt));
 }
-export function searchMemories(memories: AssistantMemory[], query: string): AssistantMemory[] {
-  const normalized = query.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const terms = normalized.split(/[^a-z0-9]+/).filter(term => term.length > 1); if (!terms.length) return [];
+/** Retorna correspondências explicáveis; não inclui memórias sem termos relevantes em comum. */
+export function retrieveRelevantMemories(memories: AssistantMemory[], query: string, limit = 3): MemoryMatch[] {
+  const terms = termsOf(query);
+  if (!terms.length || !Number.isInteger(limit) || limit < 1) return [];
   return memories.map(memory => {
-    const text = `${memory.title} ${memory.content} ${memory.category}`.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return { memory, score: terms.reduce((score, term) => score + (text.includes(term) ? 1 : 0), 0) };
-  }).filter(item => item.score > 0).sort((a,b) => b.score-a.score || b.memory.updatedAt.localeCompare(a.memory.updatedAt)).map(item => item.memory);
+    const title = terms.filter(term => normalize(memory.title).split(' ').includes(term));
+    const content = terms.filter(term => normalize(memory.content).split(' ').includes(term));
+    const category = terms.filter(term => normalize(memory.category).split(' ').includes(term));
+    const matchedTerms = [...new Set([...title, ...content, ...category])];
+    const score = title.length * 3 + content.length + category.length;
+    return { memory, score, matchedTerms };
+  }).filter(match => match.score > 0)
+    .sort((a,b) => b.score-a.score || b.memory.updatedAt.localeCompare(a.memory.updatedAt))
+    .slice(0, limit);
+}
+export function searchMemories(memories: AssistantMemory[], query: string): AssistantMemory[] {
+  return retrieveRelevantMemories(memories, query, memories.length).map(match => match.memory);
 }
