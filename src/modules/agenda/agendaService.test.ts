@@ -53,6 +53,31 @@ describe('agendaService', () => {
     expect(all.find((item) => item.id === first.id)).toMatchObject({ title: 'Evento Apple atualizado', importedUid: 'apple:stable-1' });
   });
 
+
+  it('archives removed Apple events only in the selected source calendar and sync window', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `apple-${++id}`; })() });
+    const keep = await service.upsertImported({
+      importedUid: 'apple:event-1', importedCalendarId: 'calendar-a', title: 'Keep',
+      type: 'other', startsAt: '2026-11-05T10:00:00.000Z', endsAt: '2026-11-05T11:00:00.000Z',
+    });
+    const remove = await service.upsertImported({
+      importedUid: 'apple:event-2', importedCalendarId: 'calendar-a', title: 'Removed',
+      type: 'other', startsAt: '2026-11-06T10:00:00.000Z', endsAt: '2026-11-06T11:00:00.000Z',
+    });
+    const otherCalendar = await service.upsertImported({
+      importedUid: 'apple:event-3', importedCalendarId: 'calendar-b', title: 'Other calendar',
+      type: 'other', startsAt: '2026-11-06T10:00:00.000Z', endsAt: '2026-11-06T11:00:00.000Z',
+    });
+    const count = await service.reconcileImportedCalendar(
+      'calendar-a', [keep.importedUid!], '2026-11-04T00:00:00.000Z', '2026-11-10T00:00:00.000Z',
+    );
+    expect(count).toBe(1);
+    expect((await service.get(keep.id))?.status).toBe('scheduled');
+    expect((await service.get(remove.id))?.status).toBe('cancelled');
+    expect((await service.get(otherCalendar.id))?.status).toBe('scheduled');
+  });
+
   it('cancels and deletes appointments', async () => {
     const service = createAgendaService(createMemoryRepository<Appointment>(), { createId: () => 'appointment-2' });
     const created = await service.create({
