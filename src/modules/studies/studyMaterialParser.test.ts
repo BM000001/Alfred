@@ -3,12 +3,11 @@ import { parseStudyMaterial } from './studyMaterialParser';
 
 describe('parseStudyMaterial', () => {
   it('parses JSON with flashcards and multiple-choice questions', () => {
-    const result = parseStudyMaterial(```json
-{
-  "flashcards": [{ "front": "O que é limite?", "back": "Valor ao qual a função se aproxima." }],
-  "questions": [{ "prompt": "Quanto é 2 + 2?", "options": ["3", "4"], "correctOptionIndex": 1, "difficulty": "easy" }]
-}
-```);
+    const json = JSON.stringify({
+      flashcards: [{ front: 'O que é limite?', back: 'Valor ao qual a função se aproxima.' }],
+      questions: [{ prompt: 'Quanto é 2 + 2?', options: ['3', '4'], correctOptionIndex: 1, difficulty: 'easy' }],
+    });
+    const result = parseStudyMaterial('\`\`\`json\n' + json + '\n\`\`\`');
     expect(result.flashcards).toHaveLength(1);
     expect(result.questions[0]).toMatchObject({ prompt: 'Quanto é 2 + 2?', correctOptionIndex: 1, difficulty: 'easy' });
   });
