@@ -25,9 +25,9 @@ import {
 interface RecordOption { item: EgressItem; label: string; disciplineId?: string; }
 const OUTPUT_INSTRUCTIONS: Record<string, string> = {
   summary: 'Analise o material acadêmico e produza um resumo estruturado, com conceitos-chave, definições e exemplos presentes no texto.',
-  flashcards: 'Transforme o material acadêmico em flashcards de pergunta e resposta. Priorize conceitos importantes e evite perguntas ambíguas.',
-  questions: 'Crie questões de revisão com gabarito comentado, usando somente as informações do material acadêmico.',
-  exam: 'Monte um simulado com questões de múltipla escolha e discursivas, dificuldade progressiva e gabarito separado ao final.',
+  flashcards: 'Responda somente com um bloco JSON cercado por \`\`\`json. Use exatamente este formato: {"flashcards":[{"front":"pergunta ou conceito","back":"resposta clara"}],"questions":[]}. Gere de 5 a 20 cartões relevantes. Não invente informações que não estejam no material. Não escreva comentários fora do JSON.',
+  questions: 'Responda somente com um bloco JSON cercado por \`\`\`json. Use exatamente este formato: {"flashcards":[],"questions":[{"prompt":"enunciado","options":["alternativa A","alternativa B","alternativa C","alternativa D"],"correctOptionIndex":0,"explanation":"justificativa baseada no material","difficulty":"medium"}]}. Gere de 5 a 15 questões objetivas. correctOptionIndex começa em zero. difficulty deve ser easy, medium ou hard. Use somente informações do material e não escreva comentários fora do JSON.',
+  exam: 'Responda somente com um bloco JSON cercado por \`\`\`json. Use exatamente este formato: {"flashcards":[],"questions":[{"prompt":"enunciado","options":["alternativa A","alternativa B","alternativa C","alternativa D"],"correctOptionIndex":0,"explanation":"justificativa baseada no material","difficulty":"medium"}]}. Monte um simulado de 10 questões objetivas com dificuldade progressiva. correctOptionIndex começa em zero. difficulty deve ser easy, medium ou hard. Use somente informações do material e não escreva comentários fora do JSON.',
   review: 'Crie um plano de revisão espaçada do conteúdo, dividindo os tópicos em sessões curtas e indicando o que revisar em cada sessão.',
 };
 
