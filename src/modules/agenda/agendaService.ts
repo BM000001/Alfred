@@ -58,6 +58,7 @@ export function createAgendaService(
         startsAt: input.startsAt,
         endsAt: input.endsAt,
         ...(input.isAllDay ? { isAllDay: true } : {}),
+        ...(input.isRecurring ? { isRecurring: true } : {}),
         createdAt: now().toISOString(),
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
         ...(input.location?.trim() ? { location: input.location.trim() } : {}),
@@ -79,6 +80,7 @@ export function createAgendaService(
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           ...(input.isAllDay ? { isAllDay: true } : { isAllDay: false }),
+          ...(input.isRecurring ? { isRecurring: true } : { isRecurring: false }),
           ...(input.location?.trim() ? { location: input.location.trim() } : {}),
         };
         if (!input.location?.trim()) delete updated.location;
@@ -97,6 +99,7 @@ export function createAgendaService(
         startsAt: input.startsAt,
         endsAt: input.endsAt,
         ...(input.isAllDay ? { isAllDay: true } : {}),
+        ...(input.isRecurring ? { isRecurring: true } : {}),
         createdAt: now().toISOString(),
         importedUid: input.importedUid,
         ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
