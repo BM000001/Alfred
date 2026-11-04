@@ -3020,3 +3020,11 @@ select:focus-visible, textarea:focus-visible {
 .study-performance-error span{color:#d9a6a0;font-size:9px}
 .study-performance-error button{flex-shrink:0}
 @media(max-width:600px){.study-performance{padding:14px}.study-performance-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.study-performance-topic-header{align-items:flex-start;flex-direction:column}.study-performance-error{align-items:flex-start;flex-direction:column}}
+
+
+/* Filtros para simulados */
+.study-quiz-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 14px;padding:12px;border:1px solid rgba(151,177,222,.13);border-radius:10px;background:rgba(7,16,29,.32)}
+.study-quiz-filters label{display:grid;gap:6px;color:#cbd8eb;font-size:10px;font-weight:600}
+.study-quiz-filters select{width:100%;min-height:36px;padding:7px 9px;border:1px solid rgba(151,177,222,.2);border-radius:7px;color:#e0eafa;background:#0a1728;font-size:10px}
+.study-quiz-filters>span{grid-column:1/-1;color:#8294ad;font-size:9px}
+@media(max-width:600px){.study-quiz-filters{grid-template-columns:1fr}}

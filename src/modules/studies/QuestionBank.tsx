@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { studyQuestionRepository, studyQuizAttemptRepository } from '../../storage/repositories';
 import type { StudyTopic } from './types';
 import type { StudyQuestion, StudyQuizAnswer, StudyQuizAttempt, StudyQuestionDifficulty } from './questionTypes';
-import { createQuestionService, gradeStudyAnswer, summarizeQuiz } from './questionService';
+import { createQuestionService, gradeStudyAnswer, summarizeQuiz, selectQuizQuestions } from './questionService';
 
 const service = createQuestionService(studyQuestionRepository, studyQuizAttemptRepository);
 const emptyOptions = ['', '', '', ''];
@@ -17,6 +17,8 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
   const [topicId, setTopicId] = useState('');
   const [explanation, setExplanation] = useState('');
   const [difficulty, setDifficulty] = useState<StudyQuestionDifficulty>('medium');
+  const [quizTopicFilter, setQuizTopicFilter] = useState('all');
+  const [quizDifficultyFilter, setQuizDifficultyFilter] = useState<StudyQuestionDifficulty | 'all'>('all');
   const [phase, setPhase] = useState<'idle' | 'quiz' | 'result'>('idle');
   const [quizQuestions, setQuizQuestions] = useState<StudyQuestion[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -45,6 +47,8 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
       .catch(() => { if (active) setError('Não foi possível carregar o banco de questões.'); })
       .finally(() => { if (active) setLoading(false); });
     setTopicId('');
+    setQuizTopicFilter('all');
+    setQuizDifficultyFilter('all');
     setPhase('idle');
     setQuizQuestions([]);
     setQuizAnswers([]);
@@ -52,6 +56,12 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
     return () => { active = false; };
   }, [disciplineId]);
 
+  const availableQuizQuestions = useMemo(() => selectQuizQuestions(questions, {
+    topicId: quizTopicFilter === 'all' ? undefined : quizTopicFilter,
+    difficulty: quizDifficultyFilter,
+    limit: 50,
+    random: () => 0.5,
+  }), [questions, quizTopicFilter, quizDifficultyFilter]);
   const currentQuestion = quizQuestions[questionIndex];
   const currentFeedback = currentQuestion && revealed ? gradeStudyAnswer(currentQuestion, selectedOptionIndex) : false;
   const resultSummary = useMemo(() => lastAttempt ? summarizeQuiz(lastAttempt.answers) : null, [lastAttempt]);
@@ -88,7 +98,11 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
   }
 
   function startQuiz() {
-    const session = questions.slice(0, 10);
+    const session = selectQuizQuestions(questions, {
+      topicId: quizTopicFilter === 'all' ? undefined : quizTopicFilter,
+      difficulty: quizDifficultyFilter,
+      limit: 10,
+    });
     if (!session.length) return;
     setQuizQuestions(session);
     setQuestionIndex(0);
@@ -157,9 +171,18 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
   return <section className="study-question-bank" aria-label="Banco de questões e simulados">
     <div className="study-question-header">
       <div><span className="card-label">PRÁTICA E AUTOAVALIAÇÃO</span><h3>Questões e simulados</h3><p>{questions.length} questão(ões) cadastrada(s) · simulados com até 10 questões</p></div>
-      {phase === 'idle' && <button className="study-quiz-start" type="button" disabled={!questions.length} onClick={startQuiz}>Iniciar simulado</button>}
+      {phase === 'idle' && <button className="study-quiz-start" type="button" disabled={!availableQuizQuestions.length} onClick={startQuiz}>Iniciar simulado</button>}
       {phase !== 'idle' && <button className="study-quiz-start secondary" type="button" onClick={exitQuiz}>Sair do simulado</button>}
     </div>
+    {phase === 'idle' && <div className="study-quiz-filters">
+      <label htmlFor="study-quiz-topic-filter">Tópico do simulado
+        <select id="study-quiz-topic-filter" value={quizTopicFilter} onChange={event => setQuizTopicFilter(event.target.value)}><option value="all">Todos os tópicos</option>{topics.map(topic => <option key={topic.id} value={topic.id}>{topic.title}</option>)}</select>
+      </label>
+      <label htmlFor="study-quiz-difficulty-filter">Dificuldade
+        <select id="study-quiz-difficulty-filter" value={quizDifficultyFilter} onChange={event => setQuizDifficultyFilter(event.target.value as StudyQuestionDifficulty | 'all')}><option value="all">Todas</option><option value="easy">Fácil</option><option value="medium">Média</option><option value="hard">Difícil</option></select>
+      </label>
+      <span>{availableQuizQuestions.length} questão(ões) disponíveis · até 10 por simulado</span>
+    </div>}
     {error && <p className="module-error" role="alert">{error}</p>}
 
     {phase === 'quiz' && currentQuestion && <article className="study-quiz-card">
