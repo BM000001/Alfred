@@ -46,6 +46,8 @@ export function Agenda() {
   const [error, setError] = useState('');
   const [conflicts, setConflicts] = useState<Appointment[]>([]);
   const [appleBusy, setAppleBusy] = useState(false);
+  const [appleLastResult, setAppleLastResult] = useState<'success' | 'error' | null>(null);
+  const [appleImportedCount, setAppleImportedCount] = useState(0);
   const [appleMessage, setAppleMessage] = useState('');
   const [appleLastSync, setAppleLastSync] = useState<string | null>(() => window.localStorage.getItem('alfred.appleCalendarLastSync'));
   const [appleCalendars, setAppleCalendars] = useState<NativeCalendarInfo[]>([]);
@@ -99,6 +101,7 @@ export function Agenda() {
 
   async function handleAppleCalendar(connect: boolean) {
     setAppleBusy(true);
+    setAppleLastResult(null);
     setAppleMessage(connect ? 'Solicitando acesso ao Calendário Apple...' : 'Lendo eventos do Calendário Apple...');
     try {
       if (connect) {
@@ -107,13 +110,17 @@ export function Agenda() {
         setAppleCalendars(calendars);
         setSelectedAppleCalendars(calendars.map((calendar) => calendar.id));
         setAppleConnected(true);
+        setAppleLastResult('success');
         setAppleMessage(`${calendars.length} calendário(s) encontrado(s). Escolha quais deseja sincronizar.`);
       } else {
         const response = await syncAppleCalendar(selectedAppleCalendars);
         const count = await saveAppleEvents(response.events ?? []);
+        setAppleImportedCount(count);
+        setAppleLastResult('success');
         setAppleMessage(`${count} evento(s) sincronizado(s) de ${selectedAppleCalendars.length} calendário(s). Seus compromissos manuais foram preservados.`);
       }
     } catch (cause) {
+      setAppleLastResult('error');
       setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Calendário Apple.');
     } finally {
       setAppleBusy(false);
@@ -151,9 +158,9 @@ export function Agenda() {
     syncAppleCalendar(selectedAppleCalendars).then(async (response) => {
       if (!active) return;
       const count = await saveAppleEvents(response.events ?? []);
-      if (active) setAppleMessage(`Sincronização automática: ${count} evento(s) atualizado(s).`);
+      if (active) { setAppleImportedCount(count); setAppleLastResult('success'); setAppleMessage(`Sincronização automática: ${count} evento(s) atualizado(s).`); }
     }).catch((cause) => {
-      if (active) setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível atualizar o Calendário Apple.');
+      if (active) { setAppleLastResult('error'); setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível atualizar o Calendário Apple.'); }
     });
     return () => { active = false; };
   }, []);
@@ -272,6 +279,16 @@ export function Agenda() {
             <button className="text-action" type="button" disabled={appleBusy || !appleConnected || selectedAppleCalendars.length === 0} onClick={() => void handleAppleCalendar(false)}>Sincronizar selecionados</button>
           </div>
           {appleConnected && <div className="apple-calendar-picker"><strong>Escolha os calendários para importar</strong>{appleCalendars.length === 0 ? <p>Nenhum calendário disponível para leitura.</p> : appleCalendars.map((calendar) => <label key={calendar.id} className="apple-calendar-option"><input type="checkbox" checked={selectedAppleCalendars.includes(calendar.id)} onChange={(event) => setSelectedAppleCalendars((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} /><span><b>{calendar.title}</b><small>{calendar.source}</small></span></label>)}</div>}
+          <div className="apple-calendar-diagnostics" aria-label="Diagnóstico da conexão Apple">
+            <div className="apple-calendar-diagnostics-heading"><strong>Diagnóstico da conexão</strong><span>{appleBusy ? 'Verificando...' : appleLastResult === 'error' ? 'Atenção necessária' : appleLastResult === 'success' ? 'Última operação concluída' : 'Aguardando primeira sincronização'}</span></div>
+            <div className="apple-calendar-diagnostic-grid">
+              <div><small>Ambiente</small><strong>{appleAvailable ? 'App iOS nativo' : 'Navegador'}</strong></div>
+              <div><small>Calendários selecionados</small><strong>{selectedAppleCalendars.length} de {appleCalendars.length || '—'}</strong></div>
+              <div><small>Eventos na última leitura</small><strong>{appleImportedCount}</strong></div>
+              <div><small>Eventos Apple na Agenda</small><strong>{items.filter((item) => item.importedUid?.startsWith('apple:') && item.status !== 'cancelled').length}</strong></div>
+            </div>
+            <p className="apple-calendar-diagnostic-note">{!appleAvailable ? 'A permissão do Calendário só pode ser solicitada no app iOS. O navegador não consegue consultar o estado dessa permissão.' : !appleConnected ? 'Acesso ainda não confirmado. Toque em “Conectar Calendário Apple” para solicitar a permissão do iOS.' : appleLastResult === 'error' ? 'A última operação apresentou erro. Confira a mensagem abaixo e tente novamente.' : appleLastSync ? 'Acesso concedido anteriormente; a última sincronização foi registrada abaixo.' : 'Calendários listados. Faça a primeira sincronização para importar os eventos.'}</p>
+          </div>
           {appleLastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(appleLastSync).toLocaleString('pt-BR')}</small>}
           {appleMessage && <p className="module-feedback" role="status">{appleMessage}</p>}
         </> : <>
