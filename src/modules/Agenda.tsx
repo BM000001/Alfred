@@ -79,8 +79,17 @@ export function Agenda() {
       throw new Error('O intervalo retornado pelo Calendário Apple é inválido. Nenhum evento será arquivado.');
     }
     const events = response.events ?? [];
-    if (events.some((event) => !event.calendarId || !selectedAppleCalendars.includes(event.calendarId))) {
-      throw new Error('A leitura retornou eventos de calendários não selecionados. A sincronização foi interrompida.');
+    if (selectedAppleCalendars.length === 0) {
+      throw new Error('Selecione ao menos um calendário antes de sincronizar.');
+    }
+    if (new Set(snapshotCalendarIds).size !== snapshotCalendarIds.length ||
+        events.some((event) =>
+          !event.id || !event.calendarId || !selectedAppleCalendars.includes(event.calendarId) ||
+          !event.startsAt || !event.endsAt ||
+          !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt)) ||
+          Date.parse(event.endsAt) <= Date.parse(event.startsAt)
+        )) {
+      throw new Error('A leitura retornou dados incompletos ou inválidos. Nenhum compromisso será arquivado nesta sincronização.');
     }
     let imported = 0;
     for (const event of events) {
