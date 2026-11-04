@@ -7,6 +7,20 @@ import Foundation
 final class AlfredCalendarAccess {
     private let store = EKEventStore()
 
+    struct CalendarInfo: Codable {
+        let id: String
+        let title: String
+        let source: String
+    }
+
+    func calendars() throws -> [CalendarInfo] {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        guard status == .fullAccess else { throw CalendarAccessError.permissionDenied }
+        return store.calendars(for: .event).map { calendar in
+            CalendarInfo(id: calendar.calendarIdentifier, title: calendar.title, source: calendar.source.title)
+        }.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
     struct CalendarEvent: Codable {
         let id: String
         let title: String
@@ -29,7 +43,7 @@ final class AlfredCalendarAccess {
 
     /// Returns events in the device's local calendar range.
     /// Events without a stable EventKit identifier are omitted to avoid duplicate imports.
-    func events(from start: Date = .now, daysAhead: Int = 90) throws -> [CalendarEvent] {
+    func events(from start: Date = .now, daysAhead: Int = 90, calendarIds: [String]? = nil) throws -> [CalendarEvent] {
         guard (1...365).contains(daysAhead) else {
             throw CalendarAccessError.invalidDateRange
         }
@@ -40,7 +54,10 @@ final class AlfredCalendarAccess {
         }
 
         let end = Calendar.current.date(byAdding: .day, value: daysAhead, to: start) ?? start
-        let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
+        let selectedCalendars: [EKCalendar]? = calendarIds.map { ids in
+            store.calendars(for: .event).filter { ids.contains($0.calendarIdentifier) }
+        }
+        let predicate = store.predicateForEvents(withStart: start, end: end, calendars: selectedCalendars)
 
         return store.events(matching: predicate)
             .sorted { $0.startDate < $1.startDate }
