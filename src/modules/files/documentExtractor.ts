@@ -37,8 +37,8 @@ export async function extractTextDocument(
 ): Promise<ExtractedTextDocument> {
   if (file.size <= 0) throw new Error('O arquivo está vazio.');
   const format = getFormat(file);
-  const decoded = (await file.text()).replace(/^\\uFEFF/, '');
-  const text = decoded.replace(/\\r\\n?/g, '\\n').trim();
+  const decoded = (await file.text()).replace(/^\uFEFF/, '');
+  const text = decoded.replace(/\r\n?/g, '\n').trim();
 
   if (!text) throw new Error('Não foi encontrado texto para extrair deste arquivo.');
   if (format === 'json') {
@@ -49,7 +49,7 @@ export async function extractTextDocument(
     }
   }
 
-  const words = text.match(/[\\p{L}\\p{N}_]+/gu) ?? [];
+  const words = text.match(/[\p{L}\p{N}_]+/gu) ?? [];
   return {
     fileName: file.name,
     format,
