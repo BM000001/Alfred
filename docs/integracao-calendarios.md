@@ -15,7 +15,7 @@ Não devemos simular uma conexão automática nem pedir credenciais do iCloud. A
 1. Criar um aplicativo iOS nativo que hospede a interface do Alfred.
 2. Declarar `NSCalendarsFullAccessUsageDescription` no Info.plist, explicando por que o Alfred precisa ler eventos.
 3. Solicitar permissão somente quando o usuário tocar em “Conectar Calendário Apple”.
-4. Usar EventKit para listar eventos futuros e devolver ao Alfred somente os campos necessários: título, início, fim, dia inteiro, indicador de recorrência, calendário e local.
+4. Usar EventKit para listar eventos futuros e devolver ao Alfred somente os campos necessários: título, início, fim, dia inteiro, indicador de recorrência, nome e identificador do calendário e local.
 5. Fazer correspondência pelo identificador nativo do evento para atualizar registros importados sem duplicá-los.
 6. Manter a leitura mínima necessária: título, datas, dia inteiro, calendário e local; não transferir notas privadas do evento.
 7. Manter a agenda manual independente e permitir desconectar/revogar o acesso.
@@ -39,7 +39,7 @@ open Alfred.xcodeproj
 
 O workflow `Alfred iOS Build` gera o projeto e tenta compilar para o simulador iOS no GitHub Actions. A instalação em iPhone ainda exige assinatura Apple Developer e perfil de provisionamento.
 
-O projeto Xcode pode ser gerado a partir da especificação XcodeGen. A compilação automática está configurada, mas ainda precisa concluir com sucesso. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. Eventos que possuem regras de repetição no EventKit são identificados com `hasRecurrenceRules` e recebem o indicador “Recorrente” na lista da Agenda; a informação é atualizada a cada sincronização. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
+O projeto Xcode pode ser gerado a partir da especificação XcodeGen. A compilação automática está configurada, mas ainda precisa concluir com sucesso. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. Eventos que possuem regras de repetição no EventKit são identificados com `hasRecurrenceRules` e recebem o indicador “Recorrente” na lista da Agenda; a informação é atualizada a cada sincronização. O nome do calendário de origem também é salvo e exibido em cada compromisso importado, permitindo distinguir, por exemplo, eventos vindos de “Universidade” e “Pessoal”. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
 
 ## Etapa Google (segunda)
 
@@ -69,5 +69,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Classificação automática inicial dos eventos importados pelo título (aula, prova, prazo e pessoal).
 - [x] Preservação e exibição de eventos de dia inteiro na Agenda.
 - [x] Identificação visual de eventos recorrentes do Calendário Apple.
+- [x] Exibição do nome do calendário de origem nos eventos importados.
 - [ ] Sincronização incremental em segundo plano e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
