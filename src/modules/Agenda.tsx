@@ -260,7 +260,7 @@ export function Agenda() {
       <section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
         <div className="apple-calendar-heading"><div><span className="card-label">INTEGRAÇÃO COM APPLE</span><h3 id="apple-calendar-title">Conectar Calendário Apple</h3></div><span className={appleAvailable ? 'apple-calendar-indicator' : 'apple-calendar-unavailable'}><span /> {appleAvailable ? 'Disponível neste dispositivo' : 'Aguardando app iOS'}</span></div>
         {appleAvailable ? <>
-          <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais.</p>
+          <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais. Eventos removidos da origem são marcados como cancelados na Agenda, sem apagar seu histórico.</p>
           <div className="apple-calendar-actions">
             <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : appleConnected ? 'Atualizar lista de calendários' : 'Conectar Calendário Apple'}</button>
             <button className="text-action" type="button" disabled={appleBusy || !appleConnected || selectedAppleCalendars.length === 0} onClick={() => void handleAppleCalendar(false)}>Sincronizar selecionados</button>
