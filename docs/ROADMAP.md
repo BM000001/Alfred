@@ -25,6 +25,20 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 - [ ] Sincronização direta com provedores de calendário — não implementada; a importação .ics é manual.
 - [ ] Tratamento de eventos recorrentes na importação — atualmente ignorados com aviso.
 
+## Etapa 3A — Central de Estudos completa
+- [x] Biblioteca de arquivos local com vínculo a disciplinas e limite de 10 MB por arquivo.
+- [x] Extração e pré-visualização local de TXT, MD, CSV, JSON e PDFs com camada de texto.
+- [x] Persistência do texto extraído por arquivo no IndexedDB.
+- [x] Geração assistida pelo Adaptador Manual: prompt exportável, resposta colada e salva pelo usuário.
+- [x] Importação de respostas JSON estruturadas em flashcards e questões, com prévia e prevenção de duplicatas.
+- [x] Flashcards interativos com fila de revisão e agendamento inicial de repetição espaçada.
+- [x] Banco de questões e simulados com filtros por disciplina/dificuldade e ordem aleatória.
+- [x] Desempenho por assunto e conversão de questões erradas em flashcards.
+- [ ] OCR local para PDFs digitalizados — arquitetura aceita em `docs/decisoes/ADR-0001-OCR-local-PDF.md`; implementação pendente.
+- [ ] Extração local de DOCX e PPTX.
+- [ ] Repetição espaçada mais robusta, com calibração por histórico real de acertos.
+- [ ] Testes de ponta a ponta da Central de Estudos em iPhone/Safari.
+
 ## Etapa 4 — Painel e produtividade
 - [x] Painel com pendências, atrasos, próximos compromissos e briefing diário.
 - [x] Pomodoro e histórico de sessões.
@@ -49,7 +63,7 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 - [ ] Reorganização de agenda/tarefas após imprevistos, com simulação e justificativas.
 - [ ] Aprovação em lote e revisão de impactos.
 - [ ] Integrações externas avaliadas individualmente, sempre com minimização de dados e consentimento.
-- [ ] Nenhuma dependência da Vercel ou backend remoto obrigatório.
+- [x] Hospedagem estática via GitHub Pages; nenhuma dependência obrigatória de backend remoto.
 
 ## Etapa 7 — Experiência avançada e confiabilidade
 - [x] Manifesto PWA e service worker.
@@ -60,10 +74,11 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 - [ ] Avaliar notificações configuráveis e comandos por voz, sem comprometer privacidade.
 
 ## Próximas prioridades
-1. Executar o roteiro manual em iPhone/Safari e registrar resultados reais; não marcar como concluído com base apenas no CI.
-2. Corrigir problemas encontrados em instalação PWA, navegação mobile, teclado, offline, backup/restauração e persistência.
-3. Ampliar testes da interface conversacional para erros de IndexedDB, carregamento, mensagens longas e acessibilidade.
-4. Só então avaliar recursos generativos ou integrações externas, mantendo credenciais fora do frontend, contexto mínimo e autorização explícita.
+1. Confirmar a conclusão do CI e da publicação da última integração da Central de Estudos; não considerar publicada enquanto os workflows estiverem pendentes.
+2. Implementar OCR local seguindo o ADR-0001, com assets servidos pelo próprio Alfred, carregamento sob demanda e sem CDN/serviço externo.
+3. Executar o roteiro manual no iPhone/Safari, incluindo upload, leitura, flashcards, simulados, offline e persistência.
+4. Adicionar extração local de DOCX/PPTX após estabilizar o fluxo PDF/OCR.
+5. Só então avaliar recursos generativos ou integrações externas, mantendo contexto mínimo e autorização explícita.
 
 ## Regra de conclusão
 Uma tarefa só pode ser marcada como concluída quando estiver implementada, revisada e validada pelo tipo de teste apropriado. Registre resultados e limitações em `CONTINUIDADE.md`.
