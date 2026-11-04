@@ -24,7 +24,7 @@ describe('extractTextDocument', () => {
 
   it('rejeita arquivos vazios e formatos ainda não suportados', async () => {
     await expect(extractTextDocument(new File([], 'vazio.txt'))).rejects.toThrow(/vazio/);
-    await expect(extractTextDocument(new File(['conteúdo'], 'aula.pdf', { type: 'application/pdf' }))).rejects.toThrow(/não suportado/);
+    await expect(extractTextDocument(new File(['conteúdo'], 'aula.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))).rejects.toThrow(/não suportado/);
   });
 
   it('valida JSON antes de disponibilizar o texto extraído', async () => {
