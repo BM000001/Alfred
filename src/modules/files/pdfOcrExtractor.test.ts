@@ -60,7 +60,7 @@ describe('extractPdfWithLocalOcr', () => {
     const result = await extractPdfWithLocalOcr(new File(['pdf'], 'texto.pdf'));
 
     expect(result.pages[0]).toMatchObject({ pageNumber: 1, method: 'text', confidence: null });
-    expect(result.extractionMethod).toBe('ocr');
+    expect(result.extractionMethod).toBe('text');
     expect(mockedCreateWorker).not.toHaveBeenCalled();
   });
 });
