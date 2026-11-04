@@ -63,17 +63,17 @@ struct AlfredWebView: UIViewRepresentable {
                   !requestId.isEmpty,
                   requestId.count <= 100 else { return }
 
+            let calendarIds = body["calendarIds"] as? [String]
             Task {
                 do {
-                    let events: [AlfredCalendarAccess.CalendarEvent]
                     switch action {
                     case "connect":
                         try await calendarAccess.requestPermission()
-                        events = try calendarAccess.events()
+                        let calendars = try calendarAccess.calendars()
                         send(["requestId": requestId, "status": "connected",
-                              "events": events.map(Self.serialize)])
+                              "calendars": calendars.map { ["id": $0.id, "title": $0.title, "source": $0.source] }])
                     case "sync":
-                        events = try calendarAccess.events()
+                        let events = try calendarAccess.events(calendarIds: calendarIds)
                         send(["requestId": requestId, "status": "success",
                               "events": events.map(Self.serialize)])
                     default:
