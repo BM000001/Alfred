@@ -8,6 +8,7 @@ import {
   studyTopicRepository,
   taskRepository,
 } from '../storage/repositories';
+import type { StudyTopic } from './studies/types';
 import {
   DEFAULT_EGRESS_SETTINGS,
   createEgressAuditEntry,
@@ -21,7 +22,7 @@ import {
   type ManualExportPreview,
 } from './assistant/egressPolicy';
 
-interface RecordOption { item: EgressItem; label: string; }
+interface RecordOption { item: EgressItem; label: string; disciplineId?: string; }
 const OUTPUT_INSTRUCTIONS: Record<string, string> = {
   summary: 'Analise o material acadêmico e produza um resumo estruturado, com conceitos-chave, definições e exemplos presentes no texto.',
   flashcards: 'Transforme o material acadêmico em flashcards de pergunta e resposta. Priorize conceitos importantes e evite perguntas ambíguas.',
@@ -38,6 +39,11 @@ const labels: Record<EgressDataClass, string> = {
 
 export function ManualExportPanel() {
   const [records, setRecords] = useState<RecordOption[]>([]);
+  const [studyDisciplines, setStudyDisciplines] = useState<Array<{ id: string; name: string }>>([]);
+  const [copiedStudyContext, setCopiedStudyContext] = useState<{ sourceNames: string[]; outputMode: string } | null>(null);
+  const [resultTitle, setResultTitle] = useState('');
+  const [resultContent, setResultContent] = useState('');
+  const [targetDisciplineId, setTargetDisciplineId] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [safe, setSafe] = useState<string[]>([]);
   const [consent, setConsent] = useState<EgressDataClass[]>([]);
@@ -82,7 +88,7 @@ export function ManualExportPanel() {
           const discipline = disciplines.find(item => item.id === file.disciplineId)?.name;
           const extraction = file.extraction!;
           return { label: `Material acadêmico · ${file.name}${discipline ? ` (${discipline})` : ''}`, item: {
-            id: `file:${file.id}`, label: file.name, dataClass: 'academic' as const,
+            id: `file:${file.id}`, label: file.name, dataClass: 'academic' as const, disciplineId: file.disciplineId,
             content: [
               `Arquivo: ${file.name}`,
               discipline ? `Disciplina: ${discipline}` : 'Disciplina: não vinculada',
@@ -95,6 +101,7 @@ export function ManualExportPanel() {
         }),
       ];
       setRecords(options);
+      setStudyDisciplines(disciplines.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')));
       setSettings(savedSettings ?? DEFAULT_EGRESS_SETTINGS);
       setAudit(savedAudit.sort((a, b) => b.copiedAt.localeCompare(a.copiedAt)));
       setLoading(false);
@@ -146,6 +153,15 @@ export function ManualExportPanel() {
     setCopying(true);
     try {
       await navigator.clipboard.writeText(preview.text);
+      const academicFiles = chosen.filter(record => record.item.id.startsWith('file:'));
+      if (academicFiles.length > 0) {
+        const sourceNames = academicFiles.map(record => record.item.label);
+        const linkedDisciplines = [...new Set(academicFiles.map(record => record.disciplineId).filter((id): id is string => Boolean(id)))];
+        setCopiedStudyContext({ sourceNames, outputMode });
+        setResultTitle(`${outputMode === 'summary' ? 'Resumo' : outputMode === 'flashcards' ? 'Flashcards' : outputMode === 'questions' ? 'Questões' : outputMode === 'exam' ? 'Simulado' : outputMode === 'review' ? 'Plano de revisão' : 'Material de estudo'} — ${sourceNames.join(', ')}`.slice(0, 120));
+        setTargetDisciplineId(linkedDisciplines.length === 1 ? linkedDisciplines[0] : '');
+        setResultContent('');
+      }
       const entry = createEgressAuditEntry({
         classes: preview.decision.classes,
         itemCount: preview.decision.itemCount,
@@ -169,6 +185,32 @@ export function ManualExportPanel() {
       setError('Não foi possível copiar automaticamente. Copie o texto da prévia manualmente; nenhuma cópia foi registrada.');
     } finally {
       setCopying(false);
+    }
+  }
+
+  async function saveStudyResult() {
+    if (!copiedStudyContext || !resultTitle.trim() || !resultContent.trim() || !studyDisciplines.some(item => item.id === targetDisciplineId)) {
+      setError('Informe um título, selecione a disciplina e cole a resposta gerada pela IA.');
+      return;
+    }
+    setError('');
+    try {
+      const topic: StudyTopic = {
+        id: crypto.randomUUID(),
+        disciplineId: targetDisciplineId,
+        title: resultTitle.trim(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        notes: `Material gerado a partir de: ${copiedStudyContext.sourceNames.join(', ')}\\n\\n${resultContent.trim()}`,
+      };
+      await studyTopicRepository.save(topic);
+      setCopiedStudyContext(null);
+      setResultTitle('');
+      setResultContent('');
+      setTargetDisciplineId('');
+      setFeedback('Material salvo na disciplina. Ele já aparece em Estudos como conteúdo pendente.');
+    } catch {
+      setError('Não foi possível salvar o material no Alfred. O texto continua no campo para você tentar novamente.');
     }
   }
 
@@ -249,6 +291,20 @@ export function ManualExportPanel() {
         <textarea aria-label="Texto exato que será copiado" readOnly rows={12} value={preview.text} />
         <button type="button" className="primary-action" disabled={copying} onClick={() => void copy()}>{copying ? 'Copiando…' : 'Copiar texto revisado'}</button>
       </> : <ul role="alert">{preview.decision.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
+    </div>}
+    {copiedStudyContext && <div className="assistant-export-result" aria-live="polite">
+      <strong>5. Traga a resposta de volta ao Alfred</strong>
+      <p>Depois de colar o prompt no serviço de IA escolhido, cole a resposta abaixo. Alfred não lê sua área de transferência automaticamente.</p>
+      <label htmlFor="study-result-title">Título do material</label>
+      <input id="study-result-title" value={resultTitle} maxLength={120} onChange={event => setResultTitle(event.target.value)} />
+      <label htmlFor="study-result-discipline">Salvar na disciplina</label>
+      <select id="study-result-discipline" value={targetDisciplineId} onChange={event => setTargetDisciplineId(event.target.value)}>
+        <option value="">Selecione uma disciplina</option>
+        {studyDisciplines.map(discipline => <option key={discipline.id} value={discipline.id}>{discipline.name}</option>)}
+      </select>
+      <label htmlFor="study-result-content">Resposta gerada pela IA</label>
+      <textarea id="study-result-content" rows={8} maxLength={50000} value={resultContent} onChange={event => setResultContent(event.target.value)} placeholder="Cole aqui o resumo, os flashcards ou as questões geradas..." />
+      <button type="button" className="primary-action" onClick={() => void saveStudyResult()} disabled={!resultTitle.trim() || !resultContent.trim() || !targetDisciplineId}>Salvar conteúdo de estudo</button>
     </div>}
     <div className="assistant-export-audit">
       <div><strong>Histórico de auditoria</strong><small>Somente data, categorias e contagens. O texto copiado nunca é armazenado.</small></div>
