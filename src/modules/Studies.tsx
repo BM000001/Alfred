@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { Discipline, StudyTopic } from './studies/types';
+import { StudyFlashcards } from './studies/StudyFlashcards';
 import { createStudyService } from './studies/studyService';
 import { summarizeStudyProgress } from './studies/studyRules';
-import { disciplineRepository, studyTopicRepository } from '../storage/repositories';
+import { disciplineRepository, studyFlashcardRepository, studyTopicRepository } from '../storage/repositories';
 
 const studies = createStudyService(disciplineRepository, studyTopicRepository);
 
@@ -96,7 +97,11 @@ export function Studies() {
 
   async function deleteDiscipline(discipline: Discipline) {
     if (!window.confirm(`Excluir "${discipline.name}" e todos os conteúdos vinculados? Essa ação não pode ser desfeita.`)) return;
-    try { await studies.deleteDiscipline(discipline.id); await refresh(); }
+    try {
+      const cards = await studyFlashcardRepository.getAll();
+      for (const card of cards.filter((item) => item.disciplineId === discipline.id)) await studyFlashcardRepository.delete(card.id);
+      await studies.deleteDiscipline(discipline.id); await refresh();
+    }
     catch { setError('Não foi possível excluir a disciplina.'); }
   }
 
@@ -144,6 +149,7 @@ export function Studies() {
             <div><strong>{topic.title}</strong>{topic.notes && <p>{topic.notes}</p>}</div>
             <div><button className="text-action" type="button" onClick={() => editTopic(topic)}>Editar</button><button className="text-action" type="button" onClick={() => void deleteTopic(topic)}>Excluir</button></div>
           </article>)}</div>}
+          <StudyFlashcards disciplineId={selectedDiscipline} />
         </div>
       </div>
     </>}

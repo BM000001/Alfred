@@ -2884,3 +2884,25 @@ select:focus-visible, textarea:focus-visible {
 }
 .files-module .stored-file-discipline select:focus { border-color:rgba(145,180,245,.62); outline:0; }
 @media (max-width:600px) { .files-module .stored-file-discipline { flex:1 1 100%; max-width:none; } }
+
+
+/* Central de Estudos — flashcards e revisão espaçada */
+.study-flashcards{margin-top:22px;padding:20px;border:1px solid rgba(151,177,222,.16);border-radius:15px;background:linear-gradient(145deg,rgba(17,29,48,.95),rgba(10,19,33,.97))}
+.study-flashcards-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.study-flashcards-header h3{margin:4px 0 0;color:#e5edfc;font-size:17px}
+.study-flashcards-count{padding:6px 9px;border:1px solid rgba(151,177,222,.18);border-radius:99px;color:#b9c9e1;background:rgba(7,16,29,.42);font-size:10px;white-space:nowrap}
+.study-flashcard-form{display:grid;gap:8px;margin-bottom:16px}
+.study-flashcard-form label{color:#cbd8eb;font-size:11px;font-weight:600}
+.study-flashcard-form input,.study-flashcard-form textarea{width:100%;min-height:39px;padding:9px 11px;border:1px solid rgba(151,177,222,.2);border-radius:9px;color:#e0eafa;background:#0a1728;font:inherit;font-size:12px}
+.study-flashcard-form textarea{resize:vertical}
+.study-flashcard{padding:18px;border:1px solid rgba(151,177,222,.18);border-radius:13px;background:radial-gradient(ellipse at 90% 0%,rgba(105,145,218,.12),transparent 48%),rgba(7,16,29,.55)}
+.study-flashcard-face{min-height:100px;display:grid;align-content:center;gap:9px;text-align:center}
+.study-flashcard-face span{color:#8fa8d2;font-size:9px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
+.study-flashcard-face strong{color:#edf4ff;font-size:18px;line-height:1.5;overflow-wrap:anywhere}
+.study-flashcard-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.study-flashcard-actions button{min-height:36px;padding:0 12px;border:1px solid rgba(151,177,222,.2);border-radius:8px;color:#dce8fc;background:#172944;font-size:11px;font-weight:600;cursor:pointer}
+.study-flashcard-actions button:hover{border-color:rgba(169,196,255,.48);background:#233b5f}
+.study-flashcard-actions button:disabled{opacity:.45;cursor:not-allowed}
+.study-flashcard-empty{padding:15px;border:1px dashed rgba(151,177,222,.2);border-radius:10px;color:#9aabc3;font-size:12px;line-height:1.6}
+.study-flashcard-meta{margin-top:10px;color:#8294ad;font-size:10px;text-align:center}
+@media(max-width:600px){.study-flashcards{padding:15px}.study-flashcard-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.study-flashcard-actions button{width:100%}}
