@@ -101,9 +101,6 @@ export function Files() {
       await refresh();
     } catch { setError('Não foi possível excluir o arquivo.'); }
   }
-  function disciplineName(id?: string): string {
-    return disciplines.find((discipline) => discipline.id === id)?.name ?? 'Sem disciplina';
-  }
   return <section className="files-module">
     {error && <p className="module-error" role="alert">{error}</p>}
     <div className="files-toolbar">
