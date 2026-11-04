@@ -34,7 +34,7 @@ Os eventos sem identificador estável do EventKit são ignorados para evitar que
 <string>O Alfred precisa ler seus calendários para organizar seus compromissos e mostrar sua agenda.</string>
 ```
 
-Esta estrutura ainda não é um projeto Xcode completo, não foi compilada em Xcode e a interface web ainda não chama os métodos da ponte. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
+Esta estrutura ainda não é um projeto Xcode completo e não foi compilada em Xcode. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
 
 ## Etapa Google (segunda)
 
@@ -55,5 +55,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Serviço Swift inicial para leitura via EventKit.
 - [x] Ponte com identificador por solicitação e validação HTTPS da origem.
 - [ ] Aplicativo iOS nativo e configuração de permissões.
-- [ ] Sincronização incremental e atualização sem duplicações na agenda web.
+- [x] Interface nativa de conectar/sincronizar e upsert local idempotente dos eventos Apple.
+- [ ] Sincronização incremental, exclusões/alterações de origem e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
