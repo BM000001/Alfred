@@ -122,6 +122,32 @@ describe('agendaService', () => {
     expect(updated).toMatchObject({ id: first.id, isAllDay: true, title: 'Feriado atualizado' });
   });
 
+  it('stores and refreshes the source calendar name for imported events', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: () => 'source-calendar-event' });
+    const first = await service.upsertImported({
+      importedUid: 'apple:source-1',
+      importedCalendarId: 'calendar-a',
+      importedCalendarName: 'Universidade',
+      title: 'Aula de programação',
+      type: 'class',
+      startsAt: '2026-11-10T08:00:00.000Z',
+      endsAt: '2026-11-10T09:00:00.000Z',
+    });
+    expect(first.importedCalendarName).toBe('Universidade');
+
+    const updated = await service.upsertImported({
+      importedUid: 'apple:source-1',
+      importedCalendarId: 'calendar-a',
+      importedCalendarName: 'Faculdade',
+      title: 'Aula de programação',
+      type: 'class',
+      startsAt: '2026-11-10T08:00:00.000Z',
+      endsAt: '2026-11-10T09:00:00.000Z',
+    });
+    expect(updated).toMatchObject({ id: first.id, importedCalendarName: 'Faculdade' });
+  });
+
   it('preserves recurrence metadata when importing and refreshing Apple events', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: () => 'recurring-event' });
