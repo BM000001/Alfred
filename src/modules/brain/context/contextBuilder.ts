@@ -13,7 +13,7 @@ export function buildAssistantRequest(
     .slice(-MAX_CONTEXT_MESSAGES)
     .map((message) => ({
       ...message,
-      content: message.content.slice(-MAX_MESSAGE_CHARACTERS),
+      content: message.content.slice(0, MAX_MESSAGE_CHARACTERS),
     }));
 
   let totalCharacters = normalized.reduce((total, message) => total + message.content.length, 0);
