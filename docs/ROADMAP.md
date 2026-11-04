@@ -33,6 +33,7 @@ O roadmap descreve o estado verificável do produto. Uma funcionalidade só é c
 - [ ] Validação de usabilidade e acessibilidade em dispositivos reais.
 
 ## Etapa 5 — Assistente local e contexto
+- [ ] Fundação do Alfred Brain em andamento na branch `feature/alfred-brain-foundation`: contratos de intenção/contexto, orquestração provider-independent e registro inicial de ferramentas; aguardando revisão e CI.
 - [x] Interface conversacional conectada aos dados locais.
 - [x] Consultas locais de tarefas, agenda e progresso dos estudos.
 - [x] Histórico local de conversas, com limite e ação explícita para apagar.
