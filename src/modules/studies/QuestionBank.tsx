@@ -44,6 +44,7 @@ export function QuestionBank({ disciplineId, topics }: { disciplineId: string; t
       })
       .catch(() => { if (active) setError('Não foi possível carregar o banco de questões.'); })
       .finally(() => { if (active) setLoading(false); });
+    setTopicId('');
     setPhase('idle');
     setQuizQuestions([]);
     setQuizAnswers([]);
