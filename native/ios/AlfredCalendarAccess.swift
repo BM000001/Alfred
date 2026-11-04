@@ -9,6 +9,8 @@ final class AlfredCalendarAccess {
 
     struct CalendarInfo: Codable {
         let id: String
+        let externalId: String?
+        let occurrenceDate: String?
         let title: String
         let source: String
     }
@@ -95,6 +97,8 @@ final class AlfredCalendarAccess {
                 let stableId = event.eventIdentifier!
                 return CalendarEvent(
                     id: stableId,
+                    externalId: event.calendarItemExternalIdentifier,
+                    occurrenceDate: event.hasRecurrenceRules ? ISO8601DateFormatter().string(from: event.occurrenceDate) : nil,
                     title: event.title ?? "Sem título",
                     startsAt: ISO8601DateFormatter().string(from: event.startDate),
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
