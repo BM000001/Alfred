@@ -64,5 +64,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Interface nativa de conectar/sincronizar e upsert local idempotente dos eventos Apple.
 - [x] Listagem de calendários Apple e seleção dos calendários a importar.
 - [x] Persistência local da seleção e tentativa de sincronização ao abrir a Agenda no app nativo.
-- [ ] Sincronização incremental, exclusões/alterações de origem e testes em dispositivo real.
+- [x] Reconciliação de eventos ausentes na janela sincronizada, com cancelamento lógico e preservação do histórico.
+- [ ] Sincronização incremental em segundo plano e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
