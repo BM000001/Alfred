@@ -53,7 +53,7 @@ await cp(worker, path.join(output, 'worker.min.js'));
 
 const coreFiles = (await readdir(coreDirectory, { withFileTypes: true }))
   .filter((entry) => entry.isFile() && entry.name.startsWith('tesseract-core') &&
-    /(?:simd-)?lstm\\.wasm(?:\\.js)?$/.test(entry.name));
+    /(?:simd-)?lstm\.wasm(?:\.js)?$/.test(entry.name));
 for (const entry of coreFiles) {
   await cp(path.join(coreDirectory, entry.name), path.join(output, 'core', entry.name));
 }
