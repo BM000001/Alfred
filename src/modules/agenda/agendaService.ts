@@ -78,10 +78,21 @@ export function createAgendaService(
       // after moving an event), migrate only when the stable external identity
       // resolves unambiguously. Never merge two copied calendar entries.
       const sameCalendarMatches = stableMatches.filter((item) => item.importedCalendarId === input.importedCalendarId);
+      const onlyCrossCalendarMatch = sameCalendarMatches.length === 0 && stableMatches.length === 1
+        ? stableMatches[0]
+        : undefined;
+      // A changed EventKit ID plus a different calendar is not enough to prove
+      // that an event moved: it may be a second calendar copy. Only migrate the
+      // stable identity across calendars when event details also changed.
+      const looksLikeMovedEvent = onlyCrossCalendarMatch !== undefined && (
+        onlyCrossCalendarMatch.title !== input.title.trim() ||
+        onlyCrossCalendarMatch.startsAt !== input.startsAt ||
+        onlyCrossCalendarMatch.endsAt !== input.endsAt
+      );
       const stableMatch = sameCalendarMatches.length === 1
         ? sameCalendarMatches[0]
-        : sameCalendarMatches.length === 0 && stableMatches.length === 1
-          ? stableMatches[0]
+        : looksLikeMovedEvent
+          ? onlyCrossCalendarMatch
           : undefined;
       const existing = exactMatch ?? stableMatch;
       if (existing) {
