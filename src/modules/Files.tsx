@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef, type ChangeEvent } from 'react';
 import { disciplineRepository, fileRepository } from '../storage/repositories';
 import { createFileService } from './files/fileService';
 import { extractTextDocument, type ExtractedTextDocument } from './files/documentExtractor';
-import { extractPdfWithLocalOcr, type OcrProgress } from './files/pdfOcrExtractor';
+import type { OcrProgress } from './files/pdfOcrExtractor';
 import type { Discipline } from './studies/types';
 import type { FileSummary } from './files/types';
 
@@ -100,6 +100,7 @@ export function Files() {
       const stored = await files.get(item.id);
       if (!stored) throw new Error('Arquivo não encontrado.');
       const source = new File([stored.blob], stored.name, { type: stored.type || 'application/pdf' });
+      const { extractPdfWithLocalOcr } = await import('./files/pdfOcrExtractor');
       const extracted = await extractPdfWithLocalOcr(source, setOcrProgress, controller.signal);
       await files.saveExtraction(item.id, extracted);
       setPreview(extracted);
