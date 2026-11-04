@@ -84,6 +84,15 @@ export function Files() {
       setReadingFileId(null);
     }
   }
+  async function changeDiscipline(item: FileSummary, disciplineId: string) {
+    setError('');
+    try {
+      await files.setDiscipline(item.id, disciplineId || undefined);
+      await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a disciplina do arquivo.');
+    }
+  }
   async function removeFile(item: FileSummary) {
     if (!window.confirm('Excluir "' + item.name + '" do Alfred? Essa ação não pode ser desfeita.')) return;
     try {
@@ -119,6 +128,7 @@ export function Files() {
       <div className="stored-file-list">{visible.map((item) => <article className="stored-file" key={item.id}>
         <span className="stored-file-icon" aria-hidden="true">▤</span>
         <div className="stored-file-info"><strong>{item.name}</strong><span>{formatSize(item.size)} · {new Date(item.createdAt).toLocaleDateString('pt-BR')} · {disciplineName(item.disciplineId)}</span></div>
+        <label className="stored-file-discipline"><span className="sr-only">Disciplina de {item.name}</span><select aria-label={'Disciplina de ' + item.name} value={item.disciplineId ?? ''} onChange={(event) => void changeDiscipline(item, event.target.value)}><option value="">Sem disciplina</option>{disciplines.map((discipline) => <option key={discipline.id} value={discipline.id}>{discipline.name}</option>)}</select></label>
         <button className="text-action" type="button" onClick={() => void readText(item)} disabled={readingFileId !== null} aria-label={'Ler texto de ' + item.name}>{readingFileId === item.id ? 'Lendo...' : item.hasExtractedText ? 'Ver texto salvo' : 'Ler texto'}</button>
         <button className="text-action" type="button" onClick={() => void openFile(item)}>Abrir</button>
         <button className="text-action" type="button" onClick={() => void removeFile(item)}>Excluir</button>
