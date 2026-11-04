@@ -69,8 +69,15 @@ export function Files() {
     try {
       const stored = await files.get(item.id);
       if (!stored) throw new Error('Arquivo não encontrado.');
+      if (stored.extraction) {
+        setPreview({ fileName: stored.name, ...stored.extraction });
+        return;
+      }
       const source = new File([stored.blob], stored.name, { type: stored.type });
-      setPreview(await extractTextDocument(source));
+      const extracted = await extractTextDocument(source);
+      await files.saveExtraction(item.id, extracted);
+      setPreview(extracted);
+      await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível ler o conteúdo deste arquivo.');
     } finally {
@@ -112,7 +119,7 @@ export function Files() {
       <div className="stored-file-list">{visible.map((item) => <article className="stored-file" key={item.id}>
         <span className="stored-file-icon" aria-hidden="true">▤</span>
         <div className="stored-file-info"><strong>{item.name}</strong><span>{formatSize(item.size)} · {new Date(item.createdAt).toLocaleDateString('pt-BR')} · {disciplineName(item.disciplineId)}</span></div>
-        <button className="text-action" type="button" onClick={() => void readText(item)} disabled={readingFileId !== null} aria-label={'Ler texto de ' + item.name}>{readingFileId === item.id ? 'Lendo...' : 'Ler texto'}</button>
+        <button className="text-action" type="button" onClick={() => void readText(item)} disabled={readingFileId !== null} aria-label={'Ler texto de ' + item.name}>{readingFileId === item.id ? 'Lendo...' : item.hasExtractedText ? 'Ver texto salvo' : 'Ler texto'}</button>
         <button className="text-action" type="button" onClick={() => void openFile(item)}>Abrir</button>
         <button className="text-action" type="button" onClick={() => void removeFile(item)}>Excluir</button>
       </article>)}</div>}
