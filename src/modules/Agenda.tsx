@@ -205,16 +205,21 @@ export function Agenda() {
         </button>
       </div>
 
-      {appleAvailable && <section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
-        <div className="apple-calendar-heading"><div><span className="card-label">INTEGRAÇÃO NATIVA · IOS</span><h3 id="apple-calendar-title">Calendário Apple</h3></div><span className="apple-calendar-indicator"><span /> Disponível neste dispositivo</span></div>
-        <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais.</p>
-        <div className="apple-calendar-actions">
-          <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : 'Conectar Calendário Apple'}</button>
-          <button className="text-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(false)}>Sincronizar agora</button>
-        </div>
-        {appleLastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(appleLastSync).toLocaleString('pt-BR')}</small>}
-        {appleMessage && <p className="module-feedback" role="status">{appleMessage}</p>}
-      </section>}
+      <section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
+        <div className="apple-calendar-heading"><div><span className="card-label">INTEGRAÇÃO COM APPLE</span><h3 id="apple-calendar-title">Conectar Calendário Apple</h3></div><span className={appleAvailable ? 'apple-calendar-indicator' : 'apple-calendar-unavailable'}><span /> {appleAvailable ? 'Disponível neste dispositivo' : 'Aguardando app iOS'}</span></div>
+        {appleAvailable ? <>
+          <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais.</p>
+          <div className="apple-calendar-actions">
+            <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : 'Conectar Calendário Apple'}</button>
+            <button className="text-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(false)}>Sincronizar agora</button>
+          </div>
+          {appleLastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(appleLastSync).toLocaleString('pt-BR')}</small>}
+          {appleMessage && <p className="module-feedback" role="status">{appleMessage}</p>}
+        </> : <>
+          <p>Você está usando o Alfred pelo navegador. Para adicionar seu calendário diretamente, sem exportar arquivos, será necessário abrir o Alfred no aplicativo iOS nativo, que usa a permissão oficial do sistema Apple.</p>
+          <p className="apple-calendar-note">A conexão direta está em preparação e ainda não pode ser ativada nesta página. Enquanto isso, você pode importar um arquivo .ics na seção abaixo.</p>
+        </>}
+      </section>
       <ICalendarImport existing={items} onImported={refresh} />
 
       <div className="agenda-controls">
