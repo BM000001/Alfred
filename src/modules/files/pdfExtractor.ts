@@ -1,0 +1,84 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
+export interface ExtractedPdfPage {
+  pageNumber: number;
+  text: string;
+}
+
+export interface ExtractedPdfDocument {
+  fileName: string;
+  format: 'pdf';
+  text: string;
+  characterCount: number;
+  wordCount: number;
+  extractedAt: string;
+  pageCount: number;
+  pages: ExtractedPdfPage[];
+}
+
+export const MAX_PDF_PAGES_PER_EXTRACTION = 300;
+
+const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+
+export async function extractPdfDocument(
+  file: File,
+  now: () => Date = () => new Date(),
+): Promise<ExtractedPdfDocument> {
+  if (file.size <= 0) throw new Error('O arquivo PDF está vazio.');
+
+  const data = new Uint8Array(await file.arrayBuffer());
+  const loadingTask = pdfjsLib.getDocument({ data });
+  let document: pdfjsLib.PDFDocumentProxy | undefined;
+
+  try {
+    document = await loadingTask.promise;
+    if (document.numPages > MAX_PDF_PAGES_PER_EXTRACTION) {
+      throw new Error('Este PDF possui mais de 300 páginas. Divida o documento em partes menores para leitura nesta versão.');
+    }
+
+    const pages: ExtractedPdfPage[] = [];
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item) => ('str' in item ? item.str : ''))
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      pages.push({ pageNumber, text: pageText });
+      page.cleanup();
+    }
+
+    const text = pages
+      .map((page) => '[Página ' + page.pageNumber + ']\n' + page.text)
+      .join('\n\n')
+      .trim();
+
+    if (!text.replace(/\[Página \d+\]/g, '').trim()) {
+      throw new Error('O PDF não contém texto selecionável. Ele pode ser um documento digitalizado; será necessário aplicar OCR.');
+    }
+
+    const words = text.match(/[\p{L}\p{N}_]+/gu) ?? [];
+    return {
+      fileName: file.name,
+      format: 'pdf',
+      text,
+      characterCount: text.length,
+      wordCount: words.length,
+      extractedAt: now().toISOString(),
+      pageCount: document.numPages,
+      pages,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'PasswordException') {
+      throw new Error('Este PDF está protegido por senha. Remova a proteção antes de importá-lo.');
+    }
+    throw error;
+  } finally {
+    if (document) await document.destroy();
+    else await loadingTask.destroy();
+  }
+}
