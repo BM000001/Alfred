@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, stat } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -45,6 +45,7 @@ if (!worker || !language || !coreDirectory) {
   throw new Error('Assets locais do OCR não encontrados. Verifique tesseract.js, tesseract.js-core e @tesseract.js-data/por.');
 }
 
+await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await mkdir(path.join(output, 'core'), { recursive: true });
 await mkdir(path.join(output, 'lang'), { recursive: true });
