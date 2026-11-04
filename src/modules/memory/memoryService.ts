@@ -3,7 +3,7 @@ import type { AssistantMemory, MemoryCategory } from './types';
 export interface MemoryInput { title: string; content: string; category: MemoryCategory; }
 export interface MemoryMatch { memory: AssistantMemory; score: number; matchedTerms: string[]; }
 const CATEGORIES: MemoryCategory[] = ['preference', 'goal', 'project', 'routine', 'other'];
-const STOP_WORDS = new Set(['sobre', 'para', 'como', 'qual', 'quais', 'quando', 'onde', 'voce', 'voces', 'mim', 'meu', 'minha', 'meus', 'minhas', 'isso', 'essa', 'esse', 'aquela', 'aquele', 'lembra', 'lembro', 'memoria', 'memorias', 'sabe', 'quero', 'gostaria', 'pode', 'poderia', 'alfred', 'informacao', 'informacoes']);
+const STOP_WORDS = new Set(['sobre', 'para', 'como', 'qual', 'quais', 'quando', 'onde', 'voce', 'voces', 'mim', 'meu', 'minha', 'meus', 'minhas', 'isso', 'essa', 'esse', 'aquela', 'aquele', 'lembra', 'lembro', 'memoria', 'memorias', 'sabe', 'quero', 'gostaria', 'pode', 'poderia', 'informacao', 'informacoes']);
 function normalize(value: string): string {
   return value.toLocaleLowerCase('pt-BR').normalize('NFD').split('')
     .filter(character => { const code = character.codePointAt(0) ?? 0; return code < 0x300 || code > 0x36f; })
