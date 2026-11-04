@@ -29,8 +29,8 @@ export function classifyIntent(message: string): IntentClassification {
 
   for (const normalized of clauses) {
     const words = new Set(normalized.split(' ').filter(Boolean));
-    const asksAboutMemory = /\\b(memoria|memorias|lembra|lembranca|recorda)\\b/.test(normalized) &&
-      /\\bsobre\\b/.test(normalized);
+    const asksAboutMemory = /\b(memoria|memorias|lembra|lembranca|recorda)\b/.test(normalized) &&
+      /\bsobre\b/.test(normalized);
 
     for (const rule of rules) {
       if (asksAboutMemory && rule.intent !== 'memory') continue;
