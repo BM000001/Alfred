@@ -6,7 +6,6 @@ export interface NativeCalendarEvent {
   isAllDay: boolean;
   calendarTitle: string;
   location: string | null;
-  notes: string | null;
 }
 
 export interface NativeCalendarResponse {
