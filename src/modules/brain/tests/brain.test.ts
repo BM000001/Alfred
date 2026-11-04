@@ -13,6 +13,21 @@ describe('Brain foundation', () => {
     expect(classifyIntent('Conte uma piada').intent).toBe('unknown');
   });
 
+  it('matches complete words instead of substrings inside unrelated words', () => {
+    expect(classifyIntent('Sou independente e estou agendando algo').intent).toBe('unknown');
+    expect(classifyIntent('Tenho uma tarefa pendente').intent).toBe('tasks');
+  });
+
+  it('marks messages that mention multiple domains as ambiguous', () => {
+    const result = classifyIntent('Confira minha agenda e minhas tarefas');
+    expect(result.intent).toBe('agenda');
+    expect(result.confidence).toBe('low');
+  });
+
+  it('recognizes normalized multi-word phrases with accents', () => {
+    expect(classifyIntent('Como está meu progresso acadêmico?').intent).toBe('studies');
+  });
+
   it('delegates generation to the configured provider and returns classification metadata', async () => {
     const provider: AIProvider = {
       id: 'test-provider',
