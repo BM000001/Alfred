@@ -62,6 +62,7 @@ export function Agenda() {
     }
   });
   const [appleConnected, setAppleConnected] = useState(() => selectedAppleCalendars.length > 0);
+  const [appleAutoSyncEnabled, setAppleAutoSyncEnabled] = useState(() => window.localStorage.getItem('alfred.appleCalendarAutoSync') === 'true');
   const appleAvailable = isNativeAppleCalendarAvailable();
 
   async function saveAppleEvents(response: Awaited<ReturnType<typeof syncAppleCalendar>>) {
@@ -138,7 +139,7 @@ export function Agenda() {
         const response = await connectAppleCalendar();
         const calendars = response.calendars ?? [];
         setAppleCalendars(calendars);
-        setSelectedAppleCalendars(calendars.map((calendar) => calendar.id));
+        setSelectedAppleCalendars((current) => current.filter((id) => calendars.some((calendar) => calendar.id === id)));
         setAppleConnected(true);
         setAppleLastResult('success');
         setAppleMessage(`${calendars.length} calendário(s) encontrado(s). Escolha quais deseja sincronizar.`);
@@ -181,10 +182,14 @@ export function Agenda() {
     }
   }, [appleConnected, selectedAppleCalendars]);
 
+  useEffect(() => {
+    window.localStorage.setItem('alfred.appleCalendarAutoSync', String(appleAutoSyncEnabled));
+  }, [appleAutoSyncEnabled]);
+
   // Intentionally run once when the Agenda mounts, using the saved calendar selection.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!appleAvailable || selectedAppleCalendars.length === 0) return;
+    if (!appleAvailable || !appleAutoSyncEnabled || selectedAppleCalendars.length === 0) return;
     let active = true;
     const synchronize = async (reason: 'initial' | 'change') => {
       if (!active || appleSyncInFlight.current) return;
@@ -222,7 +227,7 @@ export function Agenda() {
     };
   // Rebind when the selected calendars change so native notifications always use
   // the current selection rather than a stale closure.
-  }, [appleAvailable, selectedAppleCalendars]);
+  }, [appleAvailable, appleAutoSyncEnabled, selectedAppleCalendars]);
 
   const range = useMemo(() => {
     const selected = new Date(`${selectedDate}T12:00:00`);
@@ -338,6 +343,7 @@ export function Agenda() {
             <button className="text-action" type="button" disabled={appleBusy || !appleConnected || selectedAppleCalendars.length === 0} onClick={() => void handleAppleCalendar(false)}>Sincronizar selecionados</button>
           </div>
           {appleConnected && <div className="apple-calendar-picker"><strong>Escolha os calendários para importar</strong>{appleCalendars.length === 0 ? <p>Nenhum calendário disponível para leitura.</p> : appleCalendars.map((calendar) => <label key={calendar.id} className="apple-calendar-option"><input type="checkbox" checked={selectedAppleCalendars.includes(calendar.id)} onChange={(event) => setSelectedAppleCalendars((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} /><span><b>{calendar.title}</b><small>{calendar.source}</small></span></label>)}</div>}
+          {appleConnected && <label className="apple-calendar-option"><input type="checkbox" checked={appleAutoSyncEnabled} onChange={(event) => setAppleAutoSyncEnabled(event.target.checked)} /><span><b>Sincronizar automaticamente</b><small>Atualizar a Agenda quando o Calendário Apple mudar ou o app for aberto. Desativado por padrão.</small></span></label>}
           <div className="apple-calendar-diagnostics" aria-label="Diagnóstico da conexão Apple">
             <div className="apple-calendar-diagnostics-heading"><strong>Diagnóstico da conexão</strong><span>{appleBusy ? 'Verificando...' : appleLastResult === 'error' ? 'Atenção necessária' : appleLastResult === 'success' ? 'Última operação concluída' : 'Aguardando primeira sincronização'}</span></div>
             <div className="apple-calendar-diagnostic-grid">
