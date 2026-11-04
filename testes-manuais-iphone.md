@@ -89,6 +89,19 @@ Estes testes exigem um iPhone real e não são substituídos pelo CI. Registre o
 3. Com o teclado aberto, tente alcançar o botão de salvar/enviar rolando a tela.
 4. Esperado: o teclado não impede o acesso aos campos nem ao botão principal; não há sobreposição que torne o formulário impossível de concluir.
 
+
+## T12. OCR local em PDF digitalizado
+
+1. Com internet, adicione um PDF digitalizado pequeno (1 a 3 páginas) sem texto selecionável.
+2. Toque em "Aplicar OCR" e confirme que o progresso aparece em português.
+3. Aguarde a conclusão e confira o texto página por página, incluindo a indicação de confiança.
+4. Feche a leitura, abra novamente o arquivo e toque em "Ver texto salvo".
+5. Ainda com internet, adicione um segundo PDF digitalizado sem aplicar OCR nele.
+6. Ative o modo avião e aplique OCR ao segundo PDF. Esperado: os assets já carregados são reutilizados do cache local.
+7. Opcionalmente, inicie OCR em um PDF maior e toque em "Cancelar OCR"; confirme que a interface volta ao estado normal e que nenhum texto parcial é apresentado como concluído.
+8. Teste um PDF com mais de 20 páginas; o Alfred deve explicar o limite por operação sem travar.
+9. Esperado: OCR usa assets do próprio domínio Alfred, não envia o PDF para serviços externos e reutiliza os assets em cache após a primeira execução. Registre tempo, modelo do iPhone e versão do iOS.
+
 ## Registro de resultados
 
 | Teste | Resultado (OK / Falhou / Não testado) | Versão do iOS | Observações |
@@ -104,3 +117,4 @@ Estes testes exigem um iPhone real e não são substituídos pelo CI. Registre o
 | T9 | | | |
 | T10 | | | |
 | T11 | | | |
+| T12 | | | |

@@ -4,6 +4,8 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 export interface ExtractedPdfPage {
   pageNumber: number;
   text: string;
+  confidence?: number | null;
+  method?: 'text' | 'ocr';
 }
 
 export interface ExtractedPdfDocument {
@@ -13,6 +15,7 @@ export interface ExtractedPdfDocument {
   characterCount: number;
   wordCount: number;
   extractedAt: string;
+  extractionMethod: 'text';
   pageCount: number;
   pages: ExtractedPdfPage[];
 }
@@ -82,6 +85,7 @@ export async function extractPdfDocument(
       characterCount: text.length,
       wordCount: words.length,
       extractedAt: now().toISOString(),
+      extractionMethod: 'text',
       pageCount: document.numPages,
       pages,
     };

@@ -280,8 +280,6 @@ button, input, textarea { font: inherit; }
 .appointment-details { min-width: 0; flex: 1; }
 .appointment-details h3 { margin: 6px 0 4px; color: var(--navy); font-size: 14px; overflow-wrap: anywhere; }
 .appointment-details p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
-.appointment-source-tag { display: inline-block; margin-left: 6px; padding: 4px 7px; border-radius: 5px; color: #536477; background: #EEF2F5; font-size: 9px; font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; white-space: nowrap; }
-.appointment-origin-tag { display: inline-block; margin-left: 6px; padding: 4px 7px; border-radius: 5px; color: #6B5A91; background: #F2EFF8; font-size: 9px; font-weight: 700; letter-spacing: .35px; text-transform: uppercase; }
 .appointment-type { display: inline-block; padding: 4px 7px; border-radius: 5px; color: #52627A; background: #EEF2F7; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
 .type-exam { color: #9A4B4B; background: #FBEFEF; }
 .type-deadline { color: #946E27; background: #FBF5E8; }
@@ -3038,15 +3036,11 @@ select:focus-visible, textarea:focus-visible {
 .apple-calendar-option span{display:grid;gap:2px}
 .apple-calendar-option small{color:#8798b2;font-size:9px}
 
-/* Diagnóstico da integração Apple */
 
-.apple-calendar-diagnostics{display:grid;gap:10px;margin-top:5px;padding:13px;border:1px solid rgba(151,177,222,.16);border-radius:10px;background:rgba(5,13,25,.42)}
-.apple-calendar-diagnostics-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.apple-calendar-diagnostics-heading strong{color:#dce8fc;font-size:11px}
-.apple-calendar-diagnostics-heading span{color:#91addd;font-size:9px;text-align:right}
-.apple-calendar-diagnostic-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.apple-calendar-diagnostic-grid>div{display:grid;gap:5px;min-width:0;padding:9px;border:1px solid rgba(151,177,222,.12);border-radius:8px;background:rgba(16,31,51,.45)}
-.apple-calendar-diagnostic-grid small{color:#8294ad;font-size:9px}
-.apple-calendar-diagnostic-grid strong{color:#e5edfc;font-size:12px;overflow-wrap:anywhere}
-.apple-calendar-diagnostic-note{margin:0;color:#8fa2bd;font-size:10px;line-height:1.55}
-@media(max-width:600px){.apple-calendar-diagnostic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.apple-calendar-diagnostics-heading{align-items:flex-start;flex-direction:column}}
+/* OCR local para PDFs digitalizados */
+.ocr-progress-panel { display: grid; gap: 10px; }
+.ocr-progress-panel > strong { color: var(--navy); font-size: 14px; }
+.ocr-progress-panel > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.ocr-progress-panel progress { width: 100%; height: 9px; accent-color: var(--blue); }
+.ocr-progress-panel .text-action { justify-self: start; }
+.ocr-confidence { display: block; margin-top: 7px; color: var(--muted); font-size: 10px; }

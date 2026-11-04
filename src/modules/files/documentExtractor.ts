@@ -9,6 +9,8 @@ export interface ExtractedTextDocument {
   characterCount: number;
   wordCount: number;
   extractedAt: string;
+  extractionMethod?: 'text' | 'ocr';
+  language?: string;
   pageCount?: number;
   pages?: ExtractedPdfPage[];
 }
