@@ -36,6 +36,19 @@ type OcrWorker = Awaited<ReturnType<typeof createWorker>>;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
+function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error('Não foi possível decodificar o PDF para OCR.'));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('Falha ao ler o PDF para OCR.'));
+    reader.onabort = () => reject(new Error('A leitura do PDF foi interrompida.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 function abortError(): Error {
   const error = new Error('Operação de OCR cancelada.');
   error.name = 'AbortError';
@@ -90,7 +103,7 @@ export async function extractPdfWithLocalOcr(
   if (file.size <= 0) throw new Error('O arquivo PDF está vazio.');
   assertNotAborted(signal);
 
-  const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+  const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(await readFileAsArrayBuffer(file)) });
   let document: pdfjsLib.PDFDocumentProxy | undefined;
   let ocrWorker: OcrWorker | undefined;
 
