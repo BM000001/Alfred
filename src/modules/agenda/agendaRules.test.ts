@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Appointment } from './types';
-import { findAppointmentConflicts, sortAppointmentsByStart, validateAppointment } from './agendaRules';
+import { classifyImportedAppointment, findAppointmentConflicts, sortAppointmentsByStart, validateAppointment } from './agendaRules';
 
 const first: Appointment = {
   id: 'a1',
@@ -13,6 +13,25 @@ const first: Appointment = {
 };
 
 describe('agendaRules', () => {
+  it('classifies imported calendar events from Portuguese titles, including accents and plurals', () => {
+    expect(classifyImportedAppointment('Prova de Matemática')).toBe('exam');
+    expect(classifyImportedAppointment('Avaliação final')).toBe('exam');
+    expect(classifyImportedAppointment('Avaliações finais')).toBe('exam');
+    expect(classifyImportedAppointment('Aula de programação')).toBe('class');
+    expect(classifyImportedAppointment('Aulas de programação')).toBe('class');
+    expect(classifyImportedAppointment('Entrega do trabalho final')).toBe('deadline');
+    expect(classifyImportedAppointment('Inscrições abertas')).toBe('deadline');
+    expect(classifyImportedAppointment('Consulta com dentista')).toBe('personal');
+    expect(classifyImportedAppointment('Viagem de estudos')).toBe('personal');
+    expect(classifyImportedAppointment('Reunião com equipe')).toBe('other');
+  });
+
+  it('matches complete normalized words, not substrings inside unrelated words', () => {
+    expect(classifyImportedAppointment('Provação de conceito')).toBe('other');
+    expect(classifyImportedAppointment('Reprovado na avaliação')).toBe('exam');
+    expect(classifyImportedAppointment('Viagens acadêmicas')).toBe('personal');
+  });
+
   it('requires a title and a valid time range', () => {
     expect(validateAppointment({ title: ' ', startsAt: first.startsAt, endsAt: first.endsAt }))
       .toBe('O título do compromisso é obrigatório.');
