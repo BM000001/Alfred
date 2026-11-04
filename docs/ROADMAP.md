@@ -1,59 +1,69 @@
 # Roadmap — Alfred
 
-O roadmap representa uma sequência de trabalho, não uma promessa de prazo. Cada etapa só avança quando os critérios de conclusão forem verificados.
+O roadmap descreve o estado verificável do produto. Uma funcionalidade só é considerada concluída quando está implementada e coberta por validação adequada; testes automatizados não substituem testes em dispositivo real.
 
-## Etapa 1 — Fundação
-- [x] Configurar React, TypeScript e Vite.
-- [x] Definir estrutura de pastas e convenções.
-- [x] Configurar Vitest.
-- [ ] Criar tokens de design e temas claro/escuro completos.
-- [x] Criar layout responsivo e navegação inicial.
-- [x] Validar instalação, testes e build pelo GitHub Actions.
-
-**Critério de saída:** fundação técnica, navegação-base e pipeline de validação implementados. Revisão visual em dispositivos reais ainda recomendada.
+## Etapa 1 — Fundação técnica
+- [x] React, TypeScript, Vite e Vitest.
+- [x] Estrutura modular e persistência local com IndexedDB.
+- [x] Navegação responsiva e aplicação PWA.
+- [x] Pipeline de CI para instalação, auditoria, testes e build.
+- [ ] Revisão visual e funcional em dispositivos reais.
 
 ## Etapa 2 — Organização pessoal
-- [ ] Modelar tarefas e projetos.
-- [ ] Implementar operações locais de tarefas e projetos.
-- [ ] Criar filtros, prioridades e estados.
-- [ ] Criar testes de regras de negócio.
-- [ ] Implementar backup e restauração inicial.
-
-**Critério de saída:** usuário consegue organizar tarefas e projetos com persistência local confiável.
+- [x] Cadastro e gerenciamento de tarefas, prioridades, estados, filtros e progresso.
+- [x] Projetos e organização das tarefas.
+- [x] Backup e restauração JSON com prévia e confirmação.
+- [x] Exportação de backup protegida por senha.
+- [x] Testes automatizados das regras principais.
 
 ## Etapa 3 — Agenda e estudos
-- [ ] Modelar compromissos, disciplinas, provas e entregas.
-- [ ] Criar visões úteis de agenda.
-- [ ] Relacionar tarefas a estudos e prazos.
-- [ ] Identificar conflitos de horário.
-- [ ] Testar regras de datas e recorrência.
+- [x] Cadastro e gerenciamento local de compromissos.
+- [x] Visões de agenda Dia, Semana e Mês.
+- [x] Detecção de conflitos de horário.
+- [x] Importação de arquivos iCalendar (.ics), com prévia e confirmação.
+- [x] Disciplinas, tópicos, anotações, conclusão e acompanhamento de progresso.
+- [ ] Sincronização direta com provedores de calendário — não implementada; a importação .ics é manual.
+- [ ] Tratamento de eventos recorrentes na importação — atualmente ignorados com aviso.
 
 ## Etapa 4 — Painel e produtividade
-- [ ] Construir resumo do dia.
-- [ ] Exibir prioridades e alertas explicáveis.
-- [ ] Adicionar pausas e registros de energia opcionais.
-- [ ] Permitir personalização de preferências.
+- [x] Painel com pendências, atrasos, próximos compromissos e briefing diário.
+- [x] Pomodoro e histórico de sessões.
+- [x] Alertas e recomendações locais explicáveis.
+- [ ] Preferências avançadas configuráveis para todos os alertas e rotinas.
+- [ ] Validação de usabilidade e acessibilidade em dispositivos reais.
 
-## Etapa 5 — Inteligência contextual
-- [ ] Criar camada independente de provedor de IA.
-- [ ] Definir consentimento e minimização de dados.
-- [ ] Gerar resumos e recomendações com contexto autorizado.
-- [ ] Exibir fontes e incertezas quando aplicável.
-- [ ] Manter execução de ações sob aprovação explícita.
+## Etapa 5 — Assistente local e contexto
+- [x] Interface conversacional conectada aos dados locais.
+- [x] Consultas locais de tarefas, agenda e progresso dos estudos.
+- [x] Histórico local de conversas, com limite e ação explícita para apagar.
+- [x] Memórias estruturadas cadastradas manualmente e recuperadas por correspondência lexical explicável.
+- [x] Propostas de alteração de tarefas com confirmação explícita.
+- [x] Portão de exportação manual, revisão do conteúdo e consentimento por classe de dados.
+- [ ] Busca semântica — não implementada; a recuperação atual é lexical.
+- [ ] Extração automática de memórias — não implementada.
+- [ ] Modelo de IA generativa conectado — não há provedor remoto ativo.
+- [ ] Resumos e recomendações generativas com fontes e incertezas.
 
-## Etapa 6 — Ajuste Tático e integrações
-- [ ] Detectar impactos de imprevistos.
-- [ ] Propor reorganização com justificativas.
-- [ ] Apresentar alterações antes de executar.
-- [ ] Implementar confirmação e revisão.
-- [ ] Avaliar integrações externas individualmente.
+## Etapa 6 — Protocolo Tático e integrações
+- [x] Fundamentos de propostas, validação e aprovação explícita de ações.
+- [ ] Reorganização de agenda/tarefas após imprevistos, com simulação e justificativas.
+- [ ] Aprovação em lote e revisão de impactos.
+- [ ] Integrações externas avaliadas individualmente, sempre com minimização de dados e consentimento.
+- [ ] Nenhuma dependência da Vercel ou backend remoto obrigatório.
 
-## Etapa 7 — Experiência avançada
-- [ ] Avaliar PWA e instalação.
-- [ ] Avaliar notificações configuráveis.
-- [ ] Avaliar comandos por voz.
-- [ ] Melhorar acessibilidade e desempenho.
-- [ ] Revisar segurança, privacidade e recuperação de dados.
+## Etapa 7 — Experiência avançada e confiabilidade
+- [x] Manifesto PWA e service worker.
+- [x] Instruções de instalação e roteiro de 11 testes manuais no iPhone.
+- [ ] Executar e registrar os testes manuais no Safari/iPhone.
+- [ ] Verificar persistência após períodos prolongados sem abrir o app.
+- [ ] Revisar acessibilidade, desempenho, segurança e licenças de dependências/assets.
+- [ ] Avaliar notificações configuráveis e comandos por voz, sem comprometer privacidade.
+
+## Próximas prioridades
+1. Executar o roteiro manual em iPhone/Safari e registrar resultados reais; não marcar como concluído com base apenas no CI.
+2. Corrigir problemas encontrados em instalação PWA, navegação mobile, teclado, offline, backup/restauração e persistência.
+3. Ampliar testes da interface conversacional para erros de IndexedDB, carregamento, mensagens longas e acessibilidade.
+4. Só então avaliar recursos generativos ou integrações externas, mantendo credenciais fora do frontend, contexto mínimo e autorização explícita.
 
 ## Regra de conclusão
-Uma tarefa só pode ser marcada como concluída quando estiver implementada, revisada e validada. Registre testes e limitações em `CONTINUIDADE.md`.
+Uma tarefa só pode ser marcada como concluída quando estiver implementada, revisada e validada pelo tipo de teste apropriado. Registre resultados e limitações em `CONTINUIDADE.md`.
