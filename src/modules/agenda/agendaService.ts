@@ -66,6 +66,29 @@ export function createAgendaService(
       return appointment;
     },
 
+    async upsertImported(input: CreateAppointmentInput & { importedUid: string }): Promise<Appointment> {
+      const existing = (await repository.getAll()).find((item) => item.importedUid === input.importedUid);
+      if (existing) {
+        const updated: Appointment = {
+          ...existing,
+          title: input.title.trim(),
+          type: input.type,
+          startsAt: input.startsAt,
+          endsAt: input.endsAt,
+          ...(input.location?.trim() ? { location: input.location.trim() } : {}),
+        };
+        if (!input.location?.trim()) delete updated.location;
+        const validationError = validateAppointment(updated);
+        if (validationError) throw new Error(validationError);
+        await repository.save(updated);
+        return updated;
+      }
+      const created = await this.create(input);
+      const imported: Appointment = { ...created, importedUid: input.importedUid };
+      await repository.save(imported);
+      return imported;
+    },
+
     update,
 
     async cancel(id: string): Promise<Appointment> {
