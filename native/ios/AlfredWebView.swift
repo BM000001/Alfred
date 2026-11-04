@@ -94,6 +94,7 @@ struct AlfredWebView: UIViewRepresentable {
                 "startsAt": event.startsAt,
                 "endsAt": event.endsAt,
                 "isAllDay": event.isAllDay,
+                "isRecurring": event.isRecurring,
                 "calendarTitle": event.calendarTitle,
                 "calendarId": event.calendarId,
                 "location": event.location as Any? ?? NSNull()
