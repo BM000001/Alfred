@@ -35,6 +35,7 @@ final class AlfredCalendarAccess {
     enum CalendarAccessError: Error {
         case permissionDenied
         case invalidDateRange
+        case invalidCalendarSelection
     }
 
     func requestPermission() async throws {
@@ -55,8 +56,19 @@ final class AlfredCalendarAccess {
         }
 
         let end = Calendar.current.date(byAdding: .day, value: daysAhead, to: start) ?? start
-        let selectedCalendars: [EKCalendar]? = calendarIds.map { ids in
-            store.calendars(for: .event).filter { ids.contains($0.calendarIdentifier) }
+        let selectedCalendars: [EKCalendar]?
+        if let calendarIds {
+            let requestedIds = Set(calendarIds)
+            let availableCalendars = store.calendars(for: .event)
+            let matches = availableCalendars.filter { requestedIds.contains($0.calendarIdentifier) }
+            // Never return a misleading partial/empty snapshot: the caller may use it
+            // to reconcile and archive events that appear to have disappeared.
+            guard !requestedIds.isEmpty, matches.count == requestedIds.count else {
+                throw CalendarAccessError.invalidCalendarSelection
+            }
+            selectedCalendars = matches
+        } else {
+            selectedCalendars = nil
         }
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: selectedCalendars)
 
