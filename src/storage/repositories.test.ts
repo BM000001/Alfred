@@ -4,7 +4,8 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { ALFRED_DATABASE_NAME } from './database';
-import { appointmentRepository, egressAuditRepository, egressSettingsRepository, projectRepository, taskRepository } from './repositories';
+import { appointmentRepository, egressAuditRepository, egressSettingsRepository, projectRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository } from './repositories';
+import type { StudyQuestion, StudyQuizAttempt } from '../modules/studies/questionTypes';
 
 const task: Task = {
   id: 'task-1',
@@ -112,5 +113,33 @@ describe('repositórios de privacidade de exportação', () => {
     const disabled = { id: 'global' as const, enabled: false };
     await egressSettingsRepository.save(disabled);
     expect(await egressSettingsRepository.getById('global')).toEqual(disabled);
+  });
+});
+
+
+describe('repositórios do banco de questões', () => {
+  it('persiste questões e tentativas de simulado no IndexedDB', async () => {
+    const question: StudyQuestion = {
+      id: 'question-1',
+      disciplineId: 'math',
+      prompt: 'Quanto é 2 + 2?',
+      options: ['3', '4', '5', '6'],
+      correctOptionIndex: 1,
+      difficulty: 'easy',
+      createdAt: '2026-11-04T12:00:00.000Z',
+    };
+    const attempt: StudyQuizAttempt = {
+      id: 'attempt-1',
+      disciplineId: 'math',
+      startedAt: '2026-11-04T12:00:00.000Z',
+      completedAt: '2026-11-04T12:05:00.000Z',
+      totalQuestions: 1,
+      correctAnswers: 1,
+      answers: [{ questionId: question.id, selectedOptionIndex: 1, isCorrect: true }],
+    };
+    await studyQuestionRepository.save(question);
+    await studyQuizAttemptRepository.save(attempt);
+    expect(await studyQuestionRepository.getById(question.id)).toEqual(question);
+    expect(await studyQuizAttemptRepository.getById(attempt.id)).toEqual(attempt);
   });
 });

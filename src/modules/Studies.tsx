@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { Discipline, StudyTopic } from './studies/types';
 import { StudyFlashcards } from './studies/StudyFlashcards';
+import { QuestionBank } from './studies/QuestionBank';
 import { createStudyService } from './studies/studyService';
 import { summarizeStudyProgress } from './studies/studyRules';
-import { disciplineRepository, studyFlashcardRepository, studyTopicRepository } from '../storage/repositories';
+import { disciplineRepository, studyFlashcardRepository, studyQuestionRepository, studyQuizAttemptRepository, studyTopicRepository } from '../storage/repositories';
 
 const studies = createStudyService(disciplineRepository, studyTopicRepository);
 
@@ -98,8 +99,10 @@ export function Studies() {
   async function deleteDiscipline(discipline: Discipline) {
     if (!window.confirm(`Excluir "${discipline.name}" e todos os conteúdos vinculados? Essa ação não pode ser desfeita.`)) return;
     try {
-      const cards = await studyFlashcardRepository.getAll();
-      for (const card of cards.filter((item) => item.disciplineId === discipline.id)) await studyFlashcardRepository.delete(card.id);
+      const [cards, questions, attempts] = await Promise.all([studyFlashcardRepository.getAll(), studyQuestionRepository.getAll(), studyQuizAttemptRepository.getAll()]);
+      await Promise.all(cards.filter((item) => item.disciplineId === discipline.id).map((item) => studyFlashcardRepository.delete(item.id)));
+      await Promise.all(questions.filter((item) => item.disciplineId === discipline.id).map((item) => studyQuestionRepository.delete(item.id)));
+      await Promise.all(attempts.filter((item) => item.disciplineId === discipline.id).map((item) => studyQuizAttemptRepository.delete(item.id)));
       await studies.deleteDiscipline(discipline.id); await refresh();
     }
     catch { setError('Não foi possível excluir a disciplina.'); }
@@ -150,6 +153,7 @@ export function Studies() {
             <div><button className="text-action" type="button" onClick={() => editTopic(topic)}>Editar</button><button className="text-action" type="button" onClick={() => void deleteTopic(topic)}>Excluir</button></div>
           </article>)}</div>}
           <StudyFlashcards disciplineId={selectedDiscipline} />
+          <QuestionBank disciplineId={selectedDiscipline} topics={topics.filter((topic) => topic.disciplineId === selectedDiscipline)} />
         </div>
       </div>
     </>}

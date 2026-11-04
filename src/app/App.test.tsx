@@ -64,7 +64,7 @@ describe('App', () => {
 
     fireEvent.change(await screen.findByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Listas encadeadas' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
-    expect(await screen.findByText('Listas encadeadas')).toBeInTheDocument();
+    expect(await screen.findByText('Listas encadeadas', { selector: 'strong' })).toBeInTheDocument();
   });
   it('permite editar o nome e a descrição de uma disciplina', async () => {
     render(<App />);
@@ -91,14 +91,14 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Matemática tópicos/ }));
     fireEvent.change(await screen.findByLabelText('Novo conteúdo ou tópico'), { target: { value: 'Funções' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conteúdo' }));
-    expect(await screen.findByText('Funções')).toBeInTheDocument();
+    expect(await screen.findByText('Funções', { selector: 'strong' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
     fireEvent.change(screen.getByLabelText('Editar conteúdo ou tópico'), { target: { value: 'Funções quadráticas' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
 
-    expect(await screen.findByText('Funções quadráticas')).toBeInTheDocument();
-    expect(screen.queryByText('Funções', { exact: true })).not.toBeInTheDocument();
+    expect(await screen.findByText('Funções quadráticas', { selector: 'strong' })).toBeInTheDocument();
+    expect(screen.queryByText('Funções', { selector: 'strong', exact: true })).not.toBeInTheDocument();
   });
 
   it('impede envio da Agenda com data inválida sem lançar erro', async () => {
