@@ -36,7 +36,7 @@ final class AlfredCalendarAccess {
         }
 
         let status = EKEventStore.authorizationStatus(for: .event)
-        guard status == .fullAccess || status == .writeOnly else {
+        guard status == .fullAccess else {
             throw CalendarAccessError.permissionDenied
         }
 
