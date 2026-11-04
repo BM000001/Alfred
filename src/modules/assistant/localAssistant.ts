@@ -25,17 +25,17 @@ function detectIntents(prompt: string): Intent[] {
 
   for (const value of clauses) {
     const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
-    const asksAboutMemory = has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) &&
-      /\\bsobre\\b/.test(value);
+    const asksAboutMemory = has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) &&
+      /\bsobre\b/.test(value);
 
-    if (asksAboutMemory || has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) ||
-        /\\bo que voce sabe sobre mim\\b/.test(value)) intents.add('memory');
-    if (!asksAboutMemory && has([/\\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\\w*/])) intents.add('studies');
-    if (has([/\\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\\w*/]) ||
-        /\\b(quando|que dia|qual dia|o que tenho)\\b/.test(value) && /\\b(marcad|agendad|programad)\\w*/.test(value)) intents.add('agenda');
-    if (has([/\\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\\w*/]) ||
-        /\\b(o que|quais|qual) (preciso|devo|tenho que) fazer\\b/.test(value) ||
-        /\\b(minhas coisas|meus afazeres)\\b/.test(value)) intents.add('tasks');
+    if (asksAboutMemory || has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) ||
+        /\bo que voce sabe sobre mim\b/.test(value)) intents.add('memory');
+    if (!asksAboutMemory && has([/\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\w*/])) intents.add('studies');
+    if (has([/\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\w*/]) ||
+        /\b(quando|que dia|qual dia|o que tenho)\b/.test(value) && /\b(marcad|agendad|programad)\w*/.test(value)) intents.add('agenda');
+    if (has([/\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\w*/]) ||
+        /\b(o que|quais|qual) (preciso|devo|tenho que) fazer\b/.test(value) ||
+        /\b(minhas coisas|meus afazeres)\b/.test(value)) intents.add('tasks');
   }
 
   return [...intents];
