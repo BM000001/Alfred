@@ -24,7 +24,7 @@ O serviço EventKit está em `native/ios/AlfredCalendarAccess.swift`. A casca Sw
 
 ### Contrato da ponte
 
-O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A resposta contém o mesmo `requestId`, permitindo várias solicitações concorrentes sem cruzar resultados. A comunicação só é aceita na página principal HTTPS do host oficial `bm000001.github.io`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar(calendarIds)`. Após conceder acesso, o Alfred lista os calendários disponíveis com seus identificadores, títulos e fontes; o usuário escolhe quais serão lidos na sincronização. A seleção é guardada localmente no dispositivo e, ao abrir a Agenda novamente no app iOS, o Alfred tenta atualizar automaticamente os eventos desses calendários.
+O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A resposta contém o mesmo `requestId`, permitindo várias solicitações concorrentes sem cruzar resultados. A comunicação só é aceita na página principal HTTPS do host oficial `bm000001.github.io`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar(calendarIds)`. Após conceder acesso, o Alfred lista os calendários disponíveis com seus identificadores, títulos e fontes; o usuário escolhe quais serão lidos na sincronização. A seleção é guardada localmente no dispositivo e, ao abrir a Agenda novamente no app iOS, o Alfred tenta atualizar automaticamente os eventos desses calendários. A seção de diagnóstico informa o ambiente em uso, quantidade de calendários selecionados, eventos recebidos na última leitura e eventos Apple ativos já registrados na Agenda. O estado da permissão é descrito com cautela: no navegador não é possível consultá-lo, e no app a confirmação ocorre quando a solicitação nativa é concluída.
 
 Os eventos sem identificador estável do EventKit são ignorados para evitar que uma nova leitura gere cópias difíceis de reconciliar. Os eventos são lidos em uma janela padrão de 90 dias.
 
@@ -70,5 +70,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Preservação e exibição de eventos de dia inteiro na Agenda.
 - [x] Identificação visual de eventos recorrentes do Calendário Apple.
 - [x] Exibição do nome do calendário de origem nos eventos importados.
+- [x] Painel de diagnóstico da integração Apple na Agenda.
 - [ ] Sincronização incremental em segundo plano e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
