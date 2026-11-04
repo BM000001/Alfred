@@ -24,7 +24,7 @@ O serviço EventKit está em `native/ios/AlfredCalendarAccess.swift`. A casca Sw
 
 ### Contrato da ponte
 
-O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A resposta contém o mesmo `requestId`, permitindo várias solicitações concorrentes sem cruzar resultados. A comunicação só é aceita na página principal HTTPS do host oficial `bm000001.github.io`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar()`.
+O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A resposta contém o mesmo `requestId`, permitindo várias solicitações concorrentes sem cruzar resultados. A comunicação só é aceita na página principal HTTPS do host oficial `bm000001.github.io`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar(calendarIds)`. Após conceder acesso, o Alfred lista os calendários disponíveis com seus identificadores, títulos e fontes; o usuário escolhe quais serão lidos na sincronização.
 
 Os eventos sem identificador estável do EventKit são ignorados para evitar que uma nova leitura gere cópias difíceis de reconciliar. Os eventos são lidos em uma janela padrão de 90 dias.
 
@@ -62,5 +62,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Especificação XcodeGen, Info.plist e workflow de compilação iOS.
 - [ ] Compilação iOS confirmada, assinatura e instalação em dispositivo real.
 - [x] Interface nativa de conectar/sincronizar e upsert local idempotente dos eventos Apple.
+- [x] Listagem de calendários Apple e seleção dos calendários a importar.
 - [ ] Sincronização incremental, exclusões/alterações de origem e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
