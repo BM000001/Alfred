@@ -27,6 +27,7 @@ final class AlfredCalendarAccess {
         let startsAt: String
         let endsAt: String
         let isAllDay: Bool
+        let isRecurring: Bool
         let calendarTitle: String
         let calendarId: String
         let location: String?
@@ -87,6 +88,7 @@ final class AlfredCalendarAccess {
                     startsAt: ISO8601DateFormatter().string(from: event.startDate),
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
                     isAllDay: event.isAllDay,
+                    isRecurring: event.hasRecurrenceRules,
                     calendarTitle: event.calendar.title,
                     calendarId: event.calendar.calendarIdentifier,
                     location: event.location
