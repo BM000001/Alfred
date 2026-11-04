@@ -83,8 +83,20 @@ export function createAgendaService(
         await repository.save(updated);
         return updated;
       }
-      const created = await this.create(input);
-      const imported: Appointment = { ...created, importedUid: input.importedUid };
+      const validationError = validateAppointment(input);
+      if (validationError) throw new Error(validationError);
+      const imported: Appointment = {
+        id: createId(),
+        title: input.title.trim(),
+        type: input.type,
+        status: 'scheduled',
+        startsAt: input.startsAt,
+        endsAt: input.endsAt,
+        createdAt: now().toISOString(),
+        importedUid: input.importedUid,
+        ...(input.description?.trim() ? { description: input.description.trim() } : {}),
+        ...(input.location?.trim() ? { location: input.location.trim() } : {}),
+      };
       await repository.save(imported);
       return imported;
     },
