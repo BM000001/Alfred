@@ -15,7 +15,6 @@ final class AlfredCalendarAccess {
         let isAllDay: Bool
         let calendarTitle: String
         let location: String?
-        let notes: String?
     }
 
     enum CalendarAccessError: Error {
@@ -56,8 +55,7 @@ final class AlfredCalendarAccess {
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
                     isAllDay: event.isAllDay,
                     calendarTitle: event.calendar.title,
-                    location: event.location,
-                    notes: event.notes
+                    location: event.location
                 )
             }
     }
