@@ -28,13 +28,23 @@ export function findAppointmentConflicts(
   });
 }
 
-/** Infers a useful Agenda category from an imported event's title. */
+/** Infers a useful Agenda category from complete Portuguese title words. */
 export function classifyImportedAppointment(title: string): Appointment['type'] {
-  const normalized = title.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('pt-BR');
-  if (/\\b(prova|exame|avaliacao|vestibular|simulado)\\b/.test(normalized)) return 'exam';
-  if (/\\b(aula|materia|disciplina|curso|palestra|seminario|laboratorio)\\b/.test(normalized)) return 'class';
-  if (/\\b(prazo|entrega|deadline|trabalho|atividade|vencimento|inscricao)\\b/.test(normalized)) return 'deadline';
-  if (/\\b(consulta|medico|dentista|aniversario|viagem|ferias|academia|treino)\\b/.test(normalized)) return 'personal';
+  const words = new Set(
+    title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('pt-BR')
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean),
+  );
+
+  const hasAny = (terms: readonly string[]) => terms.some((term) => words.has(term));
+
+  if (hasAny(['prova', 'provas', 'exame', 'exames', 'avaliacao', 'avaliacoes', 'vestibular', 'vestibulares', 'simulado', 'simulados'])) return 'exam';
+  if (hasAny(['aula', 'aulas', 'materia', 'materias', 'disciplina', 'disciplinas', 'curso', 'cursos', 'palestra', 'palestras', 'seminario', 'seminarios', 'laboratorio', 'laboratorios'])) return 'class';
+  if (hasAny(['prazo', 'prazos', 'entrega', 'entregas', 'deadline', 'deadlines', 'trabalho', 'trabalhos', 'atividade', 'atividades', 'vencimento', 'vencimentos', 'inscricao', 'inscricoes'])) return 'deadline';
+  if (hasAny(['consulta', 'consultas', 'medico', 'medicos', 'dentista', 'dentistas', 'aniversario', 'aniversarios', 'viagem', 'viagens', 'ferias', 'academia', 'academias', 'treino', 'treinos'])) return 'personal';
   return 'other';
 }
 
