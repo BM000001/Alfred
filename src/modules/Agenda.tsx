@@ -49,7 +49,14 @@ export function Agenda() {
   const [appleMessage, setAppleMessage] = useState('');
   const [appleLastSync, setAppleLastSync] = useState<string | null>(null);
   const [appleCalendars, setAppleCalendars] = useState<NativeCalendarInfo[]>([]);
-  const [selectedAppleCalendars, setSelectedAppleCalendars] = useState<string[]>([]);
+  const [selectedAppleCalendars, setSelectedAppleCalendars] = useState<string[]>(() => {
+    try {
+      const saved = window.localStorage.getItem('alfred.appleCalendarIds');
+      return saved ? JSON.parse(saved) as string[] : [];
+    } catch {
+      return [];
+    }
+  });
   const [appleConnected, setAppleConnected] = useState(false);
   const appleAvailable = isNativeAppleCalendarAvailable();
 
@@ -108,6 +115,25 @@ export function Agenda() {
       if (active) setError('Não foi possível carregar a Agenda. Verifique o armazenamento local do navegador.');
     }).finally(() => {
       if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (appleConnected) {
+      window.localStorage.setItem('alfred.appleCalendarIds', JSON.stringify(selectedAppleCalendars));
+    }
+  }, [appleConnected, selectedAppleCalendars]);
+
+  useEffect(() => {
+    if (!appleAvailable || selectedAppleCalendars.length === 0) return;
+    let active = true;
+    syncAppleCalendar(selectedAppleCalendars).then(async (response) => {
+      if (!active) return;
+      const count = await saveAppleEvents(response.events ?? []);
+      if (active) setAppleMessage(`Sincronização automática: ${count} evento(s) atualizado(s).`);
+    }).catch((cause) => {
+      if (active) setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível atualizar o Calendário Apple.');
     });
     return () => { active = false; };
   }, []);
