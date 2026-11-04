@@ -4,7 +4,7 @@ import { classifyImportedAppointment, findAppointmentConflicts, sortAppointments
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
-import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarEvent, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
+import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
