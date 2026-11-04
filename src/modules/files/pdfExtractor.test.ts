@@ -25,7 +25,7 @@ describe('extractPdfDocument', () => {
   }
 
   it('extrai texto localmente e mantém a referência de cada página', async () => {
-    const document = mockPdf(['Introdução à programação', 'Estruturas de repetição']);
+    mockPdf(['Introdução à programação', 'Estruturas de repetição']);
     const file = new File(['fake-pdf-bytes'], 'apostila.pdf', { type: 'application/pdf' });
     const result = await extractPdfDocument(file, () => new Date('2026-11-04T12:00:00.000Z'));
 
