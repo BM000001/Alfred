@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { Appointment, AppointmentType } from './agenda/types';
 import { classifyImportedAppointment, findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agendaRules';
 import { createAgendaService } from './agenda/agendaService';
@@ -46,6 +46,7 @@ export function Agenda() {
   const [error, setError] = useState('');
   const [conflicts, setConflicts] = useState<Appointment[]>([]);
   const [appleBusy, setAppleBusy] = useState(false);
+  const appleSyncInFlight = useRef(false);
   const [appleLastResult, setAppleLastResult] = useState<'success' | 'error' | null>(null);
   const [appleImportedCount, setAppleImportedCount] = useState(0);
   const [appleMessage, setAppleMessage] = useState('');
@@ -127,6 +128,8 @@ export function Agenda() {
   }
 
   async function handleAppleCalendar(connect: boolean) {
+    if (appleSyncInFlight.current) return;
+    appleSyncInFlight.current = true;
     setAppleBusy(true);
     setAppleLastResult(null);
     setAppleMessage(connect ? 'Solicitando acesso ao Calendário Apple...' : 'Lendo eventos do Calendário Apple...');
@@ -150,6 +153,7 @@ export function Agenda() {
       setAppleLastResult('error');
       setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Calendário Apple.');
     } finally {
+      appleSyncInFlight.current = false;
       setAppleBusy(false);
     }
   }
@@ -182,15 +186,43 @@ export function Agenda() {
   useEffect(() => {
     if (!appleAvailable || selectedAppleCalendars.length === 0) return;
     let active = true;
-    syncAppleCalendar(selectedAppleCalendars).then(async (response) => {
-      if (!active) return;
-      const count = await saveAppleEvents(response);
-      if (active) { setAppleImportedCount(count); setAppleLastResult('success'); setAppleMessage(`Sincronização automática: ${count} evento(s) atualizado(s).`); }
-    }).catch((cause) => {
-      if (active) { setAppleLastResult('error'); setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível atualizar o Calendário Apple.'); }
-    });
-    return () => { active = false; };
-  }, []);
+    const synchronize = async (reason: 'initial' | 'change') => {
+      if (!active || appleSyncInFlight.current) return;
+      appleSyncInFlight.current = true;
+      setAppleBusy(true);
+      try {
+        const response = await syncAppleCalendar(selectedAppleCalendars);
+        if (!active) return;
+        const count = await saveAppleEvents(response);
+        if (active) {
+          setAppleImportedCount(count);
+          setAppleLastResult('success');
+          setAppleMessage(reason === 'change'
+            ? `Calendário Apple alterado: ${count} evento(s) atualizado(s) automaticamente.`
+            : `Sincronização automática: ${count} evento(s) atualizado(s).`);
+        }
+      } catch (cause) {
+        if (active) {
+          setAppleLastResult('error');
+          setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível atualizar o Calendário Apple.');
+        }
+      } finally {
+        appleSyncInFlight.current = false;
+        if (active) setAppleBusy(false);
+      }
+    };
+    const onCalendarChanged = () => {
+      if (document.visibilityState === 'visible') void synchronize('change');
+    };
+    window.addEventListener('alfred-native-calendar-changed', onCalendarChanged);
+    void synchronize('initial');
+    return () => {
+      active = false;
+      window.removeEventListener('alfred-native-calendar-changed', onCalendarChanged);
+    };
+  // Rebind when the selected calendars change so native notifications always use
+  // the current selection rather than a stale closure.
+  }, [appleAvailable, selectedAppleCalendars]);
 
   const range = useMemo(() => {
     const selected = new Date(`${selectedDate}T12:00:00`);
