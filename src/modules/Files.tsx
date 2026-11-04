@@ -25,6 +25,7 @@ export function Files() {
   const [ocrFileId, setOcrFileId] = useState<string | null>(null);
   const [ocrProgress, setOcrProgress] = useState<OcrProgress | null>(null);
   const ocrController = useRef<AbortController | null>(null);
+  useEffect(() => () => ocrController.current?.abort(), []);
   async function refresh() {
     const [storedFiles, storedDisciplines] = await Promise.all([files.list(), disciplineRepository.getAll()]);
     setItems(storedFiles);
@@ -160,11 +161,11 @@ export function Files() {
       <div className="stored-file-list">{visible.map((item) => <article className="stored-file" key={item.id}>
         <span className="stored-file-icon" aria-hidden="true">▤</span>
         <div className="stored-file-info"><strong>{item.name}</strong><span>{formatSize(item.size)} · {new Date(item.createdAt).toLocaleDateString('pt-BR')} · {disciplineName(item.disciplineId)}</span></div>
-        <label className="stored-file-discipline"><span className="sr-only">Disciplina de {item.name}</span><select aria-label={'Disciplina de ' + item.name} value={item.disciplineId ?? ''} onChange={(event) => void changeDiscipline(item, event.target.value)}><option value="">Sem disciplina</option>{disciplines.map((discipline) => <option key={discipline.id} value={discipline.id}>{discipline.name}</option>)}</select></label>
+        <label className="stored-file-discipline"><span className="sr-only">Disciplina de {item.name}</span><select disabled={ocrFileId !== null || readingFileId !== null} aria-label={'Disciplina de ' + item.name} value={item.disciplineId ?? ''} onChange={(event) => void changeDiscipline(item, event.target.value)}><option value="">Sem disciplina</option>{disciplines.map((discipline) => <option key={discipline.id} value={discipline.id}>{discipline.name}</option>)}</select></label>
         <button className="text-action" type="button" onClick={() => void readText(item)} disabled={readingFileId !== null || ocrFileId !== null} aria-label={'Ler texto de ' + item.name}>{readingFileId === item.id ? 'Lendo...' : item.hasExtractedText ? 'Ver texto salvo' : 'Ler texto'}</button>
         {(item.type === 'application/pdf' || item.name.toLocaleLowerCase('pt-BR').endsWith('.pdf')) && <button className="text-action" type="button" onClick={() => void applyOcr(item)} disabled={ocrFileId !== null || readingFileId !== null}>{ocrFileId === item.id ? 'Aplicando OCR...' : 'Aplicar OCR'}</button>}
-        <button className="text-action" type="button" onClick={() => void openFile(item)}>Abrir</button>
-        <button className="text-action" type="button" onClick={() => void removeFile(item)}>Excluir</button>
+        <button className="text-action" type="button" onClick={() => void openFile(item)} disabled={ocrFileId !== null || readingFileId !== null}>Abrir</button>
+        <button className="text-action" type="button" onClick={() => void removeFile(item)} disabled={ocrFileId === item.id || readingFileId === item.id}>Excluir</button>
       </article>)}</div>}
     {ocrProgress && <article className="entry-panel ocr-progress-panel" aria-live="polite">
       <strong>Reconhecimento local em português</strong>
