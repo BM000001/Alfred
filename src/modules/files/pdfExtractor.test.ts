@@ -19,7 +19,6 @@ describe('extractPdfDocument', () => {
         }),
         cleanup: vi.fn(),
       })),
-      destroy: vi.fn(async () => undefined),
     };
     mockedGetDocument.mockReturnValue({ promise: Promise.resolve(document), destroy: vi.fn() });
     return document;
@@ -42,7 +41,7 @@ describe('extractPdfDocument', () => {
     });
     expect(result.text).toContain('[Página 1]');
     expect(result.text).toContain('[Página 2]');
-    expect(document.destroy).toHaveBeenCalledOnce();
+    expect(mockedGetDocument.mock.results[0].value.destroy).toHaveBeenCalledOnce();
   });
 
   it('informa quando o PDF não possui camada de texto selecionável', async () => {
@@ -55,7 +54,7 @@ describe('extractPdfDocument', () => {
     document.numPages = MAX_PDF_PAGES_PER_EXTRACTION + 1;
     await expect(extractPdfDocument(new File(['pdf'], 'grande.pdf'))).rejects.toThrow(/300 páginas/);
     expect(document.getPage).not.toHaveBeenCalled();
-    expect(document.destroy).toHaveBeenCalledOnce();
+    expect(mockedGetDocument.mock.results[0].value.destroy).toHaveBeenCalledOnce();
   });
 
   it('trata documentos protegidos por senha com uma mensagem compreensível', async () => {
