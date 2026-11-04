@@ -76,7 +76,7 @@ function assetUrl(relativePath: string): string {
   return new URL(import.meta.env.BASE_URL + 'ocr/' + relativePath, window.location.origin).toString();
 }
 
-async function createLocalOcrWorker(onStatus?: (status: string) => void): Promise<OcrWorker> {
+async function createLocalOcrWorker(onStatus?: (status: string, progress: number) => void): Promise<OcrWorker> {
   return createWorker('por', OEM.LSTM_ONLY, {
     workerPath: assetUrl('worker.min.js'),
     corePath: assetUrl('core'),
@@ -85,7 +85,7 @@ async function createLocalOcrWorker(onStatus?: (status: string) => void): Promis
     cacheMethod: 'write',
     workerBlobURL: false,
     logger: (message) => {
-      if (message.status) onStatus?.(message.status);
+      if (message.status) onStatus?.(message.status, message.progress ?? 0);
     },
   });
 }
@@ -128,10 +128,10 @@ export async function extractPdfWithLocalOcr(
 
         if (!ocrWorker) {
           onProgress?.({ currentPage: pageNumber, totalPages: document.numPages, progress: 0, status: 'Preparando OCR local em português' });
-          ocrWorker = await createLocalOcrWorker((status) => onProgress?.({
+          ocrWorker = await createLocalOcrWorker((status, pageProgress) => onProgress?.({
             currentPage: pageNumber,
             totalPages: document!.numPages,
-            progress: (pageNumber - 1) / document!.numPages,
+            progress: Math.min(1, (pageNumber - 1 + pageProgress) / document!.numPages),
             status,
           }));
         }
