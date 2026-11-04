@@ -72,6 +72,7 @@ export function Agenda() {
         type: classifyImportedAppointment(event.title || ''),
         startsAt: event.startsAt,
         endsAt: event.endsAt,
+        isAllDay: event.isAllDay,
         ...(event.location ? { location: event.location } : {}),
       });
       imported += 1;
@@ -315,7 +316,7 @@ export function Agenda() {
         <div className="appointment-list">
           {visibleItems.map((item) => (
             <article className="appointment-card" key={item.id}>
-              <div className="appointment-time"><strong>{formatTime(item.startsAt)}</strong><span>{formatTime(item.endsAt)}</span></div>
+              <div className="appointment-time">{item.isAllDay ? <strong>Dia inteiro</strong> : <><strong>{formatTime(item.startsAt)}</strong><span>{formatTime(item.endsAt)}</span></>}</div>
               <div className="appointment-details">
                 <span className={`appointment-type type-${item.type}`}>{typeLabel(item.type)}</span>
                 <h3>{item.title}</h3>
