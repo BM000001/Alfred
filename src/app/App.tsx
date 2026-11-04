@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { PersonalOrganization } from '../modules/PersonalOrganization';
 import { Agenda } from '../modules/Agenda';
 import { Overview } from '../modules/Overview';
@@ -64,6 +64,15 @@ function Icon({ name }: { name: IconName }) {
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('inicio');
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileMoreOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMoreOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileMoreOpen]);
   const activeDetails = sectionDetails[activeSection];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia.' : hour < 18 ? 'Boa tarde.' : 'Boa noite.';
