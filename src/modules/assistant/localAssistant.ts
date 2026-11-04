@@ -52,7 +52,7 @@ export class LocalAssistantProvider implements AIProvider {
     const intent = detectIntent(rawPrompt);
     if (intent === 'memory') {
       const normalizedPrompt = normalizePrompt(rawPrompt);
-      const broadRequest = /\b(sobre mim|tudo que voce sabe|todas as memorias|quais memorias|listar memorias)\b/.test(normalizedPrompt);
+      const broadRequest = /\b(sobre mim|tudo que voce sabe|todas as memorias|quais memorias|listar memorias|o que voce lembra|o que voce recorda|o que voce sabe)\b/.test(normalizedPrompt);
       const topicMatch = rawPrompt.match(/\bsobre\s+(?!mim\b)(.+)$/i);
       const topic = topicMatch?.[1]?.replace(/[?.!]+$/, '').trim();
       const matches = topic
