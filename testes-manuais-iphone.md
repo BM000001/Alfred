@@ -96,10 +96,11 @@ Estes testes exigem um iPhone real e não são substituídos pelo CI. Registre o
 2. Toque em "Aplicar OCR" e confirme que o progresso aparece em português.
 3. Aguarde a conclusão e confira o texto página por página, incluindo a indicação de confiança.
 4. Feche a leitura, abra novamente o arquivo e toque em "Ver texto salvo".
-5. Ative o modo avião e repita a leitura do texto salvo.
-6. Opcionalmente, inicie OCR em um PDF maior e toque em "Cancelar OCR"; confirme que a interface volta ao estado normal e que nenhum texto parcial é apresentado como concluído.
-7. Teste um PDF com mais de 20 páginas; o Alfred deve explicar o limite por operação sem travar.
-8. Esperado: OCR usa assets do próprio domínio Alfred, não envia o PDF para serviços externos e reutiliza os assets em cache após a primeira execução. Registre tempo, modelo do iPhone e versão do iOS.
+5. Ainda com internet, adicione um segundo PDF digitalizado sem aplicar OCR nele.
+6. Ative o modo avião e aplique OCR ao segundo PDF. Esperado: os assets já carregados são reutilizados do cache local.
+7. Opcionalmente, inicie OCR em um PDF maior e toque em "Cancelar OCR"; confirme que a interface volta ao estado normal e que nenhum texto parcial é apresentado como concluído.
+8. Teste um PDF com mais de 20 páginas; o Alfred deve explicar o limite por operação sem travar.
+9. Esperado: OCR usa assets do próprio domínio Alfred, não envia o PDF para serviços externos e reutiliza os assets em cache após a primeira execução. Registre tempo, modelo do iPhone e versão do iOS.
 
 ## Registro de resultados
 
