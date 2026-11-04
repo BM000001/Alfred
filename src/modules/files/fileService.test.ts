@@ -62,6 +62,24 @@ describe('fileService', () => {
       }),
     ]);
   });
+  it('altera e remove a associação de disciplina sem modificar o conteúdo extraído', async () => {
+    const repository = memoryRepository();
+    const service = createFileService(repository, () => 'file-move');
+    await service.add(new File(['material'], 'aula.txt'));
+    const extraction = {
+      format: 'txt' as const, text: 'Material', characterCount: 8, wordCount: 1,
+      extractedAt: '2026-11-04T15:00:00.000Z',
+    };
+    await service.saveExtraction('file-move', extraction);
+
+    await service.updateDiscipline('file-move', 'discipline-2');
+    expect((await service.get('file-move'))?.disciplineId).toBe('discipline-2');
+    expect((await service.get('file-move'))?.extraction).toEqual(extraction);
+
+    await service.updateDiscipline('file-move');
+    expect((await service.get('file-move'))?.disciplineId).toBeUndefined();
+    await expect(service.updateDiscipline('missing', 'discipline-2')).rejects.toThrow(/não encontrado/);
+  });
   it('rejeita arquivos vazios e acima do limite', async () => {
     const service = createFileService(memoryRepository());
     await expect(service.add(new File([], 'vazio.txt'))).rejects.toThrow(/vazio/);
