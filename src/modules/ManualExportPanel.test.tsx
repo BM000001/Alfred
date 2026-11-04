@@ -93,9 +93,9 @@ describe('ManualExportPanel', () => {
     render(<ManualExportPanel />);
 
     await user.click(await screen.findByRole('checkbox', { name: /Material acadêmico/ }));
+    await user.selectOptions(screen.getByLabelText('Tipo de material de estudo'), 'flashcards');
     await user.click(screen.getByLabelText('Revisei este conteúdo: não contém dados sensíveis.'));
     await user.click(screen.getByLabelText('Autorizo incluir informações da categoria acadêmica.'));
-    await user.selectOptions(screen.getByLabelText('Tipo de material de estudo'), 'flashcards');
     await user.click(screen.getByRole('button', { name: 'Gerar prévia exata' }));
 
     const preview = await screen.findByLabelText('Texto exato que será copiado');
