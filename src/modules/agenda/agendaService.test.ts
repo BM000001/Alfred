@@ -54,6 +54,32 @@ describe('agendaService', () => {
   });
 
 
+  it('preserves all-day metadata when importing and updating calendar events', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: () => 'all-day-event' });
+    const first = await service.upsertImported({
+      importedUid: 'apple:all-day-1',
+      importedCalendarId: 'calendar-a',
+      title: 'Feriado',
+      type: 'personal',
+      startsAt: '2026-11-15T00:00:00.000Z',
+      endsAt: '2026-11-16T00:00:00.000Z',
+      isAllDay: true,
+    });
+    expect(first.isAllDay).toBe(true);
+
+    const updated = await service.upsertImported({
+      importedUid: 'apple:all-day-1',
+      importedCalendarId: 'calendar-a',
+      title: 'Feriado atualizado',
+      type: 'personal',
+      startsAt: '2026-11-15T00:00:00.000Z',
+      endsAt: '2026-11-16T00:00:00.000Z',
+      isAllDay: true,
+    });
+    expect(updated).toMatchObject({ id: first.id, isAllDay: true, title: 'Feriado atualizado' });
+  });
+
   it('archives removed Apple events only in the selected source calendar and sync window', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `apple-${++id}`; })() });
