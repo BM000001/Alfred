@@ -31,13 +31,26 @@ function getFormat(file: File): TextDocumentFormat {
   throw new Error('Formato ainda não suportado para leitura local. Nesta etapa, use TXT, MD, CSV ou JSON.');
 }
 
+function readFileAsText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') resolve(reader.result);
+      else reject(new Error('Não foi possível decodificar o conteúdo do arquivo.'));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('Falha ao ler o arquivo.'));
+    reader.onabort = () => reject(new Error('A leitura do arquivo foi interrompida.'));
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
 export async function extractTextDocument(
   file: File,
   now: () => Date = () => new Date(),
 ): Promise<ExtractedTextDocument> {
   if (file.size <= 0) throw new Error('O arquivo está vazio.');
   const format = getFormat(file);
-  const decoded = (await file.text()).replace(/^\uFEFF/, '');
+  const decoded = (await readFileAsText(file)).replace(/^\uFEFF/, '');
   const text = decoded.replace(/\r\n?/g, '\n').trim();
 
   if (!text) throw new Error('Não foi encontrado texto para extrair deste arquivo.');
