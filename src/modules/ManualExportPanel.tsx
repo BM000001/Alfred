@@ -96,7 +96,7 @@ export function ManualExportPanel() {
               extraction.pageCount ? `Páginas: ${extraction.pageCount}` : '',
               '',
               extraction.text,
-            ].filter(Boolean).join('\\n'),
+            ].filter(Boolean).join('\n'),
           }};
         }),
       ];
@@ -201,7 +201,7 @@ export function ManualExportPanel() {
         title: resultTitle.trim(),
         status: 'pending',
         createdAt: new Date().toISOString(),
-        notes: `Material gerado a partir de: ${copiedStudyContext.sourceNames.join(', ')}\\n\\n${resultContent.trim()}`,
+        notes: `Material gerado a partir de: ${copiedStudyContext.sourceNames.join(', ')}\n\n${resultContent.trim()}`,
       };
       await studyTopicRepository.save(topic);
       setCopiedStudyContext(null);
