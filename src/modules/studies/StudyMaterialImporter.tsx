@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { StudyTopic } from './types';
 import { parseStudyMaterial, type ParsedStudyMaterial } from './studyMaterialParser';
 import { createFlashcardService } from './flashcardService';
@@ -21,6 +21,13 @@ export function StudyMaterialImporter({ disciplineId, topics }: { disciplineId: 
   const [saving, setSaving] = useState(false);
 
   const selectedTopic = availableTopics.find(topic => topic.id === selectedTopicId);
+
+  useEffect(() => {
+    setSelectedTopicId('');
+    setParsed(null);
+    setError('');
+    setFeedback('');
+  }, [disciplineId]);
 
   function analyze() {
     setError('');
