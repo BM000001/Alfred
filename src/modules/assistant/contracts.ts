@@ -26,6 +26,7 @@ export interface AssistantResponse {
 
 export interface AIProvider {
   readonly id: string;
+  readonly tools?: readonly ToolDefinition<any, any>[];
   generate(request: AssistantRequest): Promise<AssistantResponse>;
 }
 
