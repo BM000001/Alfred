@@ -1,5 +1,7 @@
 export interface NativeCalendarEvent {
   id: string;
+  externalId?: string | null;
+  occurrenceDate?: string | null;
   title: string;
   startsAt: string;
   endsAt: string;
