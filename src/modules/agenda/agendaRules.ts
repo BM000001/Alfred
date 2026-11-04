@@ -31,10 +31,10 @@ export function findAppointmentConflicts(
 /** Infers a useful Agenda category from an imported event's title. */
 export function classifyImportedAppointment(title: string): Appointment['type'] {
   const normalized = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
-  if (/\b(prova|exame|avaliacao|vestibular|simulado)\b/.test(normalized)) return 'exam';
-  if (/\b(aula|materia|disciplina|curso|palestra|seminario|laboratorio)\b/.test(normalized)) return 'class';
-  if (/\b(prazo|entrega|deadline|trabalho|atividade|vencimento|inscricao)\b/.test(normalized)) return 'deadline';
-  if (/\b(consulta|medico|dentista|aniversario|viagem|ferias|academia|treino)\b/.test(normalized)) return 'personal';
+  if (/\b(provas?|exames?|avaliacoes?|vestibulares?|simulados?)\b/.test(normalized)) return 'exam';
+  if (/\b(aulas?|materias?|disciplinas?|cursos?|palestras?|seminarios?|laboratorios?)\b/.test(normalized)) return 'class';
+  if (/\b(prazos?|entregas?|deadlines?|trabalhos?|atividades?|vencimentos?|inscricoes?)\b/.test(normalized)) return 'deadline';
+  if (/\b(consultas?|medicos?|dentistas?|aniversarios?|viagens?|ferias|academias?|treinos?)\b/.test(normalized)) return 'personal';
   return 'other';
 }
 
