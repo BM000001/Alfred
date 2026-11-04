@@ -1,4 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 export interface ExtractedPdfPage {
   pageNumber: number;
@@ -18,7 +19,6 @@ export interface ExtractedPdfDocument {
 
 export const MAX_PDF_PAGES_PER_EXTRACTION = 300;
 
-const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 export async function extractPdfDocument(
