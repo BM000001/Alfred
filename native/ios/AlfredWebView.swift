@@ -107,6 +107,8 @@ struct AlfredWebView: UIViewRepresentable {
         private static func serialize(_ event: AlfredCalendarAccess.CalendarEvent) -> [String: Any] {
             [
                 "id": event.id,
+                "externalId": event.externalId as Any? ?? NSNull(),
+                "occurrenceDate": event.occurrenceDate as Any? ?? NSNull(),
                 "title": event.title,
                 "startsAt": event.startsAt,
                 "endsAt": event.endsAt,
