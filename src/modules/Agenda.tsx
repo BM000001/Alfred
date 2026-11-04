@@ -52,7 +52,8 @@ export function Agenda() {
   const [selectedAppleCalendars, setSelectedAppleCalendars] = useState<string[]>(() => {
     try {
       const saved = window.localStorage.getItem('alfred.appleCalendarIds');
-      return saved ? JSON.parse(saved) as string[] : [];
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) && parsed.every((value): value is string => typeof value === 'string') ? parsed : [];
     } catch {
       return [];
     }
@@ -125,6 +126,8 @@ export function Agenda() {
     }
   }, [appleConnected, selectedAppleCalendars]);
 
+  // Intentionally run once when the Agenda mounts, using the saved calendar selection.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!appleAvailable || selectedAppleCalendars.length === 0) return;
     let active = true;
