@@ -8,10 +8,17 @@ export interface NativeCalendarEvent {
   location: string | null;
 }
 
+export interface NativeCalendarInfo {
+  id: string;
+  title: string;
+  source: string;
+}
+
 export interface NativeCalendarResponse {
   requestId: string;
   status: 'connected' | 'success' | 'error';
   events?: NativeCalendarEvent[];
+  calendars?: NativeCalendarInfo[];
   message?: string;
 }
 
@@ -20,7 +27,7 @@ declare global {
     webkit?: {
       messageHandlers?: {
         alfredCalendar?: {
-          postMessage: (message: { action: 'connect' | 'sync'; requestId: string }) => void;
+          postMessage: (message: { action: 'connect' | 'sync'; requestId: string; calendarIds?: string[] }) => void;
         };
       };
     };
@@ -35,7 +42,7 @@ export function isNativeAppleCalendarAvailable(): boolean {
     typeof window.webkit?.messageHandlers?.alfredCalendar?.postMessage === 'function';
 }
 
-function requestNativeCalendar(action: 'connect' | 'sync'): Promise<NativeCalendarResponse> {
+function requestNativeCalendar(action: 'connect' | 'sync', calendarIds?: string[]): Promise<NativeCalendarResponse> {
   if (!isNativeAppleCalendarAvailable()) {
     return Promise.reject(new Error('A conexão direta com o Calendário Apple está disponível no aplicativo iOS do Alfred.'));
   }
@@ -69,7 +76,7 @@ function requestNativeCalendar(action: 'connect' | 'sync'): Promise<NativeCalend
     window.addEventListener(RESPONSE_EVENT, onResponse);
 
     try {
-      window.webkit!.messageHandlers!.alfredCalendar!.postMessage({ action, requestId });
+      window.webkit!.messageHandlers!.alfredCalendar!.postMessage({ action, requestId, ...(calendarIds ? { calendarIds } : {}) });
     } catch (error) {
       cleanup();
       reject(error instanceof Error ? error : new Error('Falha ao solicitar acesso ao Calendário Apple.'));
@@ -81,6 +88,6 @@ export function connectAppleCalendar(): Promise<NativeCalendarResponse> {
   return requestNativeCalendar('connect');
 }
 
-export function syncAppleCalendar(): Promise<NativeCalendarResponse> {
-  return requestNativeCalendar('sync');
+export function syncAppleCalendar(calendarIds?: string[]): Promise<NativeCalendarResponse> {
+  return requestNativeCalendar('sync', calendarIds);
 }
