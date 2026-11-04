@@ -98,7 +98,7 @@ final class AlfredCalendarAccess {
                 return CalendarEvent(
                     id: stableId,
                     externalId: event.calendarItemExternalIdentifier,
-                    occurrenceDate: event.hasRecurrenceRules ? ISO8601DateFormatter().string(from: event.occurrenceDate) : nil,
+                    occurrenceDate: event.occurrenceDate.map { ISO8601DateFormatter().string(from: $0) },
                     title: event.title ?? "Sem título",
                     startsAt: ISO8601DateFormatter().string(from: event.startDate),
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
