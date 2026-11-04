@@ -2800,3 +2800,30 @@ select:focus-visible, textarea:focus-visible {
   .sidebar .nav-item:hover,
   .mobile-tabbar .nav-item:hover { transform:none; }
 }
+
+
+.files-module .pdf-page-preview {
+  display:grid;
+  gap:12px;
+  max-height:32rem;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.files-module .pdf-page {
+  padding:15px;
+  border:1px solid rgba(151,177,222,.14);
+  border-radius:12px;
+  background:rgba(10,19,33,.52);
+}
+.files-module .pdf-page h3 {
+  margin:0 0 10px;
+  color:#a9c2f6;
+  font-size:.82rem;
+  letter-spacing:.04em;
+}
+.files-module .pdf-page p {
+  margin:0;
+  color:#d4deee;
+  line-height:1.65;
+  overflow-wrap:anywhere;
+}

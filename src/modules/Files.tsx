@@ -120,7 +120,10 @@ export function Files() {
       <span className="card-label">LEITURA LOCAL · {preview.format.toUpperCase()}</span>
       <h2>{preview.fileName}</h2>
       <p className="optional-label">{preview.wordCount} palavras · {preview.characterCount} caracteres</p>
-      <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '24rem', overflowY: 'auto' }}>{preview.text}</pre>
+      {preview.pages ? <div className="pdf-page-preview">{preview.pages.map((page) => <section className="pdf-page" key={page.pageNumber}>
+        <h3>Página {page.pageNumber}</h3>
+        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{page.text || 'Nenhum texto selecionável nesta página.'}</p>
+      </section>)}</div> : <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '24rem', overflowY: 'auto' }}>{preview.text}</pre>}
       <button className="text-action" type="button" onClick={() => setPreview(null)}>Fechar leitura</button>
     </article>}
   </section>;

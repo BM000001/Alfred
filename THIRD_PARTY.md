@@ -10,3 +10,5 @@ Dependências de desenvolvimento usadas no build e nos testes. Nenhuma bibliotec
 Dependências de runtime no navegador: nenhuma. O aplicativo usa apenas APIs nativas do navegador (IndexedDB, Web Crypto, Service Worker, Cache API).
 
 Qualquer nova dependência precisa ser registrada aqui com a licença verificada antes de ser adicionada.
+
+- PDF.js (`pdfjs-dist`): Apache-2.0. Used locally in the browser to extract selectable text from PDF files; no document content is sent to a remote service.
