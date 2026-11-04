@@ -122,6 +122,32 @@ describe('agendaService', () => {
     expect(updated).toMatchObject({ id: first.id, isAllDay: true, title: 'Feriado atualizado' });
   });
 
+  it('preserves recurrence metadata when importing and refreshing Apple events', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: () => 'recurring-event' });
+    const first = await service.upsertImported({
+      importedUid: 'apple:recurring-1',
+      importedCalendarId: 'calendar-a',
+      title: 'Aula semanal',
+      type: 'class',
+      startsAt: '2026-11-09T10:00:00.000Z',
+      endsAt: '2026-11-09T11:00:00.000Z',
+      isRecurring: true,
+    });
+    expect(first.isRecurring).toBe(true);
+
+    const refreshed = await service.upsertImported({
+      importedUid: 'apple:recurring-1',
+      importedCalendarId: 'calendar-a',
+      title: 'Aula semanal',
+      type: 'class',
+      startsAt: '2026-11-09T10:30:00.000Z',
+      endsAt: '2026-11-09T11:30:00.000Z',
+      isRecurring: false,
+    });
+    expect(refreshed).toMatchObject({ id: first.id, isRecurring: false });
+  });
+
   it('archives removed Apple events only in the selected source calendar and sync window', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `apple-${++id}`; })() });
