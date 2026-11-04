@@ -87,8 +87,8 @@ export function ManualExportPanel() {
         ...storedFiles.filter(file => file.extraction?.text.trim()).map(file => {
           const discipline = disciplines.find(item => item.id === file.disciplineId)?.name;
           const extraction = file.extraction!;
-          return { label: `Material acadêmico · ${file.name}${discipline ? ` (${discipline})` : ''}`, item: {
-            id: `file:${file.id}`, label: file.name, dataClass: 'academic' as const, disciplineId: file.disciplineId,
+          return { label: `Material acadêmico · ${file.name}${discipline ? ` (${discipline})` : ''}`, disciplineId: file.disciplineId, item: {
+            id: `file:${file.id}`, label: file.name, dataClass: 'academic' as const,
             content: [
               `Arquivo: ${file.name}`,
               discipline ? `Disciplina: ${discipline}` : 'Disciplina: não vinculada',
