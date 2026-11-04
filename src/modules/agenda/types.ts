@@ -15,11 +15,12 @@ export interface Appointment {
   createdAt: string;
   importedUid?: string;
   importedCalendarId?: string;
+  importedCalendarName?: string;
 }
 
 export type CreateAppointmentInput = Pick<Appointment, 'title' | 'type' | 'startsAt' | 'endsAt'> &
-  Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring'>>;
+  Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName'>>;
 
 export type UpdateAppointmentInput = Partial<
-  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring'>
+  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName'>
 >;
