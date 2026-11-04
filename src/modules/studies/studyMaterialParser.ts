@@ -45,7 +45,7 @@ export function parseStudyMaterial(source: string): ParsedStudyMaterial {
     if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 || question.options.some(option => typeof option !== 'string' || !option.trim() || option.length > 300)) throw new Error(`Questão ${index + 1}: informe de 2 a 6 alternativas preenchidas (até 300 caracteres cada).`);
     if (!Number.isInteger(question.correctOptionIndex) || (question.correctOptionIndex as number) < 0 || (question.correctOptionIndex as number) >= question.options.length) throw new Error(`Questão ${index + 1}: "correctOptionIndex" precisa apontar para uma alternativa existente (começa em zero).`);
     if (question.explanation !== undefined && (typeof question.explanation !== 'string' || question.explanation.length > 2000)) throw new Error(`Questão ${index + 1}: "explanation" aceita até 2.000 caracteres.`);
-    const difficulty = question.difficulty ?? 'medium';
+    const difficulty = (question.difficulty ?? 'medium') as StudyQuestionDifficulty;
     if (difficulty !== 'easy' && difficulty !== 'medium' && difficulty !== 'hard') throw new Error(`Questão ${index + 1}: dificuldade deve ser easy, medium ou hard.`);
     return {
       prompt: question.prompt.trim(),
