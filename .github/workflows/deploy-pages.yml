@@ -50,3 +50,20 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify published site responds
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            status=$(curl --silent --show-error --output /tmp/alfred-pages.html --write-out '%{http_code}' "$SITE_URL" || true)
+            if [ "$status" = "200" ] && grep -q 'id="root"' /tmp/alfred-pages.html; then
+              echo "GitHub Pages is serving Alfred successfully at $SITE_URL"
+              exit 0
+            fi
+            echo "Attempt $attempt: HTTP $status; waiting for Pages propagation..."
+            sleep 10
+          done
+          echo "GitHub Pages did not serve the expected Alfred index at $SITE_URL"
+          exit 1
