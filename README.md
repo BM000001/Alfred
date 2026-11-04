@@ -13,9 +13,9 @@ Assistente pessoal de produtividade e estudos, com foco em **privacidade** e **f
 
 ## O que o Alfred não faz (ainda)
 
-- A interface já possui controles de login e consentimento para a API serverless, mas o backend ainda não foi publicado. A URL do GitHub Pages continua sendo apenas a versão estática/local.
+- Não possui backend nem login remoto. A versão publicada no GitHub Pages é estática e funciona localmente no dispositivo.
 
-- Não envia dados a nenhum serviço de IA automaticamente.
+- Não envia dados a nenhum serviço de IA automaticamente. A conexão direta com provedores externos não está implementada.
 - Não integra com o Canvas LMS (planejado, aguardando verificação das políticas institucionais).
 - Não sincroniza entre dispositivos (planejado para etapa futura, com a estrutura de dados já preparada).
 - Não usa modelo local nem voz.
@@ -24,7 +24,7 @@ Assistente pessoal de produtividade e estudos, com foco em **privacidade** e **f
 ## Princípios
 
 1. **Dados pessoais ficam no aparelho.** Nenhum dado do usuário passa pela hospedagem do site, que entrega apenas arquivos públicos.
-2. **Nada sai sem ação explícita.** Qualquer envio a serviço externo exige confirmação do usuário, categoria por categoria, e é registrado (sem o conteúdo).
+2. **Nada sai sem ação explícita.** A exportação manual exige revisão e confirmação das classes de dados antes de copiar; o Alfred não faz envio de rede.
 3. **Sem dependência obrigatória de serviço pago.**
 4. **Arquitetura independente de provedor de IA.** O núcleo não importa SDK de nenhum serviço.
 
@@ -34,8 +34,8 @@ Requisitos: Node.js 20 ou superior.
 
 ```
 npm install
-npm test       # compila e executa os testes automatizados
-npm run build  # gera o site estático em site/
+npm test       # executa os testes automatizados
+npm run build  # verifica os tipos e gera o site estático em dist/
 ```
 
 Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. Para instalar no iPhone, é preciso HTTPS (ver `docs/testes-manuais-iphone.md`).
@@ -45,7 +45,6 @@ Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. P
 - `docs/decisoes.md`: decisões registradas e seus motivos.
 - `docs/arquitetura.md`: camadas, formato de backup e regras de privacidade.
 - `docs/status-etapa-1.md`: o que foi feito, testes executados e limitações conhecidas.
-- `docs/backend-ia-seguro.md`: arquitetura, configuração e bloqueios antes de ativar o backend de IA.
 - `docs/testes-manuais-iphone.md`: roteiro de testes que exigem dispositivo real.
 - `NOTICE.md` e `THIRD_PARTY.md`: atribuições e licenças de dependências.
 

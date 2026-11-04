@@ -1,8 +1,7 @@
 # Continuidade do Alfred
 
 ## Estado atual — 2026-11-03
-- PR #55 — fundação de backend seguro para IA — integrada após CI verde; rotas Vercel para login, sessão, logout e chat via AI Gateway, com consentimento obrigatório e testes Node.
-- PR #56 — interface de IA externa — integrada após CI verde; login, ativação opcional, consentimento por mensagem, envio somente da mensagem atual e auditoria local de metadados.
+- PR #55 e PR #56 foram posteriormente revertidas nesta branch de manutenção, pois adicionavam rotas serverless e controles de IA remota dependentes da Vercel.
 - `main` é a fonte da verdade; desenvolver em branches e PRs.
 - PR #29 — análise arquitetural do Jarvis — integrada.
 - PR #30 — fundação segura do assistente — integrada.
@@ -42,6 +41,7 @@
 - Histórico de conversa local persistente em IndexedDB, limitado às 200 mensagens mais recentes, com ação explícita para apagar o histórico. Propostas aguardando confirmação não são restauradas após recarregar a página.
 - Memórias explícitas em IndexedDB: cadastro, edição, exclusão e consulta manual; categorias de preferência, objetivo, projeto, rotina e outro. Não há extração automática nem armazenamento automático de dados sensíveis. Memórias permanecem locais e entram no backup JSON (também no backup criptografado); backups antigos sem o campo continuam compatíveis.
 - Portão de exportação manual: permite selecionar tarefas, tópicos de estudo e memórias, revisar cada item, autorizar as classes pública/pessoal/acadêmica por operação e gerar prévia exata antes de copiar. Não há envio de rede nem provedor remoto conectado.
+- A integração de IA remota por API/serverless foi removida nesta branch; o assistente permanece local e a exportação manual continua sendo o único fluxo para usar conteúdo com outro serviço de IA.
 - Controles de exportação: preferência global local para desativar/reabilitar novas preparações manuais. Desativar invalida a prévia e limpa seleções/autorizações da interface.
 - Auditoria local: registra apenas data/hora, classes, quantidade de itens e caracteres, e ação de cópia para área de transferência; não armazena texto, títulos ou IDs dos conteúdos. Retenção limitada aos 100 registros mais recentes; pode ser apagada pelo usuário. Auditoria e preferência de bloqueio não entram nos backups. A auditoria registra cópia, não comprova envio a outro serviço. Desativar impede novas preparações neste painel, mas não apaga texto já copiado para a área de transferência ou colado em serviços externos.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
@@ -74,10 +74,9 @@
 1. Evoluir as memórias manuais para recuperação contextual mais inteligente, mantendo consentimento explícito e sem inferir nem salvar fatos sensíveis automaticamente.
 2. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
 3. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
-4. Integrar portão de privacidade antes de qualquer provedor externo; sem envio automático de dados.
-5. Avaliar provider de IA real somente com credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
-6. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
-7. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
+4. Avaliar integração futura com IA somente se houver arquitetura independente de hospedagem, credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
+5. Avaliar voz opcional e interrompível sem comprometer privacidade nem suporte mobile.
+6. Validar Safari/iPhone, publicação GitHub Pages, dependências e licenças.
 
 ## Protocolo de trabalho
 - Desenvolver em branches e PRs; não alterar `main` diretamente para código.
