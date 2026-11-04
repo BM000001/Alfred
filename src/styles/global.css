@@ -2999,3 +2999,24 @@ select:focus-visible, textarea:focus-visible {
 .apple-calendar-actions button:disabled{opacity:.5;cursor:wait}
 .apple-calendar-last-sync{color:#8294ad;font-size:9px}
 @media(max-width:600px){.apple-calendar-panel{padding:14px}.apple-calendar-heading{align-items:flex-start;flex-direction:column}.apple-calendar-actions{display:grid;grid-template-columns:1fr}.apple-calendar-actions button{width:100%}}
+/* Desempenho por tópico e reforço orientado por erros */
+.study-performance{display:grid;gap:12px;margin-top:20px;padding:18px;border:1px solid rgba(151,177,222,.16);border-radius:14px;background:rgba(11,22,38,.82)}
+.study-performance h3{margin:4px 0;color:#e5edfc;font-size:16px}
+.study-performance>div:first-child>p{margin:5px 0 0;color:#8fa2bd;font-size:10px;line-height:1.6}
+.study-performance-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.study-performance-summary>div{display:grid;gap:3px;padding:10px;border:1px solid rgba(151,177,222,.13);border-radius:8px;background:rgba(7,16,29,.42)}
+.study-performance-summary strong{color:#e5edfc;font-size:19px}
+.study-performance-summary span{color:#8294ad;font-size:9px}
+.study-performance-empty{margin:0;padding:12px;border-radius:8px;color:#9fb0c9;background:rgba(7,16,29,.4);font-size:10px;line-height:1.6}
+.study-performance-list{display:grid;gap:10px}
+.study-performance-topic{display:grid;gap:8px;padding:12px;border:1px solid rgba(151,177,222,.13);border-radius:10px;background:rgba(7,16,29,.35)}
+.study-performance-topic-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.study-performance-topic-header strong{color:#dce8fc;font-size:11px}
+.study-performance-topic-header span{color:#9fb9e8;font-size:10px;font-weight:700;white-space:nowrap}
+.study-performance-meta{display:flex;justify-content:space-between;gap:8px;color:#8294ad;font-size:9px}
+.study-performance-error{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px;border-radius:7px;background:rgba(122,51,51,.09)}
+.study-performance-error>div{display:grid;gap:4px;min-width:0}
+.study-performance-error strong{color:#dce8fc;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.study-performance-error span{color:#d9a6a0;font-size:9px}
+.study-performance-error button{flex-shrink:0}
+@media(max-width:600px){.study-performance{padding:14px}.study-performance-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.study-performance-topic-header{align-items:flex-start;flex-direction:column}.study-performance-error{align-items:flex-start;flex-direction:column}}
