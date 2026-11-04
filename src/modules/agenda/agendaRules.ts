@@ -28,6 +28,26 @@ export function findAppointmentConflicts(
   });
 }
 
+/** Infers a useful Agenda category from complete Portuguese title words. */
+export function classifyImportedAppointment(title: string): Appointment['type'] {
+  const words = new Set(
+    title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('pt-BR')
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean),
+  );
+
+  const hasAny = (terms: readonly string[]) => terms.some((term) => words.has(term));
+
+  if (hasAny(['prova', 'provas', 'exame', 'exames', 'avaliacao', 'avaliacoes', 'vestibular', 'vestibulares', 'simulado', 'simulados'])) return 'exam';
+  if (hasAny(['aula', 'aulas', 'materia', 'materias', 'disciplina', 'disciplinas', 'curso', 'cursos', 'palestra', 'palestras', 'seminario', 'seminarios', 'laboratorio', 'laboratorios'])) return 'class';
+  if (hasAny(['prazo', 'prazos', 'entrega', 'entregas', 'deadline', 'deadlines', 'trabalho', 'trabalhos', 'atividade', 'atividades', 'vencimento', 'vencimentos', 'inscricao', 'inscricoes'])) return 'deadline';
+  if (hasAny(['consulta', 'consultas', 'medico', 'medicos', 'dentista', 'dentistas', 'aniversario', 'aniversarios', 'viagem', 'viagens', 'ferias', 'academia', 'academias', 'treino', 'treinos'])) return 'personal';
+  return 'other';
+}
+
 export function sortAppointmentsByStart(appointments: Appointment[]): Appointment[] {
   return [...appointments].sort(
     (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
