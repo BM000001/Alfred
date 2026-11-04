@@ -28,8 +28,8 @@ export interface OcrPdfResult {
   extractedAt: string;
   pageCount: number;
   pages: OcrPage[];
-  extractionMethod: 'ocr';
-  language: 'por';
+  extractionMethod: 'text' | 'ocr';
+  language?: 'por';
 }
 
 type OcrWorker = Awaited<ReturnType<typeof createWorker>>;
@@ -171,8 +171,8 @@ export async function extractPdfWithLocalOcr(
       extractedAt: now().toISOString(),
       pageCount: document.numPages,
       pages,
-      extractionMethod: 'ocr',
-      language: 'por',
+      extractionMethod: pages.some((page) => page.method === 'ocr') ? 'ocr' : 'text',
+      ...(pages.some((page) => page.method === 'ocr') ? { language: 'por' as const } : {}),
     };
   } catch (error) {
     if (error instanceof Error && error.name === 'PasswordException') {
