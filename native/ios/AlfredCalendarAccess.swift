@@ -33,6 +33,13 @@ final class AlfredCalendarAccess {
         let location: String?
     }
 
+    struct CalendarSnapshot {
+        let events: [CalendarEvent]
+        let rangeStart: String
+        let rangeEnd: String
+        let calendarIds: [String]
+    }
+
     enum CalendarAccessError: Error {
         case permissionDenied
         case invalidDateRange
@@ -46,7 +53,7 @@ final class AlfredCalendarAccess {
 
     /// Returns events in the device's local calendar range.
     /// Events without a stable EventKit identifier are omitted to avoid duplicate imports.
-    func events(from start: Date = .now, daysAhead: Int = 90, calendarIds: [String]? = nil) throws -> [CalendarEvent] {
+    func snapshot(from start: Date = .now, daysAhead: Int = 90, calendarIds: [String]? = nil) throws -> CalendarSnapshot {
         guard (1...365).contains(daysAhead) else {
             throw CalendarAccessError.invalidDateRange
         }
@@ -73,7 +80,7 @@ final class AlfredCalendarAccess {
         }
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: selectedCalendars)
 
-        return store.events(matching: predicate)
+        let events = store.events(matching: predicate)
             .sorted { $0.startDate < $1.startDate }
             .compactMap { event in
                 // calendarItemIdentifier may identify the recurring series rather than
@@ -94,5 +101,13 @@ final class AlfredCalendarAccess {
                     location: event.location
                 )
             }
+
+        let formatter = ISO8601DateFormatter()
+        return CalendarSnapshot(
+            events: events,
+            rangeStart: formatter.string(from: start),
+            rangeEnd: formatter.string(from: end),
+            calendarIds: (selectedCalendars ?? store.calendars(for: .event)).map(\.calendarIdentifier)
+        )
     }
 }
