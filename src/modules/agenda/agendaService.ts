@@ -68,7 +68,7 @@ export function createAgendaService(
       return appointment;
     },
 
-    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedCalendarId?: string }): Promise<Appointment> {
+    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedCalendarId?: string; importedCalendarName?: string }): Promise<Appointment> {
       const existing = (await repository.getAll()).find((item) => item.importedUid === input.importedUid);
       if (existing) {
         const updated: Appointment = {
@@ -77,6 +77,7 @@ export function createAgendaService(
           type: input.type,
           status: 'scheduled',
           importedCalendarId: input.importedCalendarId ?? existing.importedCalendarId,
+          importedCalendarName: input.importedCalendarName ?? existing.importedCalendarName,
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           ...(input.isAllDay ? { isAllDay: true } : { isAllDay: false }),
@@ -103,6 +104,7 @@ export function createAgendaService(
         createdAt: now().toISOString(),
         importedUid: input.importedUid,
         ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
+        ...(input.importedCalendarName ? { importedCalendarName: input.importedCalendarName } : {}),
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
         ...(input.location?.trim() ? { location: input.location.trim() } : {}),
       };
