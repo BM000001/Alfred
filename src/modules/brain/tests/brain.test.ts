@@ -117,7 +117,7 @@ describe('Brain foundation', () => {
       generate: vi.fn(async () => ({ message: 'fallback', usedTools: [], warnings: [] })),
     };
     const brain = new Brain({ provider });
-    await brain.process([{ ...message, content: 'Como está meu progresso em Álgebra?' }], context);
+    await brain.process([{ ...message, content: 'Como está meu progresso nos estudos em Álgebra?' }], context);
     expect(execute).toHaveBeenCalledWith({ query: 'Álgebra' });
     expect(provider.generate).not.toHaveBeenCalled();
   });
