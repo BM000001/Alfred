@@ -1,4 +1,6 @@
-export type TextDocumentFormat = 'txt' | 'md' | 'csv' | 'json';
+import { extractPdfDocument, type ExtractedPdfPage } from './pdfExtractor';
+
+export type TextDocumentFormat = 'txt' | 'md' | 'csv' | 'json' | 'pdf';
 
 export interface ExtractedTextDocument {
   fileName: string;
@@ -7,6 +9,8 @@ export interface ExtractedTextDocument {
   characterCount: number;
   wordCount: number;
   extractedAt: string;
+  pageCount?: number;
+  pages?: ExtractedPdfPage[];
 }
 
 const FORMAT_BY_EXTENSION: Record<string, TextDocumentFormat> = {
@@ -15,6 +19,7 @@ const FORMAT_BY_EXTENSION: Record<string, TextDocumentFormat> = {
   markdown: 'md',
   csv: 'csv',
   json: 'json',
+  pdf: 'pdf',
 };
 
 function getFormat(file: File): TextDocumentFormat {
@@ -27,8 +32,9 @@ function getFormat(file: File): TextDocumentFormat {
   if (mime === 'text/markdown') return 'md';
   if (mime === 'text/csv') return 'csv';
   if (mime === 'application/json') return 'json';
+  if (mime === 'application/pdf') return 'pdf';
 
-  throw new Error('Formato ainda não suportado para leitura local. Nesta etapa, use TXT, MD, CSV ou JSON.');
+  throw new Error('Formato ainda não suportado para leitura local. Use PDF, TXT, MD, CSV ou JSON.');
 }
 
 function readFileAsText(file: File): Promise<string> {
@@ -50,6 +56,8 @@ export async function extractTextDocument(
 ): Promise<ExtractedTextDocument> {
   if (file.size <= 0) throw new Error('O arquivo está vazio.');
   const format = getFormat(file);
+  if (format === 'pdf') return extractPdfDocument(file, now);
+
   const decoded = (await readFileAsText(file)).replace(/^\uFEFF/, '');
   const text = decoded.replace(/\r\n?/g, '\n').trim();
 
