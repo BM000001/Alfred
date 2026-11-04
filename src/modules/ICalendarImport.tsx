@@ -53,8 +53,14 @@ export function ICalendarImport({ existing, onImported }: { existing: Appointmen
   return <section className="entry-panel ical-import">
     <span className="card-label">CALENDÁRIO APPLE · PRIMEIRA INTEGRAÇÃO</span>
     <h3>Importar eventos do Calendário Apple</h3>
-    <p>O Alfred já consegue ler arquivos de calendário Apple (.ics) diretamente neste dispositivo. No Mac, abra o app Calendário, escolha Arquivo → Exportar → Exportar e selecione o arquivo aqui. A importação cria uma cópia dos eventos; alterações posteriores no calendário Apple ainda não são sincronizadas automaticamente.</p>
-    <label className="field-label" htmlFor="ical-file">Arquivo exportado do Calendário Apple (.ics)</label>
+    <p>O Alfred consegue importar arquivos de calendário (.ics) neste dispositivo. A importação cria uma cópia dos eventos; alterações posteriores no calendário de origem não são sincronizadas automaticamente.</p>
+    <div className="ical-import-help">
+      <strong>Está usando um iPhone?</strong>
+      <p>Se você já tem um arquivo .ics, toque em “Escolher arquivo” e procure-o no app Arquivos, em “No Meu iPhone” ou no iCloud Drive. O app Calendário do iPhone não oferece uma opção nativa para exportar um calendário inteiro como .ics.</p>
+      <strong>Para gerar um arquivo .ics</strong>
+      <p>No Mac, abra o Calendário e escolha Arquivo → Exportar → Exportar. Depois, envie o arquivo para o iPhone (por AirDrop, iCloud Drive ou outro meio privado) e selecione-o aqui. Não é necessário tornar seu calendário público.</p>
+    </div>
+    <label className="field-label" htmlFor="ical-file">Escolher arquivo de calendário (.ics) — até 5 MB</label>
     <input id="ical-file" type="file" accept=".ics,text/calendar" onChange={(event) => void handleFile(event)} />
     {warnings.length > 0 && <ul className="ical-warnings">{warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>}
     {rows.length > 0 && <>
