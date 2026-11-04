@@ -3,7 +3,7 @@ import type { AssistantIntent, IntentClassification } from './intentTypes';
 const rules: Array<{ intent: Exclude<AssistantIntent, 'unknown'>; terms: string[] }> = [
   { intent: 'memory', terms: ['memoria', 'memorias', 'lembra', 'lembranca', 'recorda'] },
   { intent: 'studies', terms: ['estudo', 'estudos', 'materia', 'disciplina', 'topico', 'revisao', 'progresso academico'] },
-  { intent: 'agenda', terms: ['agenda', 'compromisso', 'evento', 'reuniao', 'consulta', 'calendario', 'horario'] },
+  { intent: 'agenda', terms: ['agenda', 'compromisso', 'compromissos', 'evento', 'eventos', 'reuniao', 'reunioes', 'consulta', 'consultas', 'calendario', 'calendarios', 'horario', 'horarios'] },
   { intent: 'tasks', terms: ['tarefa', 'tarefas', 'pendencia', 'pendente', 'afazer', 'prioridade', 'entrega', 'prazo'] },
 ];
 
