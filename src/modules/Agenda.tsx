@@ -73,6 +73,7 @@ export function Agenda() {
         startsAt: event.startsAt,
         endsAt: event.endsAt,
         isAllDay: event.isAllDay,
+        isRecurring: event.isRecurring,
         ...(event.location ? { location: event.location } : {}),
       });
       imported += 1;
@@ -318,7 +319,7 @@ export function Agenda() {
             <article className="appointment-card" key={item.id}>
               <div className="appointment-time">{item.isAllDay ? <strong>Dia inteiro</strong> : <><strong>{formatTime(item.startsAt)}</strong><span>{formatTime(item.endsAt)}</span></>}</div>
               <div className="appointment-details">
-                <span className={`appointment-type type-${item.type}`}>{typeLabel(item.type)}</span>
+                <span className={`appointment-type type-${item.type}`}>{typeLabel(item.type)}</span>{item.isRecurring && <span className="appointment-origin-tag">Recorrente</span>}
                 <h3>{item.title}</h3>
                 <p>{new Date(item.startsAt).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })}{item.location ? ` · ${item.location}` : ''}</p>
                 {item.description && <p>{item.description}</p>}
