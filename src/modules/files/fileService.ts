@@ -1,5 +1,5 @@
 import type { EntityRepository } from '../../storage/repositories';
-import type { StoredFile, FileSummary } from './types';
+import type { StoredFile, FileSummary, StoredTextExtraction } from './types';
 import { MAX_FILE_SIZE } from './types';
 
 type IdFactory = () => string;
@@ -7,8 +7,11 @@ export function createFileService(repository: EntityRepository<StoredFile>, crea
   return {
     async list(): Promise<FileSummary[]> {
       const files = await repository.getAll();
-      return files.map(({ id, name, type, size, createdAt, disciplineId }) => ({
-        id, name, type, size, createdAt, ...(disciplineId ? { disciplineId } : {}),
+      return files.map(({ id, name, type, size, createdAt, disciplineId, extraction }) => ({
+        id, name, type, size, createdAt,
+        ...(disciplineId ? { disciplineId } : {}),
+        hasExtractedText: Boolean(extraction),
+        ...(extraction ? { extractedAt: extraction.extractedAt } : {}),
       })).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     async add(file: File, disciplineId?: string): Promise<FileSummary> {
@@ -25,9 +28,15 @@ export function createFileService(repository: EntityRepository<StoredFile>, crea
       return {
         id: stored.id, name: stored.name, type: stored.type, size: stored.size,
         createdAt: stored.createdAt, ...(stored.disciplineId ? { disciplineId: stored.disciplineId } : {}),
+        hasExtractedText: false,
       };
     },
     async get(id: string): Promise<StoredFile | undefined> { return repository.getById(id); },
+    async saveExtraction(id: string, extraction: StoredTextExtraction): Promise<void> {
+      const stored = await repository.getById(id);
+      if (!stored) throw new Error('Arquivo não encontrado.');
+      await repository.save({ ...stored, extraction });
+    },
     async delete(id: string): Promise<void> { await repository.delete(id); },
   };
 }
