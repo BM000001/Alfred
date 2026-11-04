@@ -44,6 +44,7 @@ final class AlfredCalendarAccess {
         case permissionDenied
         case invalidDateRange
         case invalidCalendarSelection
+        case incompleteSnapshot
     }
 
     func requestPermission() async throws {
@@ -80,15 +81,18 @@ final class AlfredCalendarAccess {
         }
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: selectedCalendars)
 
-        let events = store.events(matching: predicate)
+        let matchingEvents = store.events(matching: predicate)
             .sorted { $0.startDate < $1.startDate }
-            .compactMap { event in
+        // If even one result has no stable identifier, do not claim a complete
+        // snapshot: omitting it could make an existing imported event look deleted.
+        guard matchingEvents.allSatisfy({ $0.eventIdentifier != nil }) else {
+            throw CalendarAccessError.incompleteSnapshot
+        }
+        let events = matchingEvents.map { event in
                 // calendarItemIdentifier may identify the recurring series rather than
                 // this specific occurrence. Using it as a fallback would collapse
                 // multiple occurrences into one imported appointment.
-                guard let stableId = event.eventIdentifier else {
-                    return nil
-                }
+                let stableId = event.eventIdentifier!
                 return CalendarEvent(
                     id: stableId,
                     title: event.title ?? "Sem título",
