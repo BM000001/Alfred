@@ -94,3 +94,12 @@
 - Não afirmar testes locais: validação oficial deve ser comprovada no GitHub Actions.
 - Atualizar este documento em cada marco confirmado.
 - Não criar registros fictícios nem incluir segredos ou dados pessoais.
+
+
+## Fundação do Alfred Brain — em revisão
+- Branch: `feature/alfred-brain-foundation`, criada a partir de `main`.
+- Implementação inicial: classificador de intenções (tarefas, agenda, estudos, memórias e desconhecido), construtor de contexto, orquestrador `Brain` que delega ao provider configurado e registro de ferramentas com proteção contra IDs duplicados.
+- Testes adicionados para classificação, delegação ao provider e rejeição de ferramentas duplicadas.
+- Compatibilidade: os contratos existentes em `src/modules/assistant/contracts.ts` foram preservados; o provider local atual continua sendo o responsável por gerar respostas. Nenhum provedor remoto, chamada de rede ou execução automática de escrita foi introduzido.
+- Estado de validação: testes e build ainda precisam ser confirmados pelo GitHub Actions; não declarar a etapa concluída antes do CI.
+- Próximo passo: revisar o diff, corrigir eventuais falhas do CI e só então considerar integrar a fundação. A integração do Brain ao fluxo de interface permanece pendente.
