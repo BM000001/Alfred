@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractPdfDocument, MAX_PDF_PAGES_PER_EXTRACTION } from './pdfExtractor';
 
-const mockedGetDocument = vi.fn();
+const { mockedGetDocument } = vi.hoisted(() => ({ mockedGetDocument: vi.fn() }));
 vi.mock('pdfjs-dist', () => ({
   GlobalWorkerOptions: { workerSrc: '' },
   getDocument: (...args: unknown[]) => mockedGetDocument(...args),
