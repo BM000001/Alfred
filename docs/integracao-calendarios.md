@@ -21,7 +21,11 @@ Não devemos simular uma conexão automática nem pedir credenciais do iCloud. A
 
 O serviço EventKit está em `native/ios/AlfredCalendarAccess.swift`. A casca SwiftUI/WebView está em `native/ios/AlfredApp.swift` e `native/ios/AlfredWebView.swift`. O cliente TypeScript da ponte está em `src/modules/agenda/nativeCalendarBridge.ts`.
 
-A ponte recebe as ações `connect` e `sync` pelo canal nativo `alfredCalendar` e devolve os eventos por meio do evento JavaScript `alfred-native-calendar`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar()`. A ponte só aceita mensagens da página principal hospedada em `bm000001.github.io`.
+### Contrato da ponte
+
+O cliente envia `action` (`connect` ou `sync`) e um `requestId` único. A resposta contém o mesmo `requestId`, permitindo várias solicitações concorrentes sem cruzar resultados. A comunicação só é aceita na página principal HTTPS do host oficial `bm000001.github.io`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar()`.
+
+Os eventos sem identificador estável do EventKit são ignorados para evitar que uma nova leitura gere cópias difíceis de reconciliar. Os eventos são lidos em uma janela padrão de 90 dias.
 
 **Configuração necessária no projeto Xcode:** adicionar os três arquivos Swift ao target iOS, definir deployment target iOS 17 ou superior e incluir no Info.plist:
 
@@ -49,7 +53,7 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 
 - [x] Importação manual de arquivos .ics na versão web.
 - [x] Serviço Swift inicial para leitura via EventKit.
+- [x] Ponte com identificador por solicitação e validação HTTPS da origem.
 - [ ] Aplicativo iOS nativo e configuração de permissões.
-- [ ] Ponte segura entre o app nativo e a interface Alfred.
-- [ ] Sincronização incremental e atualização sem duplicações.
+- [ ] Sincronização incremental e atualização sem duplicações na agenda web.
 - [ ] Integração Google Agenda via OAuth.
