@@ -5,6 +5,7 @@ export interface NativeCalendarEvent {
   endsAt: string;
   isAllDay: boolean;
   calendarTitle: string;
+  calendarId: string;
   location: string | null;
 }
 
