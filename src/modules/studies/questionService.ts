@@ -60,3 +60,21 @@ export function createQuestionService(
     },
   };
 }
+
+export function selectQuizQuestions(
+  questions: StudyQuestion[],
+  options: { topicId?: string; difficulty?: StudyQuestion['difficulty'] | 'all'; limit?: number; random?: () => number } = {},
+): StudyQuestion[] {
+  const limit = Math.max(1, Math.min(50, Math.floor(options.limit ?? 10)));
+  const candidates = questions.filter(question =>
+    (!options.topicId || question.topicId === options.topicId) &&
+    (!options.difficulty || options.difficulty === 'all' || question.difficulty === options.difficulty),
+  );
+  const shuffled = [...candidates];
+  const random = options.random ?? Math.random;
+  for (let index = shuffled.length - 1; index > 0; index--) {
+    const target = Math.min(index, Math.max(0, Math.floor(random() * (index + 1))));
+    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+  }
+  return shuffled.slice(0, limit);
+}
