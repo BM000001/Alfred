@@ -13,6 +13,7 @@ export interface ExtractedPdfDocument {
   characterCount: number;
   wordCount: number;
   extractedAt: string;
+  extractionMethod: 'text';
   pageCount: number;
   pages: ExtractedPdfPage[];
 }
@@ -82,6 +83,7 @@ export async function extractPdfDocument(
       characterCount: text.length,
       wordCount: words.length,
       extractedAt: now().toISOString(),
+      extractionMethod: 'text',
       pageCount: document.numPages,
       pages,
     };
