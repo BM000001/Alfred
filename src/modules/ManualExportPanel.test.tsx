@@ -4,8 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ManualExportPanel } from './ManualExportPanel';
 import {
+  disciplineRepository,
   egressAuditRepository,
   egressSettingsRepository,
+  fileRepository,
   memoryRepository,
   studyTopicRepository,
   taskRepository,
@@ -22,8 +24,10 @@ const task: Task = {
 
 beforeEach(async () => {
   await Promise.all([
+    disciplineRepository.clear(),
     egressAuditRepository.clear(),
     egressSettingsRepository.clear(),
+    fileRepository.clear(),
     memoryRepository.clear(),
     studyTopicRepository.clear(),
     taskRepository.clear(),
@@ -73,6 +77,32 @@ describe('ManualExportPanel', () => {
     await user.click(screen.getByLabelText('Revisei este conteúdo: não contém dados sensíveis.'));
     await user.click(screen.getByRole('button', { name: 'Gerar prévia exata' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/Confirme o envio de informações da classe pessoal/);
+  });
+
+  it('inclui documentos extraídos na exportação acadêmica e oferece formatos de estudo', async () => {
+    await disciplineRepository.save({ id: 'discipline-calc', name: 'Cálculo I', createdAt: '2026-11-01T10:00:00.000Z' });
+    await fileRepository.save({
+      id: 'study-pdf-1', name: 'limites.pdf', type: 'application/pdf', size: 1200,
+      createdAt: '2026-11-04T10:00:00.000Z', disciplineId: 'discipline-calc',
+      blob: new Blob(['arquivo original']),
+      extraction: { format: 'pdf', text: 'Definição de limite e continuidade.', characterCount: 36, wordCount: 5, extractedAt: '2026-11-04T10:01:00.000Z', pageCount: 2 },
+    });
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    render(<ManualExportPanel />);
+
+    await user.click(await screen.findByRole('checkbox', { name: /Material acadêmico/ }));
+    await user.selectOptions(screen.getByLabelText('Tipo de material de estudo'), 'flashcards');
+    await user.click(screen.getByLabelText('Revisei este conteúdo: não contém dados sensíveis.'));
+    await user.click(screen.getByLabelText('Autorizo incluir informações da categoria acadêmica.'));
+    await user.click(screen.getByRole('button', { name: 'Gerar prévia exata' }));
+
+    const preview = await screen.findByLabelText('Texto exato que será copiado');
+    expect((preview as HTMLTextAreaElement).value).toContain('Definição de limite e continuidade.');
+    expect((preview as HTMLTextAreaElement).value).toContain('Disciplina: Cálculo I');
+    expect((preview as HTMLTextAreaElement).value).toContain('flashcards');
+    expect((preview as HTMLTextAreaElement).value).toContain('Páginas: 2');
   });
 
   it('permite bloquear novas preparações e persiste o bloqueio', async () => {

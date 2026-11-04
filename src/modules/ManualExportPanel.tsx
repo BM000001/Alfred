@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  disciplineRepository,
   egressAuditRepository,
   egressSettingsRepository,
+  fileRepository,
   memoryRepository,
   studyTopicRepository,
   taskRepository,
@@ -20,6 +22,14 @@ import {
 } from './assistant/egressPolicy';
 
 interface RecordOption { item: EgressItem; label: string; }
+const OUTPUT_INSTRUCTIONS: Record<string, string> = {
+  summary: 'Analise o material acadêmico e produza um resumo estruturado, com conceitos-chave, definições e exemplos presentes no texto.',
+  flashcards: 'Transforme o material acadêmico em flashcards de pergunta e resposta. Priorize conceitos importantes e evite perguntas ambíguas.',
+  questions: 'Crie questões de revisão com gabarito comentado, usando somente as informações do material acadêmico.',
+  exam: 'Monte um simulado com questões de múltipla escolha e discursivas, dificuldade progressiva e gabarito separado ao final.',
+  review: 'Crie um plano de revisão espaçada do conteúdo, dividindo os tópicos em sessões curtas e indicando o que revisar em cada sessão.',
+};
+
 const labels: Record<EgressDataClass, string> = {
   public: 'Pública',
   personal: 'Pessoal',
@@ -31,7 +41,8 @@ export function ManualExportPanel() {
   const [selected, setSelected] = useState<string[]>([]);
   const [safe, setSafe] = useState<string[]>([]);
   const [consent, setConsent] = useState<EgressDataClass[]>([]);
-  const [instruction, setInstruction] = useState('Analise o conteúdo e produza um resumo organizado.');
+  const [outputMode, setOutputMode] = useState('summary');
+  const [instruction, setInstruction] = useState(OUTPUT_INSTRUCTIONS.summary);
   const [preview, setPreview] = useState<ManualExportPreview | null>(null);
   const [settings, setSettings] = useState<EgressSettings | null>(null);
   const [audit, setAudit] = useState<EgressAuditEntry[]>([]);
@@ -47,9 +58,11 @@ export function ManualExportPanel() {
       taskRepository.getAll(),
       studyTopicRepository.getAll(),
       memoryRepository.getAll(),
+      fileRepository.getAll(),
+      disciplineRepository.getAll(),
       egressSettingsRepository.getById('global'),
       egressAuditRepository.getAll(),
-    ]).then(([tasks, topics, memories, savedSettings, savedAudit]) => {
+    ]).then(([tasks, topics, memories, storedFiles, disciplines, savedSettings, savedAudit]) => {
       if (!active) return;
       const options: RecordOption[] = [
         ...tasks.map(task => ({ label: `Tarefa · ${task.title}`, item: {
@@ -65,6 +78,21 @@ export function ManualExportPanel() {
           id: `memory:${memory.id}`, label: memory.title, dataClass: 'personal' as const,
           content: `Título: ${memory.title}\nCategoria: ${memory.category}\nConteúdo: ${memory.content}`,
         }})),
+        ...storedFiles.filter(file => file.extraction?.text.trim()).map(file => {
+          const discipline = disciplines.find(item => item.id === file.disciplineId)?.name;
+          const extraction = file.extraction!;
+          return { label: `Material acadêmico · ${file.name}${discipline ? ` (${discipline})` : ''}`, item: {
+            id: `file:${file.id}`, label: file.name, dataClass: 'academic' as const,
+            content: [
+              `Arquivo: ${file.name}`,
+              discipline ? `Disciplina: ${discipline}` : 'Disciplina: não vinculada',
+              `Formato: ${extraction.format.toUpperCase()}`,
+              extraction.pageCount ? `Páginas: ${extraction.pageCount}` : '',
+              '',
+              extraction.text,
+            ].filter(Boolean).join('\\n'),
+          }};
+        }),
       ];
       setRecords(options);
       setSettings(savedSettings ?? DEFAULT_EGRESS_SETTINGS);
@@ -191,7 +219,7 @@ export function ManualExportPanel() {
     </div>}
     {!loading && !settings?.enabled && <p className="assistant-export-disabled" role="status">Bloqueado: a preparação de conteúdo para serviços externos está desativada neste dispositivo.</p>}
     {loading && <p role="status">Carregando dados locais…</p>}
-    {!loading && records.length === 0 && <p>Nenhuma tarefa, tópico de estudo ou memória disponível.</p>}
+    {!loading && records.length === 0 && <p>Nenhuma tarefa, tópico, memória ou arquivo com texto extraído disponível.</p>}
     {!loading && settings?.enabled && records.length > 0 && <div className="assistant-export-group">
       <strong>1. Selecione os conteúdos</strong>
       {records.map(({ item, label }) => <div className="assistant-export-record" key={item.id}>
@@ -199,9 +227,14 @@ export function ManualExportPanel() {
         {selected.includes(item.id) && <label className="assistant-export-safe"><input type="checkbox" checked={safe.includes(item.id)} onChange={event => { invalidate(); setConsent([]); setSafe(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id)); }} /><span>Revisei este conteúdo: não contém dados sensíveis.</span></label>}
       </div>)}
     </div>}
-    {settings?.enabled && <label className="assistant-export-instruction" htmlFor="manual-export-instruction"><strong>2. O que a IA deve fazer?</strong>
-      <textarea id="manual-export-instruction" rows={3} maxLength={500} value={instruction} onChange={event => { setInstruction(event.target.value); setConsent([]); invalidate(); }} />
-    </label>}
+    {settings?.enabled && <div className="assistant-export-instruction"><strong>2. O que a IA deve fazer?</strong>
+      <label className="sr-only" htmlFor="manual-export-output">Tipo de material de estudo</label>
+      <select id="manual-export-output" value={outputMode} onChange={event => { const mode = event.target.value; setOutputMode(mode); if (mode !== 'custom') setInstruction(OUTPUT_INSTRUCTIONS[mode]); setConsent([]); invalidate(); }}>
+        <option value="summary">Resumo estruturado</option><option value="flashcards">Flashcards</option><option value="questions">Questões de revisão</option><option value="exam">Simulado</option><option value="review">Plano de revisão espaçada</option><option value="custom">Instrução personalizada</option>
+      </select>
+      <label className="sr-only" htmlFor="manual-export-instruction">Instrução para a IA</label>
+      <textarea id="manual-export-instruction" rows={4} maxLength={500} value={instruction} onChange={event => { setOutputMode('custom'); setInstruction(event.target.value); setConsent([]); invalidate(); }} />
+    </div>}
     {settings?.enabled && <div className="assistant-export-group"><strong>3. Autorize as categorias selecionadas</strong>
       <p>Esta autorização vale somente para esta preparação.</p>
       {classes.length === 0 ? <small>Selecione conteúdos para ver as autorizações necessárias.</small> : classes.map(value => <label key={value}><input type="checkbox" checked={consent.includes(value)} onChange={event => { invalidate(); setConsent(current => event.target.checked ? [...current, value] : current.filter(item => item !== value)); }} />Autorizo incluir informações da categoria {labels[value].toLowerCase()}.</label>)}
