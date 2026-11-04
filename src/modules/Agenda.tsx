@@ -4,7 +4,7 @@ import { findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agen
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
-import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarEvent } from './agenda/nativeCalendarBridge';
+import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarEvent, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
@@ -48,6 +48,9 @@ export function Agenda() {
   const [appleBusy, setAppleBusy] = useState(false);
   const [appleMessage, setAppleMessage] = useState('');
   const [appleLastSync, setAppleLastSync] = useState<string | null>(null);
+  const [appleCalendars, setAppleCalendars] = useState<NativeCalendarInfo[]>([]);
+  const [selectedAppleCalendars, setSelectedAppleCalendars] = useState<string[]>([]);
+  const [appleConnected, setAppleConnected] = useState(false);
   const appleAvailable = isNativeAppleCalendarAvailable();
 
   async function saveAppleEvents(events: NativeCalendarEvent[]) {
@@ -73,9 +76,18 @@ export function Agenda() {
     setAppleBusy(true);
     setAppleMessage(connect ? 'Solicitando acesso ao Calendário Apple...' : 'Lendo eventos do Calendário Apple...');
     try {
-      const response = connect ? await connectAppleCalendar() : await syncAppleCalendar();
-      const count = await saveAppleEvents(response.events ?? []);
-      setAppleMessage(`${count} evento(s) do Apple Calendar sincronizado(s). Seus compromissos manuais foram preservados.`);
+      if (connect) {
+        const response = await connectAppleCalendar();
+        const calendars = response.calendars ?? [];
+        setAppleCalendars(calendars);
+        setSelectedAppleCalendars(calendars.map((calendar) => calendar.id));
+        setAppleConnected(true);
+        setAppleMessage(`${calendars.length} calendário(s) encontrado(s). Escolha quais deseja sincronizar.`);
+      } else {
+        const response = await syncAppleCalendar(selectedAppleCalendars);
+        const count = await saveAppleEvents(response.events ?? []);
+        setAppleMessage(`${count} evento(s) sincronizado(s) de ${selectedAppleCalendars.length} calendário(s). Seus compromissos manuais foram preservados.`);
+      }
     } catch (cause) {
       setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Calendário Apple.');
     } finally {
@@ -210,9 +222,10 @@ export function Agenda() {
         {appleAvailable ? <>
           <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais.</p>
           <div className="apple-calendar-actions">
-            <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : 'Conectar Calendário Apple'}</button>
-            <button className="text-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(false)}>Sincronizar agora</button>
+            <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : appleConnected ? 'Atualizar lista de calendários' : 'Conectar Calendário Apple'}</button>
+            <button className="text-action" type="button" disabled={appleBusy || !appleConnected || selectedAppleCalendars.length === 0} onClick={() => void handleAppleCalendar(false)}>Sincronizar selecionados</button>
           </div>
+          {appleConnected && <div className="apple-calendar-picker"><strong>Escolha os calendários para importar</strong>{appleCalendars.length === 0 ? <p>Nenhum calendário disponível para leitura.</p> : appleCalendars.map((calendar) => <label key={calendar.id} className="apple-calendar-option"><input type="checkbox" checked={selectedAppleCalendars.includes(calendar.id)} onChange={(event) => setSelectedAppleCalendars((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} /><span><b>{calendar.title}</b><small>{calendar.source}</small></span></label>)}</div>}
           {appleLastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(appleLastSync).toLocaleString('pt-BR')}</small>}
           {appleMessage && <p className="module-feedback" role="status">{appleMessage}</p>}
         </> : <>
