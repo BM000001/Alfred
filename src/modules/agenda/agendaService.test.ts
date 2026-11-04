@@ -198,6 +198,28 @@ describe('agendaService', () => {
     expect((await service.get(otherCalendar.id))?.status).toBe('scheduled');
   });
 
+  it('does not archive imported events outside the exact completed snapshot range', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: () => 'snapshot-range-event' });
+    const appointment = await service.upsertImported({
+      importedUid: 'apple:outside-range',
+      importedCalendarId: 'calendar-a',
+      title: 'Compromisso futuro',
+      type: 'other',
+      startsAt: '2026-12-15T10:00:00.000Z',
+      endsAt: '2026-12-15T11:00:00.000Z',
+    });
+
+    const count = await service.reconcileImportedCalendar(
+      'calendar-a', [], '2026-11-04T00:00:00.000Z', '2026-12-04T00:00:00.000Z',
+    );
+    expect(count).toBe(0);
+    expect((await service.get(appointment.id))?.status).toBe('scheduled');
+    await expect(service.reconcileImportedCalendar(
+      'calendar-a', [], 'invalid', '2026-12-04T00:00:00.000Z',
+    )).rejects.toThrow('Intervalo inválido');
+  });
+
   it('cancels and deletes appointments', async () => {
     const service = createAgendaService(createMemoryRepository<Appointment>(), { createId: () => 'appointment-2' });
     const created = await service.create({
