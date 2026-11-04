@@ -220,6 +220,117 @@ describe('agendaService', () => {
     )).rejects.toThrow('Intervalo inválido');
   });
 
+  it('keeps the same Alfred appointment when EventKit changes an event ID after a calendar move', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `stable-${++id}`; })() });
+    const first = await service.upsertImported({
+      importedUid: 'apple:old-event-id',
+      importedStableUid: 'apple-stable:server-event-42:single',
+      importedCalendarId: 'calendar-personal',
+      title: 'Consulta',
+      type: 'personal',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+    });
+
+    const moved = await service.upsertImported({
+      importedUid: 'apple:new-event-id',
+      importedStableUid: 'apple-stable:server-event-42:single',
+      importedCalendarId: 'calendar-work',
+      importedCalendarName: 'Trabalho',
+      title: 'Consulta remarcada',
+      type: 'personal',
+      startsAt: '2026-11-12T14:00:00.000Z',
+      endsAt: '2026-11-12T15:00:00.000Z',
+    });
+
+    expect(moved.id).toBe(first.id);
+    expect(await service.list()).toHaveLength(1);
+    expect(moved).toMatchObject({
+      importedUid: 'apple:new-event-id',
+      importedStableUid: 'apple-stable:server-event-42:single',
+      importedCalendarId: 'calendar-work',
+      importedCalendarName: 'Trabalho',
+      title: 'Consulta remarcada',
+    });
+  });
+
+  it('does not merge duplicate external copies when stable identity is ambiguous', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `copy-${++id}`; })() });
+    await service.upsertImported({
+      importedUid: 'apple:copy-a',
+      importedStableUid: 'apple-stable:shared-server-id:single',
+      importedCalendarId: 'calendar-a',
+      title: 'Evento compartilhado',
+      type: 'other',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+    });
+    await service.upsertImported({
+      importedUid: 'apple:copy-b',
+      importedStableUid: 'apple-stable:shared-server-id:single',
+      importedCalendarId: 'calendar-b',
+      title: 'Evento compartilhado',
+      type: 'other',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+    });
+
+    const changed = await service.upsertImported({
+      importedUid: 'apple:copy-c',
+      importedStableUid: 'apple-stable:shared-server-id:single',
+      importedCalendarId: 'calendar-c',
+      title: 'Cópia em outro calendário',
+      type: 'other',
+      startsAt: '2026-11-12T12:00:00.000Z',
+      endsAt: '2026-11-12T13:00:00.000Z',
+    });
+
+    expect(await service.list()).toHaveLength(3);
+    expect(changed.id).toBe('copy-3');
+  });
+
+  it('uses the original occurrence date to keep recurring events distinct after edits', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `occurrence-${++id}`; })() });
+    const first = await service.upsertImported({
+      importedUid: 'apple:occurrence-a',
+      importedStableUid: 'apple-stable:series-7:2026-11-12T08:00:00.000Z',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula semanal',
+      type: 'class',
+      startsAt: '2026-11-12T08:00:00.000Z',
+      endsAt: '2026-11-12T09:00:00.000Z',
+      isRecurring: true,
+    });
+    const second = await service.upsertImported({
+      importedUid: 'apple:occurrence-b',
+      importedStableUid: 'apple-stable:series-7:2026-11-19T08:00:00.000Z',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula semanal',
+      type: 'class',
+      startsAt: '2026-11-19T08:00:00.000Z',
+      endsAt: '2026-11-19T09:00:00.000Z',
+      isRecurring: true,
+    });
+    const editedFirst = await service.upsertImported({
+      importedUid: 'apple:detached-occurrence-a',
+      importedStableUid: 'apple-stable:series-7:2026-11-12T08:00:00.000Z',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula semanal alterada',
+      type: 'class',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+      isRecurring: true,
+    });
+
+    expect(editedFirst.id).toBe(first.id);
+    expect(second.id).not.toBe(first.id);
+    expect(await service.list()).toHaveLength(2);
+    expect(editedFirst.startsAt).toBe('2026-11-12T10:00:00.000Z');
+  });
+
   it('cancels and deletes appointments', async () => {
     const service = createAgendaService(createMemoryRepository<Appointment>(), { createId: () => 'appointment-2' });
     const created = await service.create({
