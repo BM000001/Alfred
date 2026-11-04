@@ -51,10 +51,10 @@ export function ICalendarImport({ existing, onImported }: { existing: Appointmen
   }
 
   return <section className="entry-panel ical-import">
-    <span className="card-label">IMPORTAR CALENDÁRIO</span>
-    <h3>Trazer eventos do iCloud</h3>
-    <p>Exporte sua agenda como arquivo .ics e selecione-o aqui. A leitura acontece neste dispositivo; nada é enviado a um servidor.</p>
-    <label className="field-label" htmlFor="ical-file">Arquivo de calendário (.ics)</label>
+    <span className="card-label">CALENDÁRIO APPLE · PRIMEIRA INTEGRAÇÃO</span>
+    <h3>Importar eventos do Calendário Apple</h3>
+    <p>O Alfred já consegue ler arquivos de calendário Apple (.ics) diretamente neste dispositivo. No Mac, abra o app Calendário, escolha Arquivo → Exportar → Exportar e selecione o arquivo aqui. A importação cria uma cópia dos eventos; alterações posteriores no calendário Apple ainda não são sincronizadas automaticamente.</p>
+    <label className="field-label" htmlFor="ical-file">Arquivo exportado do Calendário Apple (.ics)</label>
     <input id="ical-file" type="file" accept=".ics,text/calendar" onChange={(event) => void handleFile(event)} />
     {warnings.length > 0 && <ul className="ical-warnings">{warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>}
     {rows.length > 0 && <>
