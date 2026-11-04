@@ -27,7 +27,7 @@ function normalize(value: string): string {
       const code = character.codePointAt(0) ?? 0;
       return code < 0x300 || code > 0x36f;
     })
-    .join('').replace(/[^a-z0-9\\s]/g, ' ').replace(/\\s+/g, ' ').trim();
+    .join('').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 /** Reduz apenas plurais regulares comuns; não tenta fazer stemming semântico. */
