@@ -56,7 +56,7 @@ final class AlfredCalendarAccess {
 
     /// Returns events in the device's local calendar range.
     /// Events without a stable EventKit identifier are omitted to avoid duplicate imports.
-    func snapshot(from start: Date = .now, daysAhead: Int = 90, calendarIds: [String]? = nil) throws -> CalendarSnapshot {
+    func snapshot(from start: Date = .now, daysAhead: Int = 90, calendarIds: [String]) throws -> CalendarSnapshot {
         guard (1...365).contains(daysAhead) else {
             throw CalendarAccessError.invalidDateRange
         }
@@ -67,19 +67,16 @@ final class AlfredCalendarAccess {
         }
 
         let end = Calendar.current.date(byAdding: .day, value: daysAhead, to: start) ?? start
-        let selectedCalendars: [EKCalendar]?
-        if let calendarIds {
-            let requestedIds = Set(calendarIds)
-            let availableCalendars = store.calendars(for: .event)
-            let matches = availableCalendars.filter { requestedIds.contains($0.calendarIdentifier) }
-            // Never return a misleading partial/empty snapshot: the caller may use it
-            // to reconcile and archive events that appear to have disappeared.
-            guard !requestedIds.isEmpty, matches.count == requestedIds.count else {
-                throw CalendarAccessError.invalidCalendarSelection
-            }
-            selectedCalendars = matches
-        } else {
-            selectedCalendars = nil
+        let requestedIds = Set(calendarIds)
+        guard !requestedIds.isEmpty, requestedIds.count == calendarIds.count else {
+            throw CalendarAccessError.invalidCalendarSelection
+        }
+        let availableCalendars = store.calendars(for: .event)
+        let selectedCalendars = availableCalendars.filter { requestedIds.contains($0.calendarIdentifier) }
+        // Never return a misleading partial/empty snapshot: the caller may use it
+        // to reconcile and archive events that appear to have disappeared.
+        guard selectedCalendars.count == requestedIds.count else {
+            throw CalendarAccessError.invalidCalendarSelection
         }
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: selectedCalendars)
 
@@ -115,7 +112,7 @@ final class AlfredCalendarAccess {
             events: events,
             rangeStart: formatter.string(from: start),
             rangeEnd: formatter.string(from: end),
-            calendarIds: (selectedCalendars ?? store.calendars(for: .event)).map(\.calendarIdentifier)
+            calendarIds: selectedCalendars.map(\.calendarIdentifier)
         )
     }
 }
