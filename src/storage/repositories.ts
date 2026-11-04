@@ -2,6 +2,7 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import type { Discipline, StudyTopic } from '../modules/studies/types';
+import type { StudyFlashcard } from '../modules/studies/flashcardTypes';
 import type { StoredFile } from '../modules/files/types';
 import type { FocusSession } from '../modules/productivity/types';
 import type { AssistantMessage } from '../modules/assistant/contracts';
@@ -51,6 +52,7 @@ export const projectRepository = createRepository<Project>(STORE_NAMES.projects)
 export const appointmentRepository = createRepository<Appointment>(STORE_NAMES.appointments);
 export const disciplineRepository = createRepository<Discipline>(STORE_NAMES.disciplines);
 export const studyTopicRepository = createRepository<StudyTopic>(STORE_NAMES.studyTopics);
+export const studyFlashcardRepository = createRepository<StudyFlashcard>(STORE_NAMES.studyFlashcards);
 
 export const fileRepository = createRepository<StoredFile>(STORE_NAMES.files);
 export const focusSessionRepository = createRepository<FocusSession>(STORE_NAMES.focusSessions);
