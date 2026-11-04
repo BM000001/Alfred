@@ -19,7 +19,18 @@ Não devemos simular uma conexão automática nem pedir credenciais do iCloud. A
 5. Fazer correspondência pelo identificador nativo do evento para atualizar registros importados sem duplicá-los.
 6. Manter a agenda manual independente e permitir desconectar/revogar o acesso.
 
-O arquivo `native/ios/AlfredCalendarAccess.swift` contém o primeiro serviço nativo EventKit. Ele é um ponto de partida para o aplicativo iOS; ainda não está ligado ao site/PWA nem pode ser compilado pelo pipeline web atual.
+O serviço EventKit está em `native/ios/AlfredCalendarAccess.swift`. A casca SwiftUI/WebView está em `native/ios/AlfredApp.swift` e `native/ios/AlfredWebView.swift`. O cliente TypeScript da ponte está em `src/modules/agenda/nativeCalendarBridge.ts`.
+
+A ponte recebe as ações `connect` e `sync` pelo canal nativo `alfredCalendar` e devolve os eventos por meio do evento JavaScript `alfred-native-calendar`. O cliente TypeScript oferece `isNativeAppleCalendarAvailable()`, `connectAppleCalendar()` e `syncAppleCalendar()`. A ponte só aceita mensagens da página principal hospedada em `bm000001.github.io`.
+
+**Configuração necessária no projeto Xcode:** adicionar os três arquivos Swift ao target iOS, definir deployment target iOS 17 ou superior e incluir no Info.plist:
+
+```xml
+<key>NSCalendarsFullAccessUsageDescription</key>
+<string>O Alfred precisa ler seus calendários para organizar seus compromissos e mostrar sua agenda.</string>
+```
+
+Esta estrutura ainda não é um projeto Xcode completo, não foi compilada em Xcode e a interface web ainda não chama os métodos da ponte. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
 
 ## Etapa Google (segunda)
 
