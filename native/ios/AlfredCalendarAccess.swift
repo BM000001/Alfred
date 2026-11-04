@@ -28,6 +28,7 @@ final class AlfredCalendarAccess {
         let endsAt: String
         let isAllDay: Bool
         let calendarTitle: String
+        let calendarId: String
         let location: String?
     }
 
@@ -72,6 +73,7 @@ final class AlfredCalendarAccess {
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
                     isAllDay: event.isAllDay,
                     calendarTitle: event.calendar.title,
+                    calendarId: event.calendar.calendarIdentifier,
                     location: event.location
                 )
             }
