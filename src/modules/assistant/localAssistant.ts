@@ -61,7 +61,10 @@ export class LocalAssistantProvider implements AIProvider {
           ? this.memories.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 10).map(memory => ({ memory, matchedTerms: [], score: 0 }))
           : retrieveRelevantMemories(this.memories, rawPrompt, 3);
       const message = matches.length
-        ? \`Encontrei estas memórias locais relevantes:\n\${matches.map(({ memory, matchedTerms }) => \`• \${memory.title} (\${memory.category}): \${memory.content}\${matchedTerms.length ? \` — relação: \${matchedTerms.join(', ')}\` : ' — listada a pedido geral'}\`).join('\n')}\`
+        ? 'Encontrei estas memórias locais relevantes:\n' + matches.map(({ memory, matchedTerms }) =>
+            '• ' + memory.title + ' (' + memory.category + '): ' + memory.content +
+            (matchedTerms.length ? ' — relação: ' + matchedTerms.join(', ') : ' — listada a pedido geral')
+          ).join('\n')
         : this.memories.length
           ? 'Não encontrei uma memória relacionada a esse assunto. Não vou listar informações sem relação com o pedido. Se desejar, tente outro termo ou consulte todas as memórias salvas.'
           : 'Ainda não há memórias salvas. O senhor pode adicionar preferências, objetivos, rotinas ou informações de projetos no painel “Memórias do Alfred”. Não salvo informações automaticamente.';
