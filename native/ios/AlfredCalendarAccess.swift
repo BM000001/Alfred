@@ -9,8 +9,6 @@ final class AlfredCalendarAccess {
 
     struct CalendarInfo: Codable {
         let id: String
-        let externalId: String?
-        let occurrenceDate: String?
         let title: String
         let source: String
     }
@@ -25,6 +23,8 @@ final class AlfredCalendarAccess {
 
     struct CalendarEvent: Codable {
         let id: String
+        let externalId: String?
+        let occurrenceDate: String?
         let title: String
         let startsAt: String
         let endsAt: String
