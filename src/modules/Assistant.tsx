@@ -9,6 +9,7 @@ import { prepareTaskDueDateUpdate } from './assistant/taskDueDateProposals';
 import { prepareTaskDescriptionUpdate } from './assistant/taskDescriptionProposals';
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
+import { Brain } from './brain';
 import { AssistantMemoryPanel } from './AssistantMemoryPanel';
 import { ManualExportPanel } from './ManualExportPanel';
 import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
@@ -188,9 +189,11 @@ export function Assistant() {
         return;
       }
       const provider = new LocalAssistantProvider({ tasks, appointments, topics }, memories);
-      const response = await provider.generate({
-        messages: nextMessages,
-        context: { locale: 'pt-BR', now: new Date().toISOString(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'local' },
+      const brain = new Brain({ provider });
+      const response = await brain.process(nextMessages, {
+        locale: 'pt-BR',
+        now: new Date().toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'local',
       });
       setMessages((current) => [...current, createMessage('assistant', response.message)]);
     } catch {
