@@ -10,6 +10,7 @@ export interface QuestionPerformance {
   correct: number;
   incorrect: number;
   accuracy: number;
+  lastAttemptAt?: string;
 }
 
 export interface TopicPerformance {
