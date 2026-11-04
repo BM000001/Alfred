@@ -54,6 +54,48 @@ describe('agendaService', () => {
   });
 
 
+  it('keeps recurring calendar occurrences as separate appointments across syncs', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, {
+      createId: (() => { let id = 0; return () => `recurring-${++id}`; })(),
+    });
+
+    // EventKit provides a distinct eventIdentifier for each occurrence.
+    // Re-syncing those same identifiers must update, not duplicate, either occurrence.
+    const firstOccurrence = await service.upsertImported({
+      importedUid: 'apple:series-occurrence-2026-11-05',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula recorrente',
+      type: 'class',
+      startsAt: '2026-11-05T08:00:00.000Z',
+      endsAt: '2026-11-05T09:00:00.000Z',
+    });
+    const secondOccurrence = await service.upsertImported({
+      importedUid: 'apple:series-occurrence-2026-11-06',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula recorrente',
+      type: 'class',
+      startsAt: '2026-11-06T08:00:00.000Z',
+      endsAt: '2026-11-06T09:00:00.000Z',
+    });
+
+    const refreshedFirst = await service.upsertImported({
+      importedUid: 'apple:series-occurrence-2026-11-05',
+      importedCalendarId: 'calendar-classes',
+      title: 'Aula recorrente atualizada',
+      type: 'class',
+      startsAt: '2026-11-05T08:30:00.000Z',
+      endsAt: '2026-11-05T09:30:00.000Z',
+    });
+
+    const all = await service.list();
+    expect(firstOccurrence.id).not.toBe(secondOccurrence.id);
+    expect(refreshedFirst.id).toBe(firstOccurrence.id);
+    expect(all).toHaveLength(2);
+    expect(all.find((item) => item.id === firstOccurrence.id)?.startsAt).toBe('2026-11-05T08:30:00.000Z');
+    expect(all.find((item) => item.id === secondOccurrence.id)?.startsAt).toBe('2026-11-06T08:00:00.000Z');
+  });
+
   it('preserves all-day metadata when importing and updating calendar events', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: () => 'all-day-event' });
