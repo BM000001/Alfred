@@ -96,6 +96,7 @@ export function Agenda() {
       if (!event.id || !event.startsAt || !event.endsAt || !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt))) continue;
       await agenda.upsertImported({
         importedUid: `apple:${event.id}`,
+        importedStableUid: `apple-stable:${event.externalId || event.id}:${event.occurrenceDate || (event.isRecurring ? event.id : 'single')}`,
         importedCalendarId: event.calendarId,
         title: (event.title || 'Sem título').slice(0, 120),
         type: classifyImportedAppointment(event.title || ''),
