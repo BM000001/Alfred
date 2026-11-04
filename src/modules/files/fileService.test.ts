@@ -37,6 +37,26 @@ describe('fileService', () => {
     });
     expect((await service.list()).find((item) => item.id === 'legacy-file')).not.toHaveProperty('disciplineId');
   });
+  it('permite reatribuir e remover a disciplina sem perder o arquivo nem a extração', async () => {
+    const repository = memoryRepository();
+    const service = createFileService(repository, () => 'file-move');
+    await service.add(new File(['material original'], 'aula.txt', { type: 'text/plain' }), 'discipline-1');
+    const extraction = { format: 'txt' as const, text: 'Material original', characterCount: 17, wordCount: 2, extractedAt: '2026-11-04T15:00:00.000Z' };
+    await service.saveExtraction('file-move', extraction);
+
+    await service.setDiscipline('file-move', 'discipline-2');
+    expect((await service.get('file-move'))?.disciplineId).toBe('discipline-2');
+    expect((await service.get('file-move'))?.extraction).toEqual(extraction);
+    expect((await service.get('file-move'))?.blob.size).toBe(17);
+
+    await service.setDiscipline('file-move');
+    expect((await service.get('file-move'))?.disciplineId).toBeUndefined();
+    expect((await service.list())[0].disciplineId).toBeUndefined();
+  });
+  it('rejeita reatribuição de arquivo inexistente', async () => {
+    const service = createFileService(memoryRepository());
+    await expect(service.setDiscipline('missing', 'discipline-1')).rejects.toThrow(/não encontrado/);
+  });
   it('persiste o texto extraído e o reutiliza sem alterar o arquivo original', async () => {
     const repository = memoryRepository();
     const service = createFileService(repository, () => 'file-extracted');
