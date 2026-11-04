@@ -44,7 +44,7 @@ export class LocalAssistantProvider implements AIProvider {
   readonly id = 'local-rules';
   readonly tools: ReturnType<typeof createReadOnlyTools>;
 
-  constructor(private readonly data: ReadToolData, private readonly memories: AssistantMemory[] = []) {
+  constructor(data: ReadToolData, private readonly memories: AssistantMemory[] = []) {
     this.tools = createReadOnlyTools(data);
   }
 
