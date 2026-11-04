@@ -26,6 +26,17 @@ describe('Brain foundation', () => {
     expect(provider.generate).toHaveBeenCalledOnce();
   });
 
+  it('registers tools exposed by its provider', () => {
+    const tool = { id: 'tasks.list', description: 'Read tasks', risk: 'read' as const, approval: 'never' as const, execute: async () => [] };
+    const provider: AIProvider = {
+      id: 'provider-with-tools',
+      tools: [tool],
+      generate: vi.fn(async () => ({ message: 'ok', usedTools: [], warnings: [] })),
+    };
+    const brain = new Brain({ provider });
+    expect(brain.tools.get('tasks.list')).toBeDefined();
+  });
+
   it('rejects duplicate tool identifiers', () => {
     const registry = new ToolRegistry();
     const tool = { id: 'tasks.list', description: 'Read tasks', risk: 'read' as const, approval: 'never' as const, execute: async () => [] };
