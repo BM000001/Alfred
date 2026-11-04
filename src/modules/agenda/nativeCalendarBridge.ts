@@ -21,6 +21,10 @@ export interface NativeCalendarResponse {
   status: 'connected' | 'success' | 'error';
   events?: NativeCalendarEvent[];
   calendars?: NativeCalendarInfo[];
+  snapshotComplete?: boolean;
+  rangeStart?: string;
+  rangeEnd?: string;
+  calendarIds?: string[];
   message?: string;
 }
 
