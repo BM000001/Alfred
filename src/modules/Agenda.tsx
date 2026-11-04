@@ -4,6 +4,7 @@ import { findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agen
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
+import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarEvent } from './agenda/nativeCalendarBridge';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
@@ -44,6 +45,43 @@ export function Agenda() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [conflicts, setConflicts] = useState<Appointment[]>([]);
+  const [appleBusy, setAppleBusy] = useState(false);
+  const [appleMessage, setAppleMessage] = useState('');
+  const [appleLastSync, setAppleLastSync] = useState<string | null>(null);
+  const appleAvailable = isNativeAppleCalendarAvailable();
+
+  async function saveAppleEvents(events: NativeCalendarEvent[]) {
+    let imported = 0;
+    for (const event of events) {
+      if (!event.id || !event.startsAt || !event.endsAt || !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt))) continue;
+      await agenda.upsertImported({
+        importedUid: `apple:${event.id}`,
+        title: (event.title || 'Sem título').slice(0, 120),
+        type: 'other',
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        ...(event.location ? { location: event.location } : {}),
+      });
+      imported += 1;
+    }
+    await refresh();
+    setAppleLastSync(new Date().toISOString());
+    return imported;
+  }
+
+  async function handleAppleCalendar(connect: boolean) {
+    setAppleBusy(true);
+    setAppleMessage(connect ? 'Solicitando acesso ao Calendário Apple...' : 'Lendo eventos do Calendário Apple...');
+    try {
+      const response = connect ? await connectAppleCalendar() : await syncAppleCalendar();
+      const count = await saveAppleEvents(response.events ?? []);
+      setAppleMessage(`${count} evento(s) do Apple Calendar sincronizado(s). Seus compromissos manuais foram preservados.`);
+    } catch (cause) {
+      setAppleMessage(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Calendário Apple.');
+    } finally {
+      setAppleBusy(false);
+    }
+  }
 
   async function refresh() {
     const loaded = await agenda.list();
@@ -167,6 +205,16 @@ export function Agenda() {
         </button>
       </div>
 
+      {appleAvailable && <section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
+        <div className="apple-calendar-heading"><div><span className="card-label">INTEGRAÇÃO NATIVA · IOS</span><h3 id="apple-calendar-title">Calendário Apple</h3></div><span className="apple-calendar-indicator"><span /> Disponível neste dispositivo</span></div>
+        <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais.</p>
+        <div className="apple-calendar-actions">
+          <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : 'Conectar Calendário Apple'}</button>
+          <button className="text-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(false)}>Sincronizar agora</button>
+        </div>
+        {appleLastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(appleLastSync).toLocaleString('pt-BR')}</small>}
+        {appleMessage && <p className="module-feedback" role="status">{appleMessage}</p>}
+      </section>}
       <ICalendarImport existing={items} onImported={refresh} />
 
       <div className="agenda-controls">
