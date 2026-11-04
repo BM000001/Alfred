@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { disciplineRepository, fileRepository } from '../storage/repositories';
 import { createFileService } from './files/fileService';
+import { extractTextDocument, type ExtractedTextDocument } from './files/documentExtractor';
 import type { Discipline } from './studies/types';
 import type { FileSummary } from './files/types';
 
 const files = createFileService(fileRepository);
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) return String(bytes) + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 export function Files() {
   const [items, setItems] = useState<FileSummary[]>([]);
@@ -18,6 +19,8 @@ export function Files() {
   const [uploadDiscipline, setUploadDiscipline] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [readingFileId, setReadingFileId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ExtractedTextDocument | null>(null);
   async function refresh() {
     const [storedFiles, storedDisciplines] = await Promise.all([files.list(), disciplineRepository.getAll()]);
     setItems(storedFiles);
@@ -43,6 +46,7 @@ export function Files() {
     const selected = event.target.files?.[0];
     if (!selected) return;
     setError('');
+    setPreview(null);
     try { await files.add(selected, uploadDiscipline || undefined); await refresh(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o arquivo.'); }
     event.target.value = '';
@@ -58,10 +62,28 @@ export function Files() {
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível abrir o arquivo.'); }
   }
+  async function readText(item: FileSummary) {
+    setError('');
+    setReadingFileId(item.id);
+    setPreview(null);
+    try {
+      const stored = await files.get(item.id);
+      if (!stored) throw new Error('Arquivo não encontrado.');
+      const source = new File([stored.blob], stored.name, { type: stored.type });
+      setPreview(await extractTextDocument(source));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível ler o conteúdo deste arquivo.');
+    } finally {
+      setReadingFileId(null);
+    }
+  }
   async function removeFile(item: FileSummary) {
-    if (!window.confirm(`Excluir "${item.name}" do Alfred? Essa ação não pode ser desfeita.`)) return;
-    try { await files.delete(item.id); await refresh(); }
-    catch { setError('Não foi possível excluir o arquivo.'); }
+    if (!window.confirm('Excluir "' + item.name + '" do Alfred? Essa ação não pode ser desfeita.')) return;
+    try {
+      await files.delete(item.id);
+      if (preview?.fileName === item.name) setPreview(null);
+      await refresh();
+    } catch { setError('Não foi possível excluir o arquivo.'); }
   }
   function disciplineName(id?: string): string {
     return disciplines.find((discipline) => discipline.id === id)?.name ?? 'Sem disciplina';
@@ -90,8 +112,16 @@ export function Files() {
       <div className="stored-file-list">{visible.map((item) => <article className="stored-file" key={item.id}>
         <span className="stored-file-icon" aria-hidden="true">▤</span>
         <div className="stored-file-info"><strong>{item.name}</strong><span>{formatSize(item.size)} · {new Date(item.createdAt).toLocaleDateString('pt-BR')} · {disciplineName(item.disciplineId)}</span></div>
+        <button className="text-action" type="button" onClick={() => void readText(item)} disabled={readingFileId !== null} aria-label={'Ler texto de ' + item.name}>{readingFileId === item.id ? 'Lendo...' : 'Ler texto'}</button>
         <button className="text-action" type="button" onClick={() => void openFile(item)}>Abrir</button>
         <button className="text-action" type="button" onClick={() => void removeFile(item)}>Excluir</button>
       </article>)}</div>}
+    {preview && <article className="entry-panel file-text-preview" aria-live="polite">
+      <span className="card-label">LEITURA LOCAL · {preview.format.toUpperCase()}</span>
+      <h2>{preview.fileName}</h2>
+      <p className="optional-label">{preview.wordCount} palavras · {preview.characterCount} caracteres</p>
+      <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '24rem', overflowY: 'auto' }}>{preview.text}</pre>
+      <button className="text-action" type="button" onClick={() => setPreview(null)}>Fechar leitura</button>
+    </article>}
   </section>;
 }
