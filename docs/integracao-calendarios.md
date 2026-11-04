@@ -67,5 +67,6 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Reconciliação de eventos ausentes por calendário de origem, com cancelamento lógico e preservação do histórico.
 - [x] Proteção contra snapshots vazios/incompletos quando um calendário selecionado não está mais disponível no dispositivo.
 - [x] Classificação automática inicial dos eventos importados pelo título (aula, prova, prazo e pessoal).
+- [x] Preservação e exibição de eventos de dia inteiro na Agenda.
 - [ ] Sincronização incremental em segundo plano e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
