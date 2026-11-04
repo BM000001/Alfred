@@ -51,6 +51,9 @@ export function isNativeAppleCalendarAvailable(): boolean {
 }
 
 function requestNativeCalendar(action: 'connect' | 'sync', calendarIds?: string[]): Promise<NativeCalendarResponse> {
+  if (action === 'sync' && (!calendarIds || calendarIds.length === 0 || new Set(calendarIds).size !== calendarIds.length || calendarIds.some((id) => !id.trim()))) {
+    return Promise.reject(new Error('Selecione ao menos um calendário válido antes de sincronizar.'));
+  }
   if (!isNativeAppleCalendarAvailable()) {
     return Promise.reject(new Error('A conexão direta com o Calendário Apple está disponível no aplicativo iOS do Alfred.'));
   }
@@ -96,6 +99,6 @@ export function connectAppleCalendar(): Promise<NativeCalendarResponse> {
   return requestNativeCalendar('connect');
 }
 
-export function syncAppleCalendar(calendarIds?: string[]): Promise<NativeCalendarResponse> {
+export function syncAppleCalendar(calendarIds: string[]): Promise<NativeCalendarResponse> {
   return requestNativeCalendar('sync', calendarIds);
 }
