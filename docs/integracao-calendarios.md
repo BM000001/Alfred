@@ -39,7 +39,7 @@ open Alfred.xcodeproj
 
 O workflow `Alfred iOS Build` gera o projeto e tenta compilar para o simulador iOS no GitHub Actions. A instalação em iPhone ainda exige assinatura Apple Developer e perfil de provisionamento.
 
-O projeto Xcode pode ser gerado a partir da especificação XcodeGen. A compilação automática está configurada, mas ainda precisa concluir com sucesso. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. Eventos que possuem regras de repetição no EventKit são identificados com `hasRecurrenceRules` e recebem o indicador “Recorrente” na lista da Agenda; a informação é atualizada a cada sincronização. O nome do calendário de origem também é salvo e exibido em cada compromisso importado, permitindo distinguir, por exemplo, eventos vindos de “Universidade” e “Pessoal”. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
+O projeto Xcode pode ser gerado a partir da especificação XcodeGen. A compilação automática está configurada, mas ainda precisa concluir com sucesso. A interface da Agenda agora detecta a ponte nativa, oferece conectar/sincronizar no contêiner iOS e faz upsert dos eventos por `apple:<eventIdentifier>`, sem duplicar eventos nem substituir compromissos manuais. Cada resposta de sincronização informa `snapshotComplete`, os calendários consultados e os instantes exatos de início e fim usados pelo EventKit. A reconciliação só é executada se o snapshot estiver explicitamente completo, corresponder exatamente à seleção atual, tiver intervalo válido e todos os eventos tiverem identificadores, calendários e datas válidos. Se o EventKit retornar qualquer evento sem identificador estável, o app interrompe a operação em vez de omiti-lo e potencialmente arquivá-lo por engano. A reconciliação usa o intervalo nativo exato, não um novo intervalo calculado no navegador. Eventos que possuem regras de repetição no EventKit são identificados com `hasRecurrenceRules` e recebem o indicador “Recorrente” na lista da Agenda; a informação é atualizada a cada sincronização. O nome do calendário de origem também é salvo e exibido em cada compromisso importado, permitindo distinguir, por exemplo, eventos vindos de “Universidade” e “Pessoal”. A importação não envia notas dos eventos para o armazenamento da Agenda. O site/PWA no navegador continua sem acesso direto ao EventKit; a importação .ics segue disponível.
 
 ## Etapa Google (segunda)
 
@@ -71,5 +71,7 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Identificação visual de eventos recorrentes do Calendário Apple.
 - [x] Exibição do nome do calendário de origem nos eventos importados.
 - [x] Painel de diagnóstico da integração Apple na Agenda.
+- [x] Confirmação explícita de snapshot completo, intervalo nativo exato e calendários consultados antes da reconciliação.
+- [x] Interrupção segura da sincronização quando algum evento retornado não possui identificador estável ou dados válidos.
 - [ ] Sincronização incremental em segundo plano e testes em dispositivo real.
 - [ ] Integração Google Agenda via OAuth.
