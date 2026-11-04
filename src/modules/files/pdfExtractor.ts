@@ -21,13 +21,26 @@ export const MAX_PDF_PAGES_PER_EXTRACTION = 300;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
+function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error('Não foi possível decodificar o PDF.'));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('Falha ao ler o PDF.'));
+    reader.onabort = () => reject(new Error('A leitura do PDF foi interrompida.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 export async function extractPdfDocument(
   file: File,
   now: () => Date = () => new Date(),
 ): Promise<ExtractedPdfDocument> {
   if (file.size <= 0) throw new Error('O arquivo PDF está vazio.');
 
-  const data = new Uint8Array(await file.arrayBuffer());
+  const data = new Uint8Array(await readFileAsArrayBuffer(file));
   const loadingTask = pdfjsLib.getDocument({ data });
   let document: pdfjsLib.PDFDocumentProxy | undefined;
 
