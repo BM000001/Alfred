@@ -2986,3 +2986,16 @@ select:focus-visible, textarea:focus-visible {
 .study-material-import-preview>small{color:#8fa2bd;font-size:9px}
 .study-material-import-preview .primary-action{margin-top:4px}
 @media(max-width:600px){.study-material-importer{padding:14px}.study-material-importer .secondary-action{width:100%}}
+
+
+/* Integração nativa com Calendário Apple */
+.apple-calendar-panel{display:grid;gap:10px;margin:18px 0;padding:18px;border:1px solid rgba(151,177,222,.2);border-radius:14px;background:linear-gradient(145deg,rgba(17,29,48,.94),rgba(10,19,33,.96))}
+.apple-calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.apple-calendar-heading h3{margin:4px 0 0;color:#e5edfc;font-size:16px}
+.apple-calendar-panel>p{margin:0;color:#9fb0c9;font-size:11px;line-height:1.6}
+.apple-calendar-indicator{display:flex;align-items:center;gap:6px;color:#a9dfc1;font-size:9px;white-space:nowrap}
+.apple-calendar-indicator>span{width:6px;height:6px;border-radius:50%;background:#79c99c;box-shadow:0 0 8px rgba(121,201,156,.5)}
+.apple-calendar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.apple-calendar-actions button:disabled{opacity:.5;cursor:wait}
+.apple-calendar-last-sync{color:#8294ad;font-size:9px}
+@media(max-width:600px){.apple-calendar-panel{padding:14px}.apple-calendar-heading{align-items:flex-start;flex-direction:column}.apple-calendar-actions{display:grid;grid-template-columns:1fr}.apple-calendar-actions button{width:100%}}
