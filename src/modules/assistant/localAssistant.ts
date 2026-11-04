@@ -20,18 +20,25 @@ function normalizePrompt(value: string): string {
 }
 
 function detectIntents(prompt: string): Intent[] {
-  const value = normalizePrompt(prompt);
-  const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
-  const intents: Intent[] = [];
+  const clauses = prompt.split(/[.!?]+/).map(normalizePrompt).filter(Boolean);
+  const intents = new Set<Intent>();
 
-  if (has([/\b(memoria|memorias|lembra|lembrancas|recorda)\w*/]) || /\bo que voce sabe sobre mim\b/.test(value)) intents.push('memory');
-  if (has([/\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\w*/])) intents.push('studies');
-  if (has([/\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\w*/]) ||
-      /\b(quando|que dia|qual dia|o que tenho)\b/.test(value) && /\b(marcad|agendad|programad)\w*/.test(value)) intents.push('agenda');
-  if (has([/\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\w*/]) ||
-      /\b(o que|quais|qual) (preciso|devo|tenho que) fazer\b/.test(value) ||
-      /\b(minhas coisas|meus afazeres)\b/.test(value)) intents.push('tasks');
-  return intents;
+  for (const value of clauses) {
+    const has = (patterns: RegExp[]) => patterns.some((pattern) => pattern.test(value));
+    const asksAboutMemory = has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) &&
+      /\\bsobre\\b/.test(value);
+
+    if (asksAboutMemory || has([/\\b(memoria|memorias|lembra|lembrancas|recorda)\\w*/]) ||
+        /\\bo que voce sabe sobre mim\\b/.test(value)) intents.add('memory');
+    if (!asksAboutMemory && has([/\\b(estud|materia|disciplina|topico|aprend|revis|conteudo|progresso academico)\\w*/])) intents.add('studies');
+    if (has([/\\b(agenda|compromisso|evento|reuniao|consulta|encontro|horario|calendario)\\w*/]) ||
+        /\\b(quando|que dia|qual dia|o que tenho)\\b/.test(value) && /\\b(marcad|agendad|programad)\\w*/.test(value)) intents.add('agenda');
+    if (has([/\\b(tarefa|pendencia|pendente|afazer|to do|prioridade|entrega|prazo)\\w*/]) ||
+        /\\b(o que|quais|qual) (preciso|devo|tenho que) fazer\\b/.test(value) ||
+        /\\b(minhas coisas|meus afazeres)\\b/.test(value)) intents.add('tasks');
+  }
+
+  return [...intents];
 }
 
 function extractTopicQuery(prompt: string): string | undefined {
