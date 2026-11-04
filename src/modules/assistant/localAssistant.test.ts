@@ -51,6 +51,30 @@ describe('LocalAssistantProvider', () => {
     expect(result.message).not.toContain('Assistente pessoal local.');
   });
 
+  it('pede esclarecimento quando o pedido mistura domínios e não consulta dados', async () => {
+    const provider = new LocalAssistantProvider({ tasks, appointments: [], topics: [] });
+    const result = await provider.generate(request('Confira minha agenda e minhas tarefas pendentes'));
+    expect(result.message).toContain('mais de um assunto');
+    expect(result.usedTools).toEqual([]);
+    expect(result.warnings).toContain('Pedido ambíguo: nenhuma ferramenta foi executada.');
+  });
+
+  it('trata o assunto após “lembra sobre” como tema da memória, não como segunda intenção', async () => {
+    const provider = new LocalAssistantProvider({ tasks: [], appointments: [], topics: [] }, [
+      { id: 'm1', title: 'Estudos', content: 'Matemática.', category: 'routine', createdAt: '', updatedAt: '' },
+    ]);
+    const result = await provider.generate(request('O que você lembra sobre meus estudos?'));
+    expect(result.message).toContain('Matemática.');
+    expect(result.usedTools).toEqual(['memory.retrieve']);
+  });
+
+  it('continua pedindo esclarecimento quando a pergunta de memória vem acompanhada de outra ação', async () => {
+    const provider = new LocalAssistantProvider({ tasks: [], appointments: [], topics: [] });
+    const result = await provider.generate(request('O que você lembra sobre meus estudos? E confira minha agenda.'));
+    expect(result.message).toContain('mais de um assunto');
+    expect(result.usedTools).toEqual([]);
+  });
+
   it('não executa ferramentas quando o pedido não é reconhecido', async () => {
     const provider = new LocalAssistantProvider({ tasks, appointments: [], topics: [] });
     const result = await provider.generate(request('Olá Alfred'));
