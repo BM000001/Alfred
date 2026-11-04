@@ -40,6 +40,19 @@ describe('agendaService', () => {
     })).rejects.toThrow('O horário de término deve ser posterior ao início.');
   });
 
+  it('upserts imported calendar events without duplicating them or replacing manual appointments', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `event-${++id}`; })() });
+    const manual = await service.create({ title: 'Meu compromisso', type: 'personal', startsAt: '2026-11-04T10:00:00.000Z', endsAt: '2026-11-04T11:00:00.000Z' });
+    const first = await service.upsertImported({ importedUid: 'apple:stable-1', title: 'Evento Apple', type: 'other', startsAt: '2026-11-04T12:00:00.000Z', endsAt: '2026-11-04T13:00:00.000Z' });
+    const second = await service.upsertImported({ importedUid: 'apple:stable-1', title: 'Evento Apple atualizado', type: 'other', startsAt: '2026-11-04T13:00:00.000Z', endsAt: '2026-11-04T14:00:00.000Z' });
+    const all = await service.list();
+    expect(first.id).toBe(second.id);
+    expect(all).toHaveLength(2);
+    expect(all.find((item) => item.id === manual.id)?.title).toBe('Meu compromisso');
+    expect(all.find((item) => item.id === first.id)).toMatchObject({ title: 'Evento Apple atualizado', importedUid: 'apple:stable-1' });
+  });
+
   it('cancels and deletes appointments', async () => {
     const service = createAgendaService(createMemoryRepository<Appointment>(), { createId: () => 'appointment-2' });
     const created = await service.create({
