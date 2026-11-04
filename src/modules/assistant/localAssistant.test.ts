@@ -28,7 +28,7 @@ describe('LocalAssistantProvider', () => {
     ]);
     const result = await provider.generate(request('O que você lembra sobre mim?'));
     expect(result.message).toContain('Prefiro respostas objetivas.');
-    expect(result.usedTools).toEqual(['memory.list']);
+    expect(result.usedTools).toEqual(['memory.retrieve']);
   });
 
   it('recupera somente memórias relacionadas ao assunto solicitado', async () => {
