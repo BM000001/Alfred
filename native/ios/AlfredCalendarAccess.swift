@@ -29,7 +29,7 @@ final class AlfredCalendarAccess {
     }
 
     /// Returns events in the device's local calendar range.
-    /// The app must request permission before calling this method.
+    /// Events without a stable EventKit identifier are omitted to avoid duplicate imports.
     func events(from start: Date = .now, daysAhead: Int = 90) throws -> [CalendarEvent] {
         guard (1...365).contains(daysAhead) else {
             throw CalendarAccessError.invalidDateRange
@@ -45,9 +45,12 @@ final class AlfredCalendarAccess {
 
         return store.events(matching: predicate)
             .sorted { $0.startDate < $1.startDate }
-            .map { event in
-                CalendarEvent(
-                    id: event.eventIdentifier ?? UUID().uuidString,
+            .compactMap { event in
+                guard let stableId = event.eventIdentifier ?? event.calendarItemIdentifier else {
+                    return nil
+                }
+                return CalendarEvent(
+                    id: stableId,
                     title: event.title ?? "Sem título",
                     startsAt: ISO8601DateFormatter().string(from: event.startDate),
                     endsAt: ISO8601DateFormatter().string(from: event.endDate),
