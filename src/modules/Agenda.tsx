@@ -47,7 +47,7 @@ export function Agenda() {
   const [conflicts, setConflicts] = useState<Appointment[]>([]);
   const [appleBusy, setAppleBusy] = useState(false);
   const [appleMessage, setAppleMessage] = useState('');
-  const [appleLastSync, setAppleLastSync] = useState<string | null>(null);
+  const [appleLastSync, setAppleLastSync] = useState<string | null>(() => window.localStorage.getItem('alfred.appleCalendarLastSync'));
   const [appleCalendars, setAppleCalendars] = useState<NativeCalendarInfo[]>([]);
   const [selectedAppleCalendars, setSelectedAppleCalendars] = useState<string[]>(() => {
     try {
@@ -58,7 +58,7 @@ export function Agenda() {
       return [];
     }
   });
-  const [appleConnected, setAppleConnected] = useState(false);
+  const [appleConnected, setAppleConnected] = useState(() => selectedAppleCalendars.length > 0);
   const appleAvailable = isNativeAppleCalendarAvailable();
 
   async function saveAppleEvents(events: NativeCalendarEvent[]) {
@@ -67,6 +67,7 @@ export function Agenda() {
       if (!event.id || !event.startsAt || !event.endsAt || !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt))) continue;
       await agenda.upsertImported({
         importedUid: `apple:${event.id}`,
+        importedCalendarId: event.calendarId,
         title: (event.title || 'Sem título').slice(0, 120),
         type: 'other',
         startsAt: event.startsAt,
@@ -75,8 +76,18 @@ export function Agenda() {
       });
       imported += 1;
     }
+    const syncStart = new Date();
+    const syncEnd = new Date(syncStart.getTime() + 90 * 86400_000);
+    const snapshotUids = events.map((event) => `apple:${event.id}`);
+    let removed = 0;
+    for (const calendarId of selectedAppleCalendars) {
+      removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, syncStart.toISOString(), syncEnd.toISOString());
+    }
     await refresh();
-    setAppleLastSync(new Date().toISOString());
+    const syncedAt = new Date().toISOString();
+    setAppleLastSync(syncedAt);
+    window.localStorage.setItem('alfred.appleCalendarLastSync', syncedAt);
+    if (removed > 0) setAppleMessage(`${removed} evento(s) removido(s) da origem foram arquivados na Agenda.`);
     return imported;
   }
 
