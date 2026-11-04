@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WebKit
 import EventKit
 
@@ -7,9 +8,7 @@ import EventKit
 struct AlfredWebView: UIViewRepresentable {
     private let alfredURL = URL(string: "https://bm000001.github.io/Alfred/")!
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> WKWebView {
         let contentController = WKUserContentController()
@@ -39,67 +38,66 @@ struct AlfredWebView: UIViewRepresentable {
         weak var webView: WKWebView?
         private let calendarAccess = AlfredCalendarAccess()
 
+        private func isTrustedAlfredURL(_ url: URL?) -> Bool {
+            url?.scheme == "https" && url?.host == "bm000001.github.io"
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            // The bridge is available only to the trusted hosted Alfred origin.
-            guard webView.url?.host == "bm000001.github.io" else { return }
+            guard isTrustedAlfredURL(webView.url) else { return }
         }
 
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            guard let host = navigationAction.request.url?.host else {
-                decisionHandler(.cancel)
-                return
-            }
-            decisionHandler(host == "bm000001.github.io" ? .allow : .cancel)
+            decisionHandler(isTrustedAlfredURL(navigationAction.request.url) ? .allow : .cancel)
         }
 
         func userContentController(_ userContentController: WKUserContentController,
                                    didReceive message: WKScriptMessage) {
             guard message.name == "alfredCalendar",
                   message.frameInfo.isMainFrame,
+                  message.frameInfo.securityOrigin.protocol == "https",
                   message.frameInfo.securityOrigin.host == "bm000001.github.io",
                   let body = message.body as? [String: Any],
-                  let action = body["action"] as? String else { return }
+                  let action = body["action"] as? String,
+                  let requestId = body["requestId"] as? String,
+                  !requestId.isEmpty,
+                  requestId.count <= 100 else { return }
 
             Task {
                 do {
+                    let events: [AlfredCalendarAccess.CalendarEvent]
                     switch action {
                     case "connect":
                         try await calendarAccess.requestPermission()
-                        let events = try calendarAccess.events()
-                        send(["status": "connected", "events": events.map { event in
-                            [
-                                "id": event.id,
-                                "title": event.title,
-                                "startsAt": event.startsAt,
-                                "endsAt": event.endsAt,
-                                "isAllDay": event.isAllDay,
-                                "calendarTitle": event.calendarTitle,
-                                "location": event.location as Any? ?? NSNull(),
-                                "notes": event.notes as Any? ?? NSNull()
-                            ] as [String: Any]
-                        }])
+                        events = try calendarAccess.events()
+                        send(["requestId": requestId, "status": "connected",
+                              "events": events.map(Self.serialize)])
                     case "sync":
-                        let events = try calendarAccess.events()
-                        send(["status": "success", "events": events.map { event in
-                            [
-                                "id": event.id,
-                                "title": event.title,
-                                "startsAt": event.startsAt,
-                                "endsAt": event.endsAt,
-                                "isAllDay": event.isAllDay,
-                                "calendarTitle": event.calendarTitle,
-                                "location": event.location as Any? ?? NSNull(),
-                                "notes": event.notes as Any? ?? NSNull()
-                            ] as [String: Any]
-                        }])
+                        events = try calendarAccess.events()
+                        send(["requestId": requestId, "status": "success",
+                              "events": events.map(Self.serialize)])
                     default:
-                        send(["status": "error", "message": "Ação de calendário desconhecida."])
+                        send(["requestId": requestId, "status": "error",
+                              "message": "Ação de calendário desconhecida."])
                     }
                 } catch {
-                    send(["status": "error", "message": "Não foi possível acessar o Calendário Apple. Verifique a permissão do Alfred."])
+                    send(["requestId": requestId, "status": "error",
+                          "message": "Não foi possível acessar o Calendário Apple. Verifique a permissão do Alfred."])
                 }
             }
+        }
+
+        private static func serialize(_ event: AlfredCalendarAccess.CalendarEvent) -> [String: Any] {
+            [
+                "id": event.id,
+                "title": event.title,
+                "startsAt": event.startsAt,
+                "endsAt": event.endsAt,
+                "isAllDay": event.isAllDay,
+                "calendarTitle": event.calendarTitle,
+                "location": event.location as Any? ?? NSNull(),
+                "notes": event.notes as Any? ?? NSNull()
+            ]
         }
 
         private func send(_ payload: [String: Any]) {
