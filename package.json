@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:pages": "tsc -b && vite build --mode github-pages"
+    "build:pages": "tsc -b && vite build --mode github-pages && cp manifest.webmanifest apple-touch-icon-180.png icon-192.png icon-512.png icon-maskable-512.png dist/"
   },
   "dependencies": {
     "react": "^19.1.0",
