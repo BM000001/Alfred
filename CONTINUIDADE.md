@@ -1,7 +1,11 @@
 # Continuidade do Alfred
 
-## Estado atual — 2026-11-03
-- PR #55 e PR #56 foram posteriormente revertidas nesta branch de manutenção, pois adicionavam rotas serverless e controles de IA remota dependentes da Vercel.
+## Estado atual — 2026-11-04
+- PR #58 — remoção da dependência da Vercel e manutenção da arquitetura local-first — integrada à `main` por squash merge; commit `ad5b47feb357bdf92a08df3b4e5af26e8c50c40d`.
+- CI da `main` após a PR #58 aprovado: workflow run `41744079705`.
+- Publicação do GitHub Pages após a PR #58 concluída com sucesso: workflow run `41744079731`; deploy do Pages `41744079350`.
+- Aplicação publicada: https://bm000001.github.io/Alfred/.
+- PRs #55 e #56 haviam introduzido uma integração remota específica da Vercel; essa implementação foi removida pela PR #58. Não há backend obrigatório nem provedor remoto ativo.
 - `main` é a fonte da verdade; desenvolver em branches e PRs.
 - PR #29 — análise arquitetural do Jarvis — integrada.
 - PR #30 — fundação segura do assistente — integrada.
@@ -41,7 +45,7 @@
 - Histórico de conversa local persistente em IndexedDB, limitado às 200 mensagens mais recentes, com ação explícita para apagar o histórico. Propostas aguardando confirmação não são restauradas após recarregar a página.
 - Memórias explícitas em IndexedDB: cadastro, edição, exclusão e consulta manual; categorias de preferência, objetivo, projeto, rotina e outro. Não há extração automática nem armazenamento automático de dados sensíveis. Memórias permanecem locais e entram no backup JSON (também no backup criptografado); backups antigos sem o campo continuam compatíveis.
 - Portão de exportação manual: permite selecionar tarefas, tópicos de estudo e memórias, revisar cada item, autorizar as classes pública/pessoal/acadêmica por operação e gerar prévia exata antes de copiar. Não há envio de rede nem provedor remoto conectado.
-- A integração de IA remota por API/serverless foi removida nesta branch; o assistente permanece local e a exportação manual continua sendo o único fluxo para usar conteúdo com outro serviço de IA.
+- A integração de IA remota por API/serverless foi removida pela PR #58 e a remoção está integrada na `main`; o assistente permanece local e a exportação manual continua sendo o único fluxo para usar conteúdo com outro serviço de IA.
 - Controles de exportação: preferência global local para desativar/reabilitar novas preparações manuais. Desativar invalida a prévia e limpa seleções/autorizações da interface.
 - Auditoria local: registra apenas data/hora, classes, quantidade de itens e caracteres, e ação de cópia para área de transferência; não armazena texto, títulos ou IDs dos conteúdos. Retenção limitada aos 100 registros mais recentes; pode ser apagada pelo usuário. Auditoria e preferência de bloqueio não entram nos backups. A auditoria registra cópia, não comprova envio a outro serviço. Desativar impede novas preparações neste painel, mas não apaga texto já copiado para a área de transferência ou colado em serviços externos.
 - Executor de propostas verifica aprovação explícita para o ID correto, valida todas as ferramentas antes de começar e bloqueia ferramentas ausentes ou políticas inseguras.
@@ -67,11 +71,11 @@
 - O ciclo de vida das URLs temporárias de download foi melhorado com revogação atrasada; validar em Safari/iPhone.
 - Ampliar testes da edição de compromissos (conflito próprio, conflito com outro compromisso e limpeza de campos).
 - A auditoria npm após atualizar Vite/Vitest reportou 0 vulnerabilidades no ambiente do CI (run #114). O CI agora imprime os detalhes de futuras ocorrências.
-- Confirmar publicação e URL do GitHub Pages antes de considerá-la operacional.
+- A publicação do GitHub Pages foi confirmada após a PR #58 (workflow run `41744079731`); validar o funcionamento real em Safari/iPhone ainda está pendente.
 - Verificar licenças e atribuições de dependências/assets antes de distribuir.
 
 ## Próximas etapas prioritárias
-1. Evoluir as memórias manuais para recuperação contextual mais inteligente, mantendo consentimento explícito e sem inferir nem salvar fatos sensíveis automaticamente.
+1. Projetar e testar recuperação contextual das memórias manuais, com relevância explicável, controle do usuário e sem inferir nem salvar fatos sensíveis automaticamente.
 2. Ampliar testes da interface conversacional: consultas dos três domínios, erro de IndexedDB, mensagens longas, estado de carregamento, acessibilidade e mobile.
 3. Melhorar a experiência de propostas de ação, incluindo estados de erro, prioridade configurável e recarga dos dados após uma escrita.
 4. Avaliar integração futura com IA somente se houver arquitetura independente de hospedagem, credenciais fora do frontend, minimização de contexto, consentimento, limites de custo e tratamento de falhas.
