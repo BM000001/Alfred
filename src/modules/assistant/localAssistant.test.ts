@@ -28,7 +28,27 @@ describe('LocalAssistantProvider', () => {
     ]);
     const result = await provider.generate(request('O que você lembra sobre mim?'));
     expect(result.message).toContain('Prefiro respostas objetivas.');
-    expect(result.usedTools).toEqual(['memory.list']);
+    expect(result.usedTools).toEqual(['memory.retrieve']);
+  });
+
+  it('recupera somente memórias relacionadas ao assunto solicitado', async () => {
+    const provider = new LocalAssistantProvider({ tasks: [], appointments: [], topics: [] }, [
+      { id: 'm1', title: 'Projeto Alfred', content: 'Assistente pessoal local.', category: 'project', createdAt: '', updatedAt: '2026-11-03' },
+      { id: 'm2', title: 'Rotina de estudos', content: 'Matemática à noite.', category: 'routine', createdAt: '', updatedAt: '2026-11-02' },
+    ]);
+    const result = await provider.generate(request('O que você lembra sobre estudos?'));
+    expect(result.message).toContain('Matemática à noite.');
+    expect(result.message).not.toContain('Assistente pessoal local.');
+    expect(result.message).toContain('relação: estudos');
+  });
+
+  it('não expõe todas as memórias quando não há correspondência com o assunto', async () => {
+    const provider = new LocalAssistantProvider({ tasks: [], appointments: [], topics: [] }, [
+      { id: 'm1', title: 'Projeto Alfred', content: 'Assistente pessoal local.', category: 'project', createdAt: '', updatedAt: '' },
+    ]);
+    const result = await provider.generate(request('O que você lembra sobre culinária?'));
+    expect(result.message).toContain('Não encontrei uma memória relacionada');
+    expect(result.message).not.toContain('Assistente pessoal local.');
   });
 
   it('não executa ferramentas quando o pedido não é reconhecido', async () => {
