@@ -280,6 +280,7 @@ button, input, textarea { font: inherit; }
 .appointment-details { min-width: 0; flex: 1; }
 .appointment-details h3 { margin: 6px 0 4px; color: var(--navy); font-size: 14px; overflow-wrap: anywhere; }
 .appointment-details p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.appointment-origin-tag { display: inline-block; margin-left: 6px; padding: 4px 7px; border-radius: 5px; color: #6B5A91; background: #F2EFF8; font-size: 9px; font-weight: 700; letter-spacing: .35px; text-transform: uppercase; }
 .appointment-type { display: inline-block; padding: 4px 7px; border-radius: 5px; color: #52627A; background: #EEF2F7; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
 .type-exam { color: #9A4B4B; background: #FBEFEF; }
 .type-deadline { color: #946E27; background: #FBF5E8; }
