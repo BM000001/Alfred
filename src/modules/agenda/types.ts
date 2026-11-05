@@ -17,11 +17,15 @@ export interface Appointment {
   importedStableUid?: string;
   importedCalendarId?: string;
   importedCalendarName?: string;
+  externalProvider?: 'google';
+  externalCalendarId?: string;
+  externalEventId?: string;
+  externalEtag?: string;
 }
 
 export type CreateAppointmentInput = Pick<Appointment, 'title' | 'type' | 'startsAt' | 'endsAt'> &
-  Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedStableUid'>>;
+  Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedStableUid' | 'externalProvider' | 'externalCalendarId' | 'externalEventId' | 'externalEtag'>>;
 
 export type UpdateAppointmentInput = Partial<
-  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName'>
+  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'externalEtag'>
 >;
