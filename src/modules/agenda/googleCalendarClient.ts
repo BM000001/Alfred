@@ -19,10 +19,6 @@ interface GoogleTokenResponse {
   error_description?: string;
 }
 
-interface GoogleTokenClient {
-  requestAccessToken(options?: { prompt?: string }): void;
-}
-
 interface GoogleIdentityServices {
   oauth2: {
     initTokenClient(options: {
@@ -67,7 +63,6 @@ interface GoogleEventsPage {
   nextSyncToken?: string;
 }
 
-let tokenClient: GoogleTokenClient | null = null;
 let accessToken: string | null = null;
 let tokenExpiresAt = 0;
 let configuredClientId = '';
@@ -131,15 +126,7 @@ export async function connectGoogleCalendar(clientId: string): Promise<void> {
   }
   await loadGoogleIdentityServices();
   if (!window.google?.oauth2) throw new Error('O serviço de autenticação Google não ficou disponível.');
-  if (configuredClientId !== normalized || !tokenClient) {
-    configuredClientId = normalized;
-    tokenClient = window.google.oauth2.initTokenClient({
-      client_id: normalized,
-      scope: SCOPES,
-      callback: () => undefined,
-      error_callback: (error) => { throw new Error(error.message || 'Falha na autenticação Google.'); },
-    });
-  }
+  configuredClientId = normalized;
 
   await new Promise<void>((resolve, reject) => {
     const client = window.google!.oauth2.initTokenClient({
@@ -163,7 +150,6 @@ export async function connectGoogleCalendar(clientId: string): Promise<void> {
 export function disconnectGoogleCalendar(): void {
   accessToken = null;
   tokenExpiresAt = 0;
-  tokenClient = null;
   configuredClientId = '';
 }
 
