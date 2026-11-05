@@ -105,7 +105,7 @@ export async function listGoogleEvents(
 ): Promise<{ items?: GoogleCalendarEvent[]; nextPageToken?: string; nextSyncToken?: string }> {
   const params = new URLSearchParams({ calendarId });
   Object.entries(options).forEach(([key, value]) => {
-    if (value) params.set(key, value);
+    if (value !== undefined) params.set(key, String(value));
   });
   return request(`/api/events?${params.toString()}`);
 }
