@@ -1,0 +1,14 @@
+name = "alfred-google-calendar"
+main = "src/index.ts"
+compatibility_date = "2026-11-05"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "alfred-google-calendar"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[vars]
+GOOGLE_REDIRECT_URI = "https://REPLACE_WITH_WORKER_DOMAIN/auth/google/callback"
+ALFRED_ORIGIN = "https://bm000001.github.io"
