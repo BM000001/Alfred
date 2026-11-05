@@ -21,6 +21,7 @@ export interface GoogleCalendarEvent {
   end?: { date?: string; dateTime?: string; timeZone?: string };
   updated?: string;
   htmlLink?: string;
+  recurringEventId?: string;
 }
 
 interface SessionResponse {
