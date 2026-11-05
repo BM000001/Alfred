@@ -65,7 +65,6 @@ interface GoogleEventsPage {
 
 let accessToken: string | null = null;
 let tokenExpiresAt = 0;
-let configuredClientId = '';
 
 function loadGoogleIdentityServices(): Promise<void> {
   if (typeof window === 'undefined') return Promise.reject(new Error('Google Agenda só pode ser conectada em um navegador.'));
@@ -126,8 +125,6 @@ export async function connectGoogleCalendar(clientId: string): Promise<void> {
   }
   await loadGoogleIdentityServices();
   if (!window.google?.oauth2) throw new Error('O serviço de autenticação Google não ficou disponível.');
-  configuredClientId = normalized;
-
   await new Promise<void>((resolve, reject) => {
     const client = window.google!.oauth2.initTokenClient({
       client_id: normalized,
@@ -150,7 +147,6 @@ export async function connectGoogleCalendar(clientId: string): Promise<void> {
 export function disconnectGoogleCalendar(): void {
   accessToken = null;
   tokenExpiresAt = 0;
-  configuredClientId = '';
 }
 
 export function isGoogleCalendarConnected(): boolean {
