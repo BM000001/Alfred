@@ -324,7 +324,8 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       return json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Calendar read failed.";
-      return json({ error: message }, message.includes("410") ? 410 : 502);
+      const status = error instanceof UpstreamError && error.status === 410 ? 410 : 502;
+      return json({ error: message }, status);
     }
   }
 
