@@ -68,7 +68,7 @@ export function createAgendaService(
       return appointment;
     },
 
-    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedStableUid?: string; importedCalendarId?: string; importedCalendarName?: string; externalProvider?: 'google'; externalCalendarId?: string; externalEventId?: string; externalEtag?: string }): Promise<Appointment> {
+    async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedStableUid?: string; importedCalendarId?: string; importedCalendarName?: string; externalProvider?: 'google'; externalAccountId?: string; externalCalendarId?: string; externalEventId?: string; externalEtag?: string }): Promise<Appointment> {
       const all = await repository.getAll();
       const exactMatch = all.find((item) => item.importedUid === input.importedUid);
       const stableMatches = input.importedStableUid
@@ -106,6 +106,7 @@ export function createAgendaService(
           importedCalendarId: input.importedCalendarId ?? existing.importedCalendarId,
           importedCalendarName: input.importedCalendarName ?? existing.importedCalendarName,
           externalProvider: input.externalProvider ?? existing.externalProvider,
+          externalAccountId: input.externalAccountId ?? existing.externalAccountId,
           externalCalendarId: input.externalCalendarId ?? existing.externalCalendarId,
           externalEventId: input.externalEventId ?? existing.externalEventId,
           externalEtag: input.externalEtag ?? existing.externalEtag,
@@ -116,6 +117,8 @@ export function createAgendaService(
           ...(input.location?.trim() ? { location: input.location.trim() } : {}),
         };
         if (!input.location?.trim()) delete updated.location;
+        if (input.description?.trim()) updated.description = input.description.trim();
+        else delete updated.description;
         const validationError = validateAppointment(updated);
         if (validationError) throw new Error(validationError);
         await repository.save(updated);
@@ -138,6 +141,7 @@ export function createAgendaService(
         ...(input.importedCalendarId ? { importedCalendarId: input.importedCalendarId } : {}),
         ...(input.importedCalendarName ? { importedCalendarName: input.importedCalendarName } : {}),
         ...(input.externalProvider ? { externalProvider: input.externalProvider } : {}),
+        ...(input.externalAccountId ? { externalAccountId: input.externalAccountId } : {}),
         ...(input.externalCalendarId ? { externalCalendarId: input.externalCalendarId } : {}),
         ...(input.externalEventId ? { externalEventId: input.externalEventId } : {}),
         ...(input.externalEtag ? { externalEtag: input.externalEtag } : {}),
