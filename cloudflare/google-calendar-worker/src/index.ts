@@ -48,7 +48,13 @@ function json(data: unknown, status = 200, headers: HeadersInit = {}): Response 
   });
 }
 
-function toArrayBuffer(value: Uint8Array): ArrayBuffer {\n  const copy = new Uint8Array(value.byteLength);\n  copy.set(value);\n  return copy.buffer;\n}\n\nfunction randomToken(bytes = 32): string {
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(value.byteLength);
+  copy.set(value);
+  return copy.buffer;
+}
+
+function randomToken(bytes = 32): string {
   const value = crypto.getRandomValues(new Uint8Array(bytes));
   return base64Url(value);
 }
@@ -101,7 +107,7 @@ async function signSession(connectionId: string, env: Env): Promise<string> {
   })));
   const input = `${header}.${payload}`;
   const key = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(env.SESSION_SIGNING_KEY),
+    "raw", toArrayBuffer(new TextEncoder().encode(env.SESSION_SIGNING_KEY)),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
   const signature = await crypto.subtle.sign("HMAC", key, toArrayBuffer(new TextEncoder().encode(input)));
