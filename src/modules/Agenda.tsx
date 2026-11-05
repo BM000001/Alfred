@@ -5,6 +5,7 @@ import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
 import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
+import { validateAppleCalendarSnapshot } from './agenda/appleCalendarSnapshot';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
@@ -68,37 +69,12 @@ export function Agenda() {
   const appleAvailable = isNativeAppleCalendarAvailable();
 
   async function saveAppleEvents(response: Awaited<ReturnType<typeof syncAppleCalendar>>) {
-    if (response.snapshotComplete !== true) {
-      throw new Error('A leitura do Calendário Apple não confirmou um snapshot completo. Nenhum evento será arquivado nesta sincronização.');
-    }
-    const snapshotCalendarIds = response.calendarIds ?? [];
-    const currentSelection = selectedAppleCalendarsRef.current;
+    const currentSelection = [...selectedAppleCalendarsRef.current];
     const expectedCalendarIds = [...currentSelection].sort();
-    if (snapshotCalendarIds.length !== expectedCalendarIds.length ||
-        [...snapshotCalendarIds].sort().some((id, index) => id !== expectedCalendarIds[index])) {
-      throw new Error('Os calendários consultados não correspondem à seleção atual. A reconciliação foi interrompida para proteger seus compromissos.');
-    }
-    const syncStart = Date.parse(response.rangeStart ?? '');
-    const syncEnd = Date.parse(response.rangeEnd ?? '');
-    if (!Number.isFinite(syncStart) || !Number.isFinite(syncEnd) || syncEnd <= syncStart) {
-      throw new Error('O intervalo retornado pelo Calendário Apple é inválido. Nenhum evento será arquivado.');
-    }
-    const events = response.events ?? [];
-    if (currentSelection.length === 0) {
-      throw new Error('Selecione ao menos um calendário antes de sincronizar.');
-    }
-    if (new Set(snapshotCalendarIds).size !== snapshotCalendarIds.length ||
-        events.some((event) =>
-          !event.id || !event.calendarId || !currentSelection.includes(event.calendarId) ||
-          !event.startsAt || !event.endsAt ||
-          !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt)) ||
-          Date.parse(event.endsAt) <= Date.parse(event.startsAt)
-        )) {
-      throw new Error('A leitura retornou dados incompletos ou inválidos. Nenhum compromisso será arquivado nesta sincronização.');
-    }
+    const snapshot = validateAppleCalendarSnapshot(response, currentSelection);
+    const { events, rangeStart, rangeEnd } = snapshot;
     let imported = 0;
     for (const event of events) {
-      if (!event.id || !event.startsAt || !event.endsAt || !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt))) continue;
       await agenda.upsertImported({
         importedUid: `apple:${event.id}`,
         importedStableUid: `apple-stable:${event.externalId || event.id}:${event.occurrenceDate || (event.isRecurring ? event.id : 'single')}`,
@@ -122,12 +98,10 @@ export function Agenda() {
     }
     let removed = 0;
     for (const calendarId of currentSelection) {
-      // Only a complete native snapshot can archive missing events, and each
-      // calendar is reconciled against its own events and the exact native range.
       const snapshotUids = events
         .filter((event) => event.calendarId === calendarId)
         .map((event) => `apple:${event.id}`);
-      removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, new Date(syncStart).toISOString(), new Date(syncEnd).toISOString());
+      removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, rangeStart, rangeEnd);
     }
     await refresh();
     const syncedAt = new Date().toISOString();
