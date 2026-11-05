@@ -1,0 +1,17 @@
+{
+  "name": "alfred-google-calendar-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply alfred-google-calendar --local",
+    "db:migrate:remote": "wrangler d1 migrations apply alfred-google-calendar --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20261105.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.45.0"
+  }
+}
