@@ -62,6 +62,8 @@ export function Agenda() {
     }
   });
   const [appleConnected, setAppleConnected] = useState(() => selectedAppleCalendars.length > 0);
+  const selectedAppleCalendarsRef = useRef(selectedAppleCalendars);
+  selectedAppleCalendarsRef.current = selectedAppleCalendars;
   const [appleAutoSyncEnabled, setAppleAutoSyncEnabled] = useState(() => window.localStorage.getItem('alfred.appleCalendarAutoSync') === 'true');
   const appleAvailable = isNativeAppleCalendarAvailable();
 
