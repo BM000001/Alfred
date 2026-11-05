@@ -5,6 +5,7 @@ import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
 import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
+import { validateAppleCalendarSnapshot } from './agenda/appleCalendarSnapshot';
 
 const agenda = createAgendaService(appointmentRepository);
 type ViewMode = 'day' | 'week' | 'month';
@@ -62,39 +63,29 @@ export function Agenda() {
     }
   });
   const [appleConnected, setAppleConnected] = useState(() => selectedAppleCalendars.length > 0);
+  const selectedAppleCalendarsRef = useRef(selectedAppleCalendars);
+  selectedAppleCalendarsRef.current = selectedAppleCalendars;
+  const [appleAutoSyncEnabled, setAppleAutoSyncEnabled] = useState(() => window.localStorage.getItem('alfred.appleCalendarAutoSync') === 'true');
   const appleAvailable = isNativeAppleCalendarAvailable();
 
   async function saveAppleEvents(response: Awaited<ReturnType<typeof syncAppleCalendar>>) {
-    if (response.snapshotComplete !== true) {
-      throw new Error('A leitura do Calendário Apple não confirmou um snapshot completo. Nenhum evento será arquivado nesta sincronização.');
-    }
-    const snapshotCalendarIds = response.calendarIds ?? [];
-    const expectedCalendarIds = [...selectedAppleCalendars].sort();
-    if (snapshotCalendarIds.length !== expectedCalendarIds.length ||
-        [...snapshotCalendarIds].sort().some((id, index) => id !== expectedCalendarIds[index])) {
-      throw new Error('Os calendários consultados não correspondem à seleção atual. A reconciliação foi interrompida para proteger seus compromissos.');
-    }
-    const syncStart = Date.parse(response.rangeStart ?? '');
-    const syncEnd = Date.parse(response.rangeEnd ?? '');
-    if (!Number.isFinite(syncStart) || !Number.isFinite(syncEnd) || syncEnd <= syncStart) {
-      throw new Error('O intervalo retornado pelo Calendário Apple é inválido. Nenhum evento será arquivado.');
-    }
-    const events = response.events ?? [];
-    if (selectedAppleCalendars.length === 0) {
-      throw new Error('Selecione ao menos um calendário antes de sincronizar.');
-    }
-    if (new Set(snapshotCalendarIds).size !== snapshotCalendarIds.length ||
-        events.some((event) =>
-          !event.id || !event.calendarId || !selectedAppleCalendars.includes(event.calendarId) ||
-          !event.startsAt || !event.endsAt ||
-          !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt)) ||
-          Date.parse(event.endsAt) <= Date.parse(event.startsAt)
-        )) {
-      throw new Error('A leitura retornou dados incompletos ou inválidos. Nenhum compromisso será arquivado nesta sincronização.');
+    const currentSelection = [...selectedAppleCalendarsRef.current];
+    const expectedCalendarIds = [...currentSelection].sort();
+    const selectionIsUnchanged = () => {
+      const latest = [...selectedAppleCalendarsRef.current].sort();
+      return latest.length === expectedCalendarIds.length &&
+        latest.every((id, index) => id === expectedCalendarIds[index]);
+    };
+    const snapshot = validateAppleCalendarSnapshot(response, currentSelection);
+    const { events, rangeStart, rangeEnd } = snapshot;
+    if (!selectionIsUnchanged()) {
+      throw new Error('A seleção de calendários mudou durante a leitura. Nenhum evento foi importado; sincronize novamente.');
     }
     let imported = 0;
     for (const event of events) {
-      if (!event.id || !event.startsAt || !event.endsAt || !Number.isFinite(Date.parse(event.startsAt)) || !Number.isFinite(Date.parse(event.endsAt))) continue;
+      if (!selectionIsUnchanged()) {
+        throw new Error('A seleção de calendários mudou durante a importação. A reconciliação foi cancelada; sincronize novamente.');
+      }
       await agenda.upsertImported({
         importedUid: `apple:${event.id}`,
         importedStableUid: `apple-stable:${event.externalId || event.id}:${event.occurrenceDate || (event.isRecurring ? event.id : 'single')}`,
@@ -110,14 +101,17 @@ export function Agenda() {
       });
       imported += 1;
     }
+    // Selection must remain unchanged for the entire operation. Otherwise a
+    // stale snapshot could archive events from a calendar the user just deselected.
+    if (!selectionIsUnchanged()) {
+      throw new Error('A seleção de calendários mudou durante a importação. Nenhum evento ausente foi arquivado; sincronize novamente.');
+    }
     let removed = 0;
-    for (const calendarId of selectedAppleCalendars) {
-      // Only a complete native snapshot can archive missing events, and each
-      // calendar is reconciled against its own events and the exact native range.
+    for (const calendarId of currentSelection) {
       const snapshotUids = events
         .filter((event) => event.calendarId === calendarId)
         .map((event) => `apple:${event.id}`);
-      removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, new Date(syncStart).toISOString(), new Date(syncEnd).toISOString());
+      removed += await agenda.reconcileImportedCalendar(calendarId, snapshotUids, rangeStart, rangeEnd);
     }
     await refresh();
     const syncedAt = new Date().toISOString();
@@ -138,7 +132,7 @@ export function Agenda() {
         const response = await connectAppleCalendar();
         const calendars = response.calendars ?? [];
         setAppleCalendars(calendars);
-        setSelectedAppleCalendars(calendars.map((calendar) => calendar.id));
+        setSelectedAppleCalendars((current) => current.filter((id) => calendars.some((calendar) => calendar.id === id)));
         setAppleConnected(true);
         setAppleLastResult('success');
         setAppleMessage(`${calendars.length} calendário(s) encontrado(s). Escolha quais deseja sincronizar.`);
@@ -181,10 +175,14 @@ export function Agenda() {
     }
   }, [appleConnected, selectedAppleCalendars]);
 
+  useEffect(() => {
+    window.localStorage.setItem('alfred.appleCalendarAutoSync', String(appleAutoSyncEnabled));
+  }, [appleAutoSyncEnabled]);
+
   // Intentionally run once when the Agenda mounts, using the saved calendar selection.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!appleAvailable || selectedAppleCalendars.length === 0) return;
+    if (!appleAvailable || !appleAutoSyncEnabled || selectedAppleCalendars.length === 0) return;
     let active = true;
     const synchronize = async (reason: 'initial' | 'change') => {
       if (!active || appleSyncInFlight.current) return;
@@ -222,7 +220,7 @@ export function Agenda() {
     };
   // Rebind when the selected calendars change so native notifications always use
   // the current selection rather than a stale closure.
-  }, [appleAvailable, selectedAppleCalendars]);
+  }, [appleAvailable, appleAutoSyncEnabled, selectedAppleCalendars]);
 
   const range = useMemo(() => {
     const selected = new Date(`${selectedDate}T12:00:00`);
@@ -337,7 +335,8 @@ export function Agenda() {
             <button className="primary-action" type="button" disabled={appleBusy} onClick={() => void handleAppleCalendar(true)}>{appleBusy ? 'Aguarde...' : appleConnected ? 'Atualizar lista de calendários' : 'Conectar Calendário Apple'}</button>
             <button className="text-action" type="button" disabled={appleBusy || !appleConnected || selectedAppleCalendars.length === 0} onClick={() => void handleAppleCalendar(false)}>Sincronizar selecionados</button>
           </div>
-          {appleConnected && <div className="apple-calendar-picker"><strong>Escolha os calendários para importar</strong>{appleCalendars.length === 0 ? <p>Nenhum calendário disponível para leitura.</p> : appleCalendars.map((calendar) => <label key={calendar.id} className="apple-calendar-option"><input type="checkbox" checked={selectedAppleCalendars.includes(calendar.id)} onChange={(event) => setSelectedAppleCalendars((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} /><span><b>{calendar.title}</b><small>{calendar.source}</small></span></label>)}</div>}
+          {appleConnected && <div className="apple-calendar-picker"><strong>Escolha os calendários para importar</strong>{appleCalendars.length === 0 ? <p>Nenhum calendário disponível para leitura.</p> : appleCalendars.map((calendar) => <label key={calendar.id} className="apple-calendar-option"><input type="checkbox" checked={selectedAppleCalendars.includes(calendar.id)} disabled={appleBusy} onChange={(event) => setSelectedAppleCalendars((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} /><span><b>{calendar.title}</b><small>{calendar.source}</small></span></label>)}</div>}
+          {appleConnected && <label className="apple-calendar-option"><input type="checkbox" checked={appleAutoSyncEnabled} onChange={(event) => setAppleAutoSyncEnabled(event.target.checked)} /><span><b>Sincronizar automaticamente</b><small>Atualizar a Agenda quando o Calendário Apple mudar ou o app for aberto. Desativado por padrão.</small></span></label>}
           <div className="apple-calendar-diagnostics" aria-label="Diagnóstico da conexão Apple">
             <div className="apple-calendar-diagnostics-heading"><strong>Diagnóstico da conexão</strong><span>{appleBusy ? 'Verificando...' : appleLastResult === 'error' ? 'Atenção necessária' : appleLastResult === 'success' ? 'Última operação concluída' : 'Aguardando primeira sincronização'}</span></div>
             <div className="apple-calendar-diagnostic-grid">
