@@ -4,7 +4,7 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { ALFRED_DATABASE_NAME } from './database';
-import { appointmentRepository, egressAuditRepository, egressSettingsRepository, projectRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository } from './repositories';
+import { appointmentRepository, calendarSyncRepository, egressAuditRepository, egressSettingsRepository, projectRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository } from './repositories';
 import type { StudyQuestion, StudyQuizAttempt } from '../modules/studies/questionTypes';
 
 const task: Task = {
@@ -116,6 +116,22 @@ describe('repositórios de privacidade de exportação', () => {
   });
 });
 
+
+
+describe('calendarSyncRepository', () => {
+  it('persists incremental Google Calendar cursors locally in IndexedDB', async () => {
+    const state = {
+      id: 'google:primary-calendar',
+      provider: 'google' as const,
+      calendarId: 'primary-calendar',
+      syncToken: 'opaque-sync-cursor',
+      lastSyncedAt: '2026-11-05T13:00:00.000Z',
+    };
+    await calendarSyncRepository.save(state);
+    expect(await calendarSyncRepository.getById(state.id)).toEqual(state);
+    expect(await calendarSyncRepository.getAll()).toEqual([state]);
+  });
+});
 
 describe('repositórios do banco de questões', () => {
   it('persiste questões e tentativas de simulado no IndexedDB', async () => {
