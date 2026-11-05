@@ -138,7 +138,7 @@ async function verifySession(token: string, env: Env): Promise<string | null> {
 
 function corsHeaders(request: Request, env: Env): Headers {
   const origin = request.headers.get("Origin");
-  const headers = new Headers({ "Vary": "Origin", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Authorization,Content-Type" });
+  const headers = new Headers({ "Vary": "Origin", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Authorization,Content-Type,If-Match" });
   if (origin === env.ALFRED_ORIGIN) {
     headers.set("Access-Control-Allow-Origin", origin);
     headers.set("Access-Control-Max-Age", "600");
