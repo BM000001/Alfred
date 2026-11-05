@@ -116,16 +116,18 @@ export function createGoogleEvent(calendarId: string, event: Omit<GoogleCalendar
   });
 }
 
-export function updateGoogleEvent(calendarId: string, eventId: string, event: Omit<GoogleCalendarEvent, "id" | "etag" | "status" | "updated" | "htmlLink">): Promise<GoogleCalendarEvent> {
+export function updateGoogleEvent(calendarId: string, eventId: string, event: Omit<GoogleCalendarEvent, "id" | "etag" | "status" | "updated" | "htmlLink">, etag?: string): Promise<GoogleCalendarEvent> {
   return request(`/api/events/${encodeURIComponent(eventId)}?calendarId=${encodeURIComponent(calendarId)}`, {
     method: "PUT",
+    ...(etag ? { headers: { "If-Match": etag } } : {}),
     body: JSON.stringify(event),
   });
 }
 
-export function deleteGoogleEvent(calendarId: string, eventId: string): Promise<void> {
+export function deleteGoogleEvent(calendarId: string, eventId: string, etag?: string): Promise<void> {
   return request(`/api/events/${encodeURIComponent(eventId)}?calendarId=${encodeURIComponent(calendarId)}`, {
     method: "DELETE",
+    ...(etag ? { headers: { "If-Match": etag } } : {}),
   });
 }
 
