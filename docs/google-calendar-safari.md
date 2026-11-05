@@ -1,60 +1,57 @@
-# Google Calendar no Safari — decisão de arquitetura
+# Google Calendar no Safari — implementação em andamento
 
 ## Decisões confirmadas
 
 - Fonte: Google Calendar.
-- Sincronização: manual e automática.
-- Permissões: leitura e escrita.
-- Plataforma prioritária: Safari no iPhone, sem exigir o aplicativo iOS nativo.
-- Arquitetura: IndexedDB continua sendo a base local do Alfred.
-- Nenhum segredo OAuth, senha ou token de atualização será versionado ou armazenado no navegador.
+- Sincronização: manual e automática enquanto a Agenda estiver ativa.
+- Permissões: leitura e escrita, com confirmação antes de enviar alterações ao Google.
+- Plataforma prioritária: Safari no iPhone, sem exigir aplicativo iOS nativo.
+- IndexedDB permanece como base local do Alfred.
+- Nenhum segredo OAuth ou token de atualização será armazenado no navegador ou versionado.
 
-## Requisito de segurança
+## Arquitetura escolhida
 
-A documentação atual do Google recomenda o fluxo OAuth Authorization Code (GIS Code Model) em vez do fluxo de token no navegador. O Code Model entrega o código ao backend, que valida a solicitação, troca o código por tokens e guarda o refresh token com segurança. O fluxo permite renovar tokens sem pedir consentimento a cada expiração.
+Frontend estático em GitHub Pages + Cloudflare Worker + D1.
 
-Por isso, não manteremos um protótipo de token OAuth no frontend como solução final. Ele exigiria que o usuário estivesse presente para renovar o acesso e seria inferior ao fluxo recomendado para a permissão de escrita.
+- O Worker executa OAuth Authorization Code com PKCE S256.
+- O refresh token Google é criptografado com AES-GCM antes de ser gravado no D1.
+- O frontend recebe um ticket aleatório de uso único via fragmento da URL, troca-o por uma sessão Bearer assinada de 30 minutos e mantém essa sessão somente em memória.
+- Não usamos cookies de terceiros para as chamadas de API, evitando depender do comportamento de ITP no Safari entre github.io e workers.dev.
+- O Worker renova access tokens Google sob demanda e não envia refresh tokens ao navegador.
+- D1 armazena somente identidade Google e refresh token criptografado; os eventos da agenda permanecem no IndexedDB, exceto quando o usuário confirma uma gravação na fonte Google.
 
-## Arquitetura recomendada
+Escopos solicitados: openid/email para identificar a conta, calendar.events para leitura e escrita de eventos e calendar.calendarlist.readonly para listar calendários.
 
-1. Frontend estático no GitHub Pages, compatível com Safari.
-2. Backend mínimo (recomendação inicial: Cloudflare Worker, sem Vercel) para receber o authorization code, validar state/CSRF, trocar código por tokens e guardar refresh token criptografado em armazenamento seguro.
-3. O frontend recebe somente uma credencial de sessão curta, nunca o refresh token ou client secret.
-4. O backend expõe operações autenticadas e limitadas para listar calendários, ler alterações e executar gravações confirmadas.
-5. IndexedDB continua sendo a fonte local de verdade. Eventos e metadados de sincronização ficam no dispositivo; o backend guarda apenas o mínimo necessário para autenticação e renovação.
-6. Escopos Google mínimos: `calendar.events` (leitura/escrita de eventos) e `calendar.calendarlist.readonly` (listar calendários).
-7. Cada evento externo recebe identidade composta por provedor + calendário + ID do evento. Eventos manuais nunca são reconciliados como eventos importados.
-8. A sincronização de entrada usa `nextSyncToken`; HTTP 410 invalida o cursor e exige leitura completa controlada.
-9. A sincronização de saída usa fila local, prévia e confirmação explícita. Atualizações usam ETag/If-Match para evitar sobrescrita concorrente; exclusões exigem confirmação específica.
-10. Conflitos são apresentados ao usuário. Nunca escolher automaticamente entre a versão local e a versão Google quando ambas foram alteradas.
+## Limite real da sincronização automática
 
-## Limite real do Safari
+A sincronização automática será executada por timer/retorno ao primeiro plano enquanto o Alfred estiver aberto. Safari/iOS pode suspender a página em segundo plano ou quando fechada. Uma aplicação web estática não consegue garantir execução contínua nesse estado. Não será enviada uma cópia da agenda local ao backend apenas para simular sincronização em background.
 
-Safari/iOS pode suspender a página quando vai para segundo plano. Uma página web estática não consegue garantir execução contínua com o navegador fechado. O backend permite renovar credenciais e executar tarefas agendadas, mas sincronizar alterações locais enquanto o Safari está fechado só é possível se o usuário tiver enviado previamente essas alterações para uma fila remota. Para preservar o princípio local-first, a proposta inicial sincroniza automaticamente quando o Alfred está aberto/ativo e manualmente quando solicitado; não envia a agenda local inteira para um servidor.
+A sessão frontend expira em 30 minutos e não é persistida. Depois de recarregar a página ou expirar a sessão, o usuário precisa reconectar. Essa é uma limitação deliberada para evitar armazenar um bearer de longa duração no dispositivo.
 
-## Infraestrutura que precisa de aprovação
+## Implementado nesta branch
 
-- Criar um Cloudflare Worker e um armazenamento seguro para refresh tokens (criptografia com chave em secret do Worker).
-- Configurar um OAuth Client ID do tipo Web Application no Google Cloud Console.
-- Habilitar Google Calendar API e cadastrar a origem do Alfred e o redirect URI do Worker.
-- Configurar secrets no Cloudflare fora do GitHub (client secret e chave de criptografia).
-- Definir URL pública do backend e política de CORS restrita ao domínio oficial do Alfred.
-
-O Client ID pode ser público no frontend. Client secret, refresh token e chave de criptografia nunca podem ser colocados no repositório.
-
-## Estado desta branch
-
-- [x] Branch isolada criada a partir de `main`.
-- [x] Documento de arquitetura e requisitos de segurança.
-- [x] Revisão da escolha OAuth: não usar token model browser-only como solução final.
-- [ ] Aprovação do backend Cloudflare Worker.
-- [ ] Backend OAuth Authorization Code com validação state/CSRF, refresh token criptografado e sessão curta.
-- [ ] Interface de conexão e seleção de calendários na Agenda.
+- [x] Branch isolada a partir de main.
+- [x] Decisão de usar Cloudflare Workers, sem Vercel.
+- [x] Worker com fluxo OAuth, PKCE, estado anti-CSRF, ticket de uso único e sessão curta.
+- [x] Criptografia AES-GCM do refresh token no D1.
+- [x] Proxy autenticado para listar calendários/eventos e criar, atualizar e excluir eventos.
+- [x] CORS restrito à origem do Alfred.
+- [x] Client TypeScript inicial para o frontend.
+- [x] Migração D1 e configuração Wrangler.
+- [x] CI ampliado para verificar tipos do Worker.
+- [ ] Testar CI do commit atual.
+- [ ] Interface de conexão, seleção de calendário e estado de sincronização na Agenda.
 - [ ] Metadados de origem Google no modelo local.
-- [ ] Sincronização de entrada incremental e reconciliação segura.
-- [ ] Fila de saída para criar/editar/excluir eventos Google com confirmação explícita.
+- [ ] Sincronização incremental e reconciliação segura por calendário.
+- [ ] Fila de saída local, prévia e confirmação de cada operação de escrita.
 - [ ] Conflitos e ETag/If-Match.
-- [ ] Testes automatizados, CI e build.
-- [ ] Teste real no Safari do iPhone.
+- [ ] Testes de integração e segurança do Worker.
+- [ ] Configurar projeto Google Cloud, D1, secrets e publicar Worker.
+- [ ] Configurar variável GitHub Actions VITE_GOOGLE_CALENDAR_API.
+- [ ] Validar o fluxo completo no Safari físico.
 
-A PR permanece Draft. Nenhum merge ou deploy foi feito.
+## Configuração/deploy
+
+As instruções detalhadas estão em [cloudflare/google-calendar-worker/README.md](../cloudflare/google-calendar-worker/README.md).
+
+Nenhum secret foi criado, nenhum Worker foi publicado, nenhum deploy Pages foi executado e nenhum merge foi feito. A PR permanece Draft.
