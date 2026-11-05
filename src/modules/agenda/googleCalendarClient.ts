@@ -19,6 +19,10 @@ interface GoogleTokenResponse {
   error_description?: string;
 }
 
+interface GoogleTokenClient {
+  requestAccessToken(options?: { prompt?: string }): void;
+}
+
 interface GoogleIdentityServices {
   oauth2: {
     initTokenClient(options: {
