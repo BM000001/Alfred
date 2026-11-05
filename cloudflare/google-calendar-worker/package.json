@@ -10,7 +10,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply alfred-google-calendar --remote"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20261105.0",
+    "@cloudflare/workers-types": "^5.20261104.1",
     "typescript": "^5.8.3",
     "wrangler": "^4.45.0"
   }
