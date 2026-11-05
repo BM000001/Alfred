@@ -17,8 +17,8 @@ Frontend estático em GitHub Pages + Cloudflare Worker + D1.
 - O refresh token Google é criptografado com AES-GCM antes de ser gravado no D1.
 - O frontend recebe um ticket aleatório de uso único via fragmento da URL, troca-o por uma sessão Bearer assinada de 30 minutos e mantém essa sessão somente em memória.
 - Não usamos cookies de terceiros para as chamadas de API, evitando depender do comportamento de ITP no Safari entre github.io e workers.dev.
-- O Worker renova access tokens Google sob demanda e não envia refresh tokens ao navegador.
-- D1 armazena somente identidade Google e refresh token criptografado; os eventos da agenda permanecem no IndexedDB, exceto quando o usuário confirma uma gravação na fonte Google.
+- O Worker renova access tokens Google sob demanda e não envia refresh tokens ao navegador. Como intermediário de rede, ele vê temporariamente os payloads de eventos nas operações de leitura/escrita; não os grava no D1 nem registra o conteúdo em logs.
+- D1 armazena somente identidade Google e refresh token criptografado. O Worker atua como proxy e processa payloads de eventos em memória durante as chamadas, mas não os persiste; os eventos da agenda permanecem no IndexedDB e só são enviados ao Google quando o usuário confirma uma gravação.
 
 Escopos solicitados: openid/email para identificar a conta, calendar.events para leitura e escrita de eventos e calendar.calendarlist.readonly para listar calendários.
 
