@@ -39,13 +39,14 @@ A sessão frontend expira em 30 minutos e não é persistida. Depois de recarreg
 - [x] Client TypeScript inicial para o frontend.
 - [x] Migração D1 e configuração Wrangler.
 - [x] CI ampliado para verificar tipos do Worker.
-- [ ] Testar CI do commit atual.
-- [ ] Interface de conexão, seleção de calendário e estado de sincronização na Agenda.
-- [ ] Metadados de origem Google no modelo local.
-- [ ] Sincronização incremental e reconciliação segura por calendário.
-- [ ] Fila de saída local, prévia e confirmação de cada operação de escrita.
-- [ ] Conflitos e ETag/If-Match.
-- [ ] Testes de integração e segurança do Worker.
+- [x] CI do commit atual aprovado (testes, type-check do Worker e build).
+- [x] Interface de conexão, seleção de calendários e estado de sincronização na Agenda.
+- [x] Metadados de origem Google, calendário, evento, conta e ETag no modelo local.
+- [x] Sincronização incremental com cursor IndexedDB, paginação, recorrências e recuperação de HTTP 410.
+- [x] Escrita manual confirmada para criar, atualizar e excluir eventos Google.
+- [x] Atualizações e exclusões condicionais com ETag/If-Match; conflitos não sobrescrevem silenciosamente.
+- [x] Testes do serviço de agenda e persistência local do cursor; type-check do Worker no CI.
+- [ ] Testes de integração ponta a ponta e revisão de segurança independente.
 - [ ] Configurar projeto Google Cloud, D1, secrets e publicar Worker.
 - [ ] Configurar variável GitHub Actions VITE_GOOGLE_CALENDAR_API.
 - [ ] Validar o fluxo completo no Safari físico.
