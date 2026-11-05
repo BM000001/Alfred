@@ -40,6 +40,53 @@ describe('agendaService', () => {
     })).rejects.toThrow('O horário de término deve ser posterior ao início.');
   });
 
+
+  it('persists Google account identity and ETag on imported events', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: () => 'google-event-local' });
+    const first = await service.upsertImported({
+      importedUid: 'google:calendar-1:event-1',
+      importedStableUid: 'google:calendar-1:event-1',
+      importedCalendarId: 'google:calendar-1',
+      importedCalendarName: 'Pessoal',
+      externalProvider: 'google',
+      externalAccountId: 'google-account-123',
+      externalCalendarId: 'calendar-1',
+      externalEventId: 'event-1',
+      externalEtag: 'etag-v1',
+      title: 'Consulta',
+      description: 'Levar documentos',
+      type: 'personal',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+    });
+    const refreshed = await service.upsertImported({
+      importedUid: 'google:calendar-1:event-1',
+      importedStableUid: 'google:calendar-1:event-1',
+      importedCalendarId: 'google:calendar-1',
+      importedCalendarName: 'Pessoal',
+      externalProvider: 'google',
+      externalAccountId: 'google-account-123',
+      externalCalendarId: 'calendar-1',
+      externalEventId: 'event-1',
+      externalEtag: 'etag-v2',
+      title: 'Consulta atualizada',
+      type: 'personal',
+      startsAt: '2026-11-12T10:30:00.000Z',
+      endsAt: '2026-11-12T11:30:00.000Z',
+    });
+    expect(refreshed.id).toBe(first.id);
+    expect(refreshed).toMatchObject({
+      externalProvider: 'google',
+      externalAccountId: 'google-account-123',
+      externalCalendarId: 'calendar-1',
+      externalEventId: 'event-1',
+      externalEtag: 'etag-v2',
+      title: 'Consulta atualizada',
+    });
+    expect(refreshed.description).toBeUndefined();
+  });
+
   it('upserts imported calendar events without duplicating them or replacing manual appointments', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `event-${++id}`; })() });
