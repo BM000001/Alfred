@@ -302,7 +302,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (!connection) return json({ error: "Session expired. Reconnect Google Calendar." }, 401);
   const path = url.pathname;
 
-  if (path === "/api/session" && request.method === "GET") return json({ connected: true, provider: "google" });
+  if (path === "/api/session" && request.method === "GET") return json({ connected: true, provider: "google", accountId: connection.google_sub });
 
   if (path === "/api/calendars" && request.method === "GET") {
     const result = await googleApi<{ items?: unknown[] }>(connection, env, "/users/me/calendarList?maxResults=250");
