@@ -48,7 +48,7 @@ function json(data: unknown, status = 200, headers: HeadersInit = {}): Response 
   });
 }
 
-function randomToken(bytes = 32): string {
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {\n  const copy = new Uint8Array(value.byteLength);\n  copy.set(value);\n  return copy.buffer;\n}\n\nfunction randomToken(bytes = 32): string {
   const value = crypto.getRandomValues(new Uint8Array(bytes));
   return base64Url(value);
 }
@@ -66,18 +66,18 @@ function fromBase64Url(value: string): Uint8Array {
 }
 
 async function sha256(value: string): Promise<string> {
-  return base64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))));
+  return base64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", toArrayBuffer(new TextEncoder().encode(value)))));
 }
 
 async function encryptionKey(env: Env): Promise<CryptoKey> {
   const raw = fromBase64Url(env.TOKEN_ENCRYPTION_KEY);
   if (raw.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY must be a 32-byte base64url value.");
-  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+  return crypto.subtle.importKey("raw", toArrayBuffer(raw), "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
 async function encrypt(value: string, env: Env): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await encryptionKey(env), new TextEncoder().encode(value));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv: toArrayBuffer(iv) }, await encryptionKey(env), toArrayBuffer(new TextEncoder().encode(value)));
   return `${base64Url(iv)}.${base64Url(new Uint8Array(encrypted))}`;
 }
 
@@ -85,9 +85,9 @@ async function decrypt(value: string, env: Env): Promise<string> {
   const [ivPart, dataPart] = value.split(".");
   if (!ivPart || !dataPart) throw new Error("Encrypted token has an invalid format.");
   const clear = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64Url(ivPart) },
+    { name: "AES-GCM", iv: toArrayBuffer(fromBase64Url(ivPart)) },
     await encryptionKey(env),
-    fromBase64Url(dataPart),
+    toArrayBuffer(fromBase64Url(dataPart)),
   );
   return new TextDecoder().decode(clear);
 }
@@ -104,7 +104,7 @@ async function signSession(connectionId: string, env: Env): Promise<string> {
     "raw", new TextEncoder().encode(env.SESSION_SIGNING_KEY),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(input));
+  const signature = await crypto.subtle.sign("HMAC", key, toArrayBuffer(new TextEncoder().encode(input)));
   return `${input}.${base64Url(new Uint8Array(signature))}`;
 }
 
@@ -115,7 +115,7 @@ async function verifySession(token: string, env: Env): Promise<string | null> {
     "raw", new TextEncoder().encode(env.SESSION_SIGNING_KEY),
     { name: "HMAC", hash: "SHA-256" }, false, ["verify"],
   );
-  const valid = await crypto.subtle.verify("HMAC", key, fromBase64Url(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`));
+  const valid = await crypto.subtle.verify("HMAC", key, toArrayBuffer(fromBase64Url(parts[2])), toArrayBuffer(new TextEncoder().encode(`${parts[0]}.${parts[1]}`)));
   if (!valid) return null;
   try {
     const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(parts[1]))) as { sub?: string; iss?: string; exp?: number };
@@ -187,7 +187,7 @@ async function googleApi<T>(connection: ConnectionRow, env: Env, path: string, i
 async function handleStart(request: Request, env: Env): Promise<Response> {
   const state = randomToken();
   const verifier = randomToken(48);
-  const challenge = base64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
+  const challenge = base64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", toArrayBuffer(new TextEncoder().encode(verifier)))));
   const expiresAt = Math.floor(Date.now() / 1000) + 600;
   await env.DB.prepare("DELETE FROM oauth_states WHERE expires_at < ?").bind(Math.floor(Date.now() / 1000)).run();
   await env.DB.prepare("DELETE FROM oauth_tickets WHERE expires_at < ?").bind(Math.floor(Date.now() / 1000)).run();
