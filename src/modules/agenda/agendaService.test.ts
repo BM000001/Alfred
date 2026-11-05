@@ -220,6 +220,35 @@ describe('agendaService', () => {
     )).rejects.toThrow('Intervalo inválido');
   });
 
+  it('archives missing events that overlap the snapshot window even when they began before it', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `overlap-${++id}`; })() });
+    const overlapping = await service.upsertImported({
+      importedUid: 'apple:overlap',
+      importedCalendarId: 'calendar-a',
+      title: 'Evento que atravessa o início da janela',
+      type: 'other',
+      startsAt: '2026-11-03T23:00:00.000Z',
+      endsAt: '2026-11-04T01:00:00.000Z',
+    });
+    const beforeWindow = await service.upsertImported({
+      importedUid: 'apple:before-window',
+      importedCalendarId: 'calendar-a',
+      title: 'Evento encerrado antes da janela',
+      type: 'other',
+      startsAt: '2026-11-03T20:00:00.000Z',
+      endsAt: '2026-11-03T21:00:00.000Z',
+    });
+
+    const count = await service.reconcileImportedCalendar(
+      'calendar-a', [], '2026-11-04T00:00:00.000Z', '2026-11-06T00:00:00.000Z',
+    );
+
+    expect(count).toBe(1);
+    expect((await service.get(overlapping.id))?.status).toBe('cancelled');
+    expect((await service.get(beforeWindow.id))?.status).toBe('scheduled');
+  });
+
   it('keeps a cross-calendar move separate and archives the old source entry', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `stable-${++id}`; })() });
