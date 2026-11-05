@@ -61,7 +61,7 @@ As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial
 
 ## Limites e segurança
 
-- O Worker não sincroniza a agenda local sozinho e não recebe uma cópia integral dos eventos.
+- O Worker não sincroniza a agenda local sozinho e não recebe uma cópia integral dos eventos. A interface da Agenda importa alterações incrementalmente e oferece ações confirmadas para enviar, atualizar ou excluir eventos individuais.
 - A sincronização automática deve rodar no frontend enquanto a página estiver ativa. Safari/iOS pode suspender a página em segundo plano.
 - Sessões frontend são temporárias e em memória; recarregar exige nova conexão.
 - O token de atualização Google é criptografado em D1; a chave AES fica em secret do Worker.
