@@ -126,10 +126,11 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       let nextSyncToken: string | undefined;
       do {
         const page = await listGoogleEvents(calendar.id, useToken
-          ? { syncToken: useToken, ...(pageToken ? { pageToken } : {}) }
+          ? { syncToken: useToken, singleEvents: true, ...(pageToken ? { pageToken } : {}) }
           : {
               timeMin: from.toISOString(),
               timeMax: to.toISOString(),
+              singleEvents: true,
               ...(pageToken ? { pageToken } : {}),
             });
         events.push(...(page.items ?? []));
