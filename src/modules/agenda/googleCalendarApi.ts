@@ -101,7 +101,7 @@ export async function listGoogleCalendars(): Promise<GoogleCalendarInfo[]> {
 
 export async function listGoogleEvents(
   calendarId: string,
-  options: { syncToken?: string; timeMin?: string; timeMax?: string; pageToken?: string } = {},
+  options: { syncToken?: string; timeMin?: string; timeMax?: string; pageToken?: string; singleEvents?: boolean } = {},
 ): Promise<{ items?: GoogleCalendarEvent[]; nextPageToken?: string; nextSyncToken?: string }> {
   const params = new URLSearchParams({ calendarId });
   Object.entries(options).forEach(([key, value]) => {
