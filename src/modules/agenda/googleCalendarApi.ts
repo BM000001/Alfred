@@ -94,6 +94,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return payload as T;
 }
 
+export async function getGoogleCalendarSession(): Promise<{ connected: boolean; accountId: string }> {
+  return request<{ connected: boolean; accountId: string }>("/api/session");
+}
+
 export async function listGoogleCalendars(): Promise<GoogleCalendarInfo[]> {
   const result = await request<{ items?: GoogleCalendarInfo[] }>("/api/calendars");
   return result.items ?? [];
