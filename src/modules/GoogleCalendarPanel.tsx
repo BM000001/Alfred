@@ -9,6 +9,7 @@ import {
   createGoogleEvent,
   deleteGoogleEvent,
   disconnectGoogleCalendar,
+  getGoogleCalendarSession,
   isGoogleCalendarSessionActive,
   listGoogleCalendars,
   listGoogleEvents,
@@ -61,6 +62,7 @@ export interface GoogleCalendarPanelProps {
 
 export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarPanelProps) {
   const [connected, setConnected] = useState(isGoogleCalendarSessionActive());
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<GoogleCalendarInfo[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
     try {
@@ -96,6 +98,8 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         if (!active) return;
         if (completed || isGoogleCalendarSessionActive()) {
           setConnected(true);
+          const session = await getGoogleCalendarSession();
+          setAccountId(session.accountId);
           await loadCalendars();
           if (active && completed) setMessage('Conta Google conectada. Selecione os calendários que deseja sincronizar.');
         }
@@ -103,6 +107,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível concluir a conexão Google.');
         clearGoogleCalendarSession();
         setConnected(false);
+        setAccountId(null);
       }
     })();
     return () => { active = false; };
@@ -174,6 +179,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         importedCalendarId: 'google:' + calendar.id,
         importedCalendarName: calendar.summary,
         externalProvider: 'google',
+        externalAccountId: accountId ?? undefined,
         externalCalendarId: calendar.id,
         externalEventId: event.id,
         ...(event.etag ? { externalEtag: event.etag } : {}),
@@ -272,6 +278,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     try {
       await disconnectGoogleCalendar();
       setConnected(false);
+      setAccountId(null);
       setCalendars([]);
       setSelectedIds([]);
       setMessage('Conta Google desconectada. Seus compromissos locais foram preservados.');
@@ -299,6 +306,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         importedCalendarId: 'google:' + calendar.id,
         importedCalendarName: calendar.summary,
         externalProvider: 'google',
+        externalAccountId: accountId ?? undefined,
         externalCalendarId: calendar.id,
         externalEventId: created.id,
         externalEtag: created.etag,
@@ -313,7 +321,10 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   }
 
   async function updateInGoogle(item: Appointment) {
-    if (!item.externalCalendarId || !item.externalEventId) return;
+    if (!item.externalCalendarId || !item.externalEventId || item.externalAccountId !== accountId) {
+      setError('Este compromisso pertence a outra conta Google. Reconecte a conta original para alterá-lo.');
+      return;
+    }
     if (!window.confirm('Atualizar "' + item.title + '" no Google Calendar?')) return;
     setBusy(true);
     setError('');
@@ -342,6 +353,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         importedCalendarId: undefined,
         importedCalendarName: undefined,
         externalProvider: undefined,
+        externalAccountId: undefined,
         externalCalendarId: undefined,
         externalEventId: undefined,
         externalEtag: undefined,
@@ -359,7 +371,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     item.status !== 'cancelled' && !item.externalProvider && !item.importedUid,
   );
   const linkedGoogle = appointments.filter((item) =>
-    item.status !== 'cancelled' && item.externalProvider === 'google' && item.externalEventId,
+    item.status !== 'cancelled' && item.externalProvider === 'google' && item.externalEventId && item.externalAccountId === accountId,
   );
 
   return (
