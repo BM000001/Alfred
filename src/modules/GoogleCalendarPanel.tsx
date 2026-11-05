@@ -79,6 +79,15 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   const [error, setError] = useState('');
   const syncInFlight = useRef(false);
 
+  function reportError(cause: unknown, fallback: string) {
+    const message = cause instanceof Error ? cause.message : fallback;
+    if (message.includes('HTTP 401') || message.includes('sessão expirou')) {
+      setConnected(false);
+      setAccountId(null);
+    }
+    setError(message);
+  }
+
   async function loadCalendars() {
     const loaded = await listGoogleCalendars();
     setCalendars(loaded);
@@ -230,7 +239,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         ': ' + total + ' evento(s) recebido(s) de ' + selected.length + ' calendário(s).');
       await onChanged();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Google Calendar.');
+      reportError(cause, 'Não foi possível sincronizar o Google Calendar.');
     } finally {
       syncInFlight.current = false;
       setBusy(false);
@@ -266,7 +275,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       await loadCalendars();
       setMessage('Lista de calendários atualizada.');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível listar os calendários.');
+      reportError(cause, 'Não foi possível listar os calendários.');
     } finally {
       setBusy(false);
     }
@@ -283,7 +292,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       setSelectedIds([]);
       setMessage('Conta Google desconectada. Seus compromissos locais foram preservados.');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível desconectar a conta Google.');
+      reportError(cause, 'Não foi possível desconectar a conta Google.');
     } finally {
       setBusy(false);
     }
@@ -314,7 +323,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       setMessage('Compromisso enviado ao Google com confirmação. A cópia local foi mantida.');
       await onChanged();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível enviar o compromisso ao Google.');
+      reportError(cause, 'Não foi possível enviar o compromisso ao Google.');
     } finally {
       setBusy(false);
     }
@@ -334,7 +343,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       setMessage('Alterações enviadas ao Google. A cópia local foi preservada.');
       await onChanged();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar o evento Google.');
+      reportError(cause, 'Não foi possível atualizar o evento Google.');
     } finally {
       setBusy(false);
     }
@@ -364,7 +373,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       setMessage('Evento excluído do Google. A cópia local foi mantida e desvinculada.');
       await onChanged();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível excluir o evento Google.');
+      reportError(cause, 'Não foi possível excluir o evento Google.');
     } finally {
       setBusy(false);
     }
