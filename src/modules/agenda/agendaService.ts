@@ -70,30 +70,22 @@ export function createAgendaService(
 
     async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedStableUid?: string; importedCalendarId?: string; importedCalendarName?: string }): Promise<Appointment> {
       const all = await repository.getAll();
-      const exactMatch = all.find((item) => item.importedUid === input.importedUid);
-      const stableMatches = input.importedStableUid
-        ? all.filter((item) => item.importedStableUid === input.importedStableUid)
-        : [];
-      // Prefer the exact EventKit occurrence ID. If it changed (for example,
-      // after moving an event), migrate only when the stable external identity
-      // resolves unambiguously. Never merge two copied calendar entries.
-      const sameCalendarMatches = stableMatches.filter((item) => item.importedCalendarId === input.importedCalendarId);
-      const onlyCrossCalendarMatch = sameCalendarMatches.length === 0 && stableMatches.length === 1
-        ? stableMatches[0]
-        : undefined;
-      // A changed EventKit ID plus a different calendar is not enough to prove
-      // that an event moved: it may be a second calendar copy. Only migrate the
-      // stable identity across calendars when event details also changed.
-      const looksLikeMovedEvent = onlyCrossCalendarMatch !== undefined && (
-        onlyCrossCalendarMatch.title !== input.title.trim() ||
-        onlyCrossCalendarMatch.startsAt !== input.startsAt ||
-        onlyCrossCalendarMatch.endsAt !== input.endsAt
+      // EventKit identifiers and external IDs are not sufficient proof that
+      // two entries in different calendars are the same appointment: calendars
+      // may contain independent copies of one shared event. Reconcile identity
+      // only inside the originating calendar; a cross-calendar move is imported
+      // as a new entry and the old entry is archived by that calendar's snapshot.
+      const exactMatch = all.find((item) =>
+        item.importedUid === input.importedUid &&
+        item.importedCalendarId === input.importedCalendarId
       );
-      const stableMatch = sameCalendarMatches.length === 1
-        ? sameCalendarMatches[0]
-        : looksLikeMovedEvent
-          ? onlyCrossCalendarMatch
-          : undefined;
+      const stableMatches = input.importedStableUid
+        ? all.filter((item) =>
+            item.importedStableUid === input.importedStableUid &&
+            item.importedCalendarId === input.importedCalendarId
+          )
+        : [];
+      const stableMatch = stableMatches.length === 1 ? stableMatches[0] : undefined;
       const existing = exactMatch ?? stableMatch;
       if (existing) {
         const updated: Appointment = {
