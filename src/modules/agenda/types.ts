@@ -27,5 +27,5 @@ export type CreateAppointmentInput = Pick<Appointment, 'title' | 'type' | 'start
   Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedStableUid' | 'externalProvider' | 'externalCalendarId' | 'externalEventId' | 'externalEtag'>>;
 
 export type UpdateAppointmentInput = Partial<
-  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'externalEtag'>
+  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedUid' | 'importedStableUid' | 'importedCalendarId' | 'importedCalendarName' | 'externalProvider' | 'externalCalendarId' | 'externalEventId' | 'externalEtag'>
 >;
