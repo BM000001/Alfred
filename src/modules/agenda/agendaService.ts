@@ -144,7 +144,12 @@ export function createAgendaService(
       for (const item of await repository.getAll()) {
         if (item.importedCalendarId !== calendarId || !item.importedUid || item.status === 'cancelled') continue;
         const eventStart = Date.parse(item.startsAt);
-        if (!Number.isFinite(eventStart) || eventStart < start || eventStart >= end || seen.has(item.importedUid)) continue;
+        const eventEnd = Date.parse(item.endsAt);
+        // EventKit snapshots include events that overlap the requested window,
+        // even when they began before its start. Reconciliation must use the
+        // same interval semantics or stale overlapping events remain forever.
+        if (!Number.isFinite(eventStart) || !Number.isFinite(eventEnd) ||
+            eventEnd <= start || eventStart >= end || seen.has(item.importedUid)) continue;
         await repository.save({ ...item, status: 'cancelled' });
         cancelled += 1;
       }
