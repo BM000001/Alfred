@@ -88,7 +88,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const payload = await response.json().catch(() => ({})) as { error?: string };
   if (!response.ok) {
     if (response.status === 401) clearGoogleCalendarSession();
-    throw new Error(payload.error || `Falha na integração Google (HTTP ${response.status}).`);
+    throw new Error(`${payload.error || "Falha na integração Google."} (HTTP ${response.status})`);
   }
   return payload as T;
 }
