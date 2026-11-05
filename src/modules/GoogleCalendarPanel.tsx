@@ -102,6 +102,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       } catch (cause) {
         if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível concluir a conexão Google.');
         clearGoogleCalendarSession();
+        setConnected(false);
       }
     })();
     return () => { active = false; };
@@ -152,7 +153,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     let imported = 0;
     const currentItems = await agenda.list();
     for (const event of result.events) {
-      if (!event.id) continue;
+      if (!event.id) throw new Error('Google retornou um evento sem identificador. A reconciliação foi interrompida.');
       const uid = 'google:' + calendar.id + ':' + event.id;
       if (event.status === 'cancelled') {
         const existing = currentItems.find((item) => item.externalProvider === 'google' &&
@@ -164,7 +165,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       const allDay = Boolean(event.start?.date);
       const startsAt = eventDate(event.start?.dateTime ?? event.start?.date, allDay);
       const endsAt = eventDate(event.end?.dateTime ?? event.end?.date, allDay);
-      if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) continue;
+      if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) throw new Error('Google retornou um evento com datas inválidas. Nenhuma reconciliação será concluída.');
 
       await agenda.upsertImported({
         importedUid: uid,
