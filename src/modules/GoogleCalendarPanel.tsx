@@ -341,7 +341,10 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   }
 
   async function removeFromGoogle(item: Appointment) {
-    if (!item.externalCalendarId || !item.externalEventId) return;
+    if (!item.externalCalendarId || !item.externalEventId || item.externalAccountId !== accountId) {
+      setError('Este compromisso pertence a outra conta Google. Reconecte a conta original para excluí-lo.');
+      return;
+    }
     if (!window.confirm('Excluir "' + item.title + '" também do Google Calendar? Esta ação não pode ser desfeita.')) return;
     setBusy(true);
     setError('');
