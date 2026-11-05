@@ -9,6 +9,10 @@ interface Env {
   SESSION_SIGNING_KEY: string;
 }
 
+class UpstreamError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
 interface OAuthStateRow {
   state_hash: string;
   code_verifier: string;
@@ -186,7 +190,7 @@ async function googleApi<T>(connection: ConnectionRow, env: Env, path: string, i
   });
   if (response.status === 204) return undefined as T;
   const payload = await response.json().catch(() => ({})) as { error?: { message?: string } };
-  if (!response.ok) throw new Error(`Google Calendar API HTTP ${response.status}: ${payload.error?.message || 'request failed'}`);
+  if (!response.ok) throw new UpstreamError(payload.error?.message || `Google Calendar API HTTP ${response.status}.`, response.status);
   return payload as T;
 }
 
@@ -337,12 +341,12 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     if (!calendarId) return json({ error: "calendarId is required." }, 400);
     const eventId = decodeURIComponent(eventMatch[1]);
     if (request.method === "DELETE") {
-      await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "DELETE" });
+      await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "DELETE", headers: request.headers.get("If-Match") ? { "If-Match": request.headers.get("If-Match")! } : {} });
       return new Response(null, { status: 204 });
     }
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") return json({ error: "Event body is required." }, 400);
-    const updated = await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "PUT", body: JSON.stringify(body) });
+    const updated = await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "PUT", headers: request.headers.get("If-Match") ? { "If-Match": request.headers.get("If-Match")! } : {}, body: JSON.stringify(body) });
     return json(updated);
   }
 
@@ -384,7 +388,8 @@ export default {
       headers.set("Referrer-Policy", "no-referrer");
       return new Response(response.body, { status: response.status, headers });
     } catch (error) {
-      return json({ error: error instanceof Error ? error.message : "Unexpected server error." }, 500, cors);
+      const status = error instanceof UpstreamError ? (error.status === 412 ? 409 : error.status === 410 ? 410 : 502) : 500;
+      return json({ error: error instanceof Error ? error.message : "Unexpected server error." }, status, cors);
     }
   },
 };
