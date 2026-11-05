@@ -74,7 +74,12 @@ struct AlfredWebView: UIViewRepresentable {
         }
 
         private func isTrustedAlfredURL(_ url: URL?) -> Bool {
-            guard let url, url.scheme == "https", url.host == "bm000001.github.io" else {
+            guard let url,
+                  url.scheme == "https",
+                  url.host == "bm000001.github.io",
+                  url.port == nil || url.port == 443,
+                  url.user == nil,
+                  url.password == nil else {
                 return false
             }
             let path = url.path
