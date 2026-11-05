@@ -1,6 +1,6 @@
 # Alfred Google Calendar Worker
 
-Backend mínimo para OAuth Google e proxy da Calendar API. O Worker não recebe nem armazena os compromissos locais por padrão. Ele guarda somente a identidade Google e o refresh token criptografado necessário para renovar a autorização.
+Backend mínimo para OAuth Google e proxy da Calendar API. O Worker trafega e processa temporariamente os payloads de eventos para encaminhar as chamadas entre Alfred e Google, mas não grava títulos, horários, descrições, locais ou listas de eventos no D1. O armazenamento persistente contém somente a identidade Google e o refresh token criptografado necessário para renovar a autorização.
 
 ## Por que este backend existe
 
@@ -61,13 +61,13 @@ As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial
 
 ## Limites e segurança
 
-- O Worker não sincroniza a agenda local sozinho e não recebe uma cópia integral dos eventos. A interface da Agenda importa alterações incrementalmente e oferece ações confirmadas para enviar, atualizar ou excluir eventos individuais.
+- O Worker não sincroniza a agenda local sozinho nem persiste uma cópia dos eventos. Como proxy, ele vê os payloads de eventos em trânsito durante as chamadas; esses conteúdos não são gravados no D1. A interface da Agenda importa alterações incrementalmente e oferece ações confirmadas para enviar, atualizar ou excluir eventos individuais.
 - A sincronização automática deve rodar no frontend enquanto a página estiver ativa. Safari/iOS pode suspender a página em segundo plano.
 - Sessões frontend são temporárias e em memória; recarregar exige nova conexão.
 - O token de atualização Google é criptografado em D1; a chave AES fica em secret do Worker.
 - O ticket OAuth é aleatório, de uso único, armazenado somente como hash e expira em 2 minutos.
 - O estado OAuth é validado com cookie Secure/HttpOnly/SameSite=Lax, e PKCE S256.
-- Não há telemetria de conteúdo dos eventos nem logging de tokens.
+- Não há telemetria de conteúdo dos eventos nem logging de tokens; ainda assim, o Worker processa os dados dos eventos em memória como intermediário de rede.
 - Antes de liberar escrita na interface, cada operação deve passar por prévia e confirmação do usuário.
 
 ## Ainda pendente
