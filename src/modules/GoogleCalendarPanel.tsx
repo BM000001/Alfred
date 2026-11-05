@@ -1,0 +1,431 @@
+import { useEffect, useRef, useState } from 'react';
+import type { Appointment } from './agenda/types';
+import { classifyImportedAppointment } from './agenda/agendaRules';
+import { createAgendaService } from './agenda/agendaService';
+import {
+  beginGoogleCalendarConnection,
+  clearGoogleCalendarSession,
+  completeGoogleCalendarConnection,
+  createGoogleEvent,
+  deleteGoogleEvent,
+  disconnectGoogleCalendar,
+  isGoogleCalendarSessionActive,
+  listGoogleCalendars,
+  listGoogleEvents,
+  updateGoogleEvent,
+  type GoogleCalendarEvent,
+  type GoogleCalendarInfo,
+} from './agenda/googleCalendarApi';
+import { appointmentRepository, calendarSyncRepository } from '../storage/repositories';
+
+const agenda = createAgendaService(appointmentRepository);
+const SYNC_WINDOW_PAST_DAYS = 90;
+const SYNC_WINDOW_FUTURE_DAYS = 365;
+const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+function localDate(value: string): string {
+  const date = new Date(value);
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+}
+
+function eventDate(value?: string, allDay = false): string | undefined {
+  if (!value) return undefined;
+  if (allDay) return new Date(value + 'T00:00:00').toISOString();
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : undefined;
+}
+
+function toGoogleEvent(item: Appointment) {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  return {
+    summary: item.title,
+    ...(item.description ? { description: item.description } : {}),
+    ...(item.location ? { location: item.location } : {}),
+    start: item.isAllDay
+      ? { date: localDate(item.startsAt) }
+      : { dateTime: item.startsAt, timeZone },
+    end: item.isAllDay
+      ? { date: localDate(item.endsAt) }
+      : { dateTime: item.endsAt, timeZone },
+  };
+}
+
+function isExpiredSyncCursor(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('HTTP 410');
+}
+
+export interface GoogleCalendarPanelProps {
+  appointments: Appointment[];
+  onChanged: () => Promise<void>;
+}
+
+export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarPanelProps) {
+  const [connected, setConnected] = useState(isGoogleCalendarSessionActive());
+  const [calendars, setCalendars] = useState<GoogleCalendarInfo[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
+    try {
+      const saved = window.localStorage.getItem('alfred.googleCalendarIds');
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) && parsed.every((id): id is string => typeof id === 'string') ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const syncInFlight = useRef(false);
+
+  async function loadCalendars() {
+    const loaded = await listGoogleCalendars();
+    setCalendars(loaded);
+    setSelectedIds((current) => {
+      const valid = current.filter((id) => loaded.some((calendar) => calendar.id === id));
+      if (valid.length) return valid;
+      const primary = loaded.find((calendar) => calendar.primary);
+      return primary ? [primary.id] : loaded.slice(0, 1).map((calendar) => calendar.id);
+    });
+  }
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const completed = await completeGoogleCalendarConnection();
+        if (!active) return;
+        if (completed || isGoogleCalendarSessionActive()) {
+          setConnected(true);
+          await loadCalendars();
+          if (active && completed) setMessage('Conta Google conectada. Selecione os calendários que deseja sincronizar.');
+        }
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível concluir a conexão Google.');
+        clearGoogleCalendarSession();
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('alfred.googleCalendarIds', JSON.stringify(selectedIds));
+  }, [selectedIds]);
+
+  async function syncCalendar(calendar: GoogleCalendarInfo): Promise<number> {
+    const stateId = 'google:' + calendar.id;
+    const savedState = await calendarSyncRepository.getById(stateId);
+    const from = new Date(Date.now() - SYNC_WINDOW_PAST_DAYS * 86400000);
+    const to = new Date(Date.now() + SYNC_WINDOW_FUTURE_DAYS * 86400000);
+    let syncToken = savedState?.syncToken;
+    let fullSnapshot = !syncToken;
+
+    async function fetchAll(useToken?: string) {
+      const events: GoogleCalendarEvent[] = [];
+      let pageToken: string | undefined;
+      let nextSyncToken: string | undefined;
+      do {
+        const page = await listGoogleEvents(calendar.id, useToken
+          ? { syncToken: useToken, ...(pageToken ? { pageToken } : {}) }
+          : {
+              timeMin: from.toISOString(),
+              timeMax: to.toISOString(),
+              ...(pageToken ? { pageToken } : {}),
+            });
+        events.push(...(page.items ?? []));
+        pageToken = page.nextPageToken;
+        nextSyncToken = page.nextSyncToken;
+      } while (pageToken);
+      return { events, nextSyncToken };
+    }
+
+    let result: Awaited<ReturnType<typeof fetchAll>>;
+    try {
+      result = await fetchAll(syncToken);
+    } catch (cause) {
+      if (!syncToken || !isExpiredSyncCursor(cause)) throw cause;
+      syncToken = undefined;
+      fullSnapshot = true;
+      result = await fetchAll();
+    }
+
+    const seen: string[] = [];
+    let imported = 0;
+    const currentItems = await agenda.list();
+    for (const event of result.events) {
+      if (!event.id) continue;
+      const uid = 'google:' + calendar.id + ':' + event.id;
+      if (event.status === 'cancelled') {
+        const existing = currentItems.find((item) => item.externalProvider === 'google' &&
+          item.externalCalendarId === calendar.id && item.externalEventId === event.id);
+        if (existing && existing.status !== 'cancelled') await agenda.cancel(existing.id);
+        continue;
+      }
+
+      const allDay = Boolean(event.start?.date);
+      const startsAt = eventDate(event.start?.dateTime ?? event.start?.date, allDay);
+      const endsAt = eventDate(event.end?.dateTime ?? event.end?.date, allDay);
+      if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) continue;
+
+      await agenda.upsertImported({
+        importedUid: uid,
+        importedStableUid: uid,
+        importedCalendarId: 'google:' + calendar.id,
+        importedCalendarName: calendar.summary,
+        externalProvider: 'google',
+        externalCalendarId: calendar.id,
+        externalEventId: event.id,
+        ...(event.etag ? { externalEtag: event.etag } : {}),
+        title: (event.summary || 'Sem título').slice(0, 120),
+        type: classifyImportedAppointment(event.summary || ''),
+        startsAt,
+        endsAt,
+        isAllDay: allDay,
+        isRecurring: Boolean(event.recurringEventId),
+        ...(event.description ? { description: event.description } : {}),
+        ...(event.location ? { location: event.location } : {}),
+      });
+      seen.push(uid);
+      imported += 1;
+    }
+
+    if (fullSnapshot) {
+      await agenda.reconcileImportedCalendar('google:' + calendar.id, seen, from.toISOString(), to.toISOString());
+    }
+    if (result.nextSyncToken) {
+      await calendarSyncRepository.save({
+        id: stateId,
+        provider: 'google',
+        calendarId: calendar.id,
+        syncToken: result.nextSyncToken,
+        lastSyncedAt: new Date().toISOString(),
+      });
+    }
+    return imported;
+  }
+
+  async function syncSelected(reason: 'manual' | 'automatic' = 'manual') {
+    if (syncInFlight.current || !connected) return;
+    const selected = calendars.filter((calendar) => selectedIds.includes(calendar.id));
+    if (!selected.length) {
+      setError('Selecione ao menos um calendário Google.');
+      return;
+    }
+    syncInFlight.current = true;
+    setBusy(true);
+    setError('');
+    try {
+      let total = 0;
+      for (const calendar of selected) total += await syncCalendar(calendar);
+      const syncedAt = new Date().toISOString();
+      setLastSync(syncedAt);
+      setMessage((reason === 'automatic' ? 'Atualização automática' : 'Sincronização concluída') +
+        ': ' + total + ' evento(s) recebido(s) de ' + selected.length + ' calendário(s).');
+      await onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível sincronizar o Google Calendar.');
+    } finally {
+      syncInFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!connected) return;
+    const runIfVisible = () => {
+      if (document.visibilityState === 'visible') void syncSelected('automatic');
+    };
+    const interval = window.setInterval(runIfVisible, AUTO_SYNC_INTERVAL_MS);
+    document.addEventListener('visibilitychange', runIfVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', runIfVisible);
+    };
+  }, [connected, calendars, selectedIds]);
+
+  async function connect() {
+    setError('');
+    try {
+      beginGoogleCalendarConnection();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível iniciar a conexão Google.');
+    }
+  }
+
+  async function refreshCalendars() {
+    setBusy(true);
+    setError('');
+    try {
+      await loadCalendars();
+      setMessage('Lista de calendários atualizada.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível listar os calendários.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disconnect() {
+    if (!window.confirm('Desconectar o Google Calendar do Alfred? Os eventos já importados continuarão na sua agenda local.')) return;
+    setBusy(true);
+    try {
+      await disconnectGoogleCalendar();
+      setConnected(false);
+      setCalendars([]);
+      setSelectedIds([]);
+      setMessage('Conta Google desconectada. Seus compromissos locais foram preservados.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível desconectar a conta Google.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendToGoogle(item: Appointment) {
+    const calendar = calendars.find((candidate) => selectedIds.includes(candidate.id));
+    if (!calendar) {
+      setError('Selecione um calendário de destino antes de enviar compromissos.');
+      return;
+    }
+    if (!window.confirm('Enviar "' + item.title + '" para o calendário Google "' + calendar.summary + '"?')) return;
+    setBusy(true);
+    setError('');
+    try {
+      const created = await createGoogleEvent(calendar.id, toGoogleEvent(item));
+      await agenda.update(item.id, {
+        importedUid: 'google:' + calendar.id + ':' + created.id,
+        importedStableUid: 'google:' + calendar.id + ':' + created.id,
+        importedCalendarId: 'google:' + calendar.id,
+        importedCalendarName: calendar.summary,
+        externalProvider: 'google',
+        externalCalendarId: calendar.id,
+        externalEventId: created.id,
+        externalEtag: created.etag,
+      });
+      setMessage('Compromisso enviado ao Google com confirmação. A cópia local foi mantida.');
+      await onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível enviar o compromisso ao Google.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updateInGoogle(item: Appointment) {
+    if (!item.externalCalendarId || !item.externalEventId) return;
+    if (!window.confirm('Atualizar "' + item.title + '" no Google Calendar?')) return;
+    setBusy(true);
+    setError('');
+    try {
+      const updated = await updateGoogleEvent(item.externalCalendarId, item.externalEventId, toGoogleEvent(item), item.externalEtag);
+      await agenda.update(item.id, { externalEtag: updated.etag });
+      setMessage('Alterações enviadas ao Google. A cópia local foi preservada.');
+      await onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar o evento Google.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeFromGoogle(item: Appointment) {
+    if (!item.externalCalendarId || !item.externalEventId) return;
+    if (!window.confirm('Excluir "' + item.title + '" também do Google Calendar? Esta ação não pode ser desfeita.')) return;
+    setBusy(true);
+    setError('');
+    try {
+      await deleteGoogleEvent(item.externalCalendarId, item.externalEventId, item.externalEtag);
+      await agenda.update(item.id, {
+        importedUid: undefined,
+        importedStableUid: undefined,
+        importedCalendarId: undefined,
+        importedCalendarName: undefined,
+        externalProvider: undefined,
+        externalCalendarId: undefined,
+        externalEventId: undefined,
+        externalEtag: undefined,
+      });
+      setMessage('Evento excluído do Google. A cópia local foi mantida e desvinculada.');
+      await onChanged();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível excluir o evento Google.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const localUnlinked = appointments.filter((item) =>
+    item.status !== 'cancelled' && !item.externalProvider && !item.importedUid,
+  );
+  const linkedGoogle = appointments.filter((item) =>
+    item.status !== 'cancelled' && item.externalProvider === 'google' && item.externalEventId,
+  );
+
+  return (
+    <section className="entry-panel apple-calendar-panel google-calendar-panel" aria-labelledby="google-calendar-title">
+      <div className="apple-calendar-heading">
+        <div><span className="card-label">INTEGRAÇÃO WEB</span><h3 id="google-calendar-title">Google Calendar</h3></div>
+        <span className={connected ? 'apple-calendar-indicator' : 'apple-calendar-unavailable'}><span /> {connected ? 'Conectado nesta sessão' : 'Não conectado'}</span>
+      </div>
+      <p>Conecte sua conta Google para importar eventos e enviar compromissos do Alfred. Seus dados continuam no dispositivo; somente operações que você confirmar serão enviadas ao Google.</p>
+      <div className="apple-calendar-actions">
+        {!connected ? (
+          <button className="primary-action" type="button" disabled={busy} onClick={() => void connect()}>Conectar Google Calendar</button>
+        ) : (
+          <>
+            <button className="primary-action" type="button" disabled={busy} onClick={() => void syncSelected('manual')}>{busy ? 'Aguarde...' : 'Sincronizar agora'}</button>
+            <button className="text-action" type="button" disabled={busy} onClick={() => void refreshCalendars()}>Atualizar calendários</button>
+            <button className="text-action" type="button" disabled={busy} onClick={() => void disconnect()}>Desconectar</button>
+          </>
+        )}
+      </div>
+      {connected && (
+        <>
+          <div className="apple-calendar-picker">
+            <strong>Calendários Google selecionados</strong>
+            {calendars.length === 0 ? <p>Nenhum calendário disponível.</p> : calendars.map((calendar) => (
+              <label key={calendar.id} className="apple-calendar-option">
+                <input type="checkbox" checked={selectedIds.includes(calendar.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, calendar.id] : current.filter((id) => id !== calendar.id))} />
+                <span><b>{calendar.summary}</b><small>{calendar.primary ? 'Principal' : calendar.timeZone || 'Google Calendar'}</small></span>
+              </label>
+            ))}
+          </div>
+          <div className="apple-calendar-diagnostics">
+            <div className="apple-calendar-diagnostics-heading"><strong>Sincronização</strong><span>{busy ? 'Em andamento' : 'Manual + automática'}</span></div>
+            <div className="apple-calendar-diagnostic-grid">
+              <div><small>Calendários</small><strong>{selectedIds.length}</strong></div>
+              <div><small>Eventos Google na Agenda</small><strong>{appointments.filter((item) => item.externalProvider === 'google' && item.status !== 'cancelled').length}</strong></div>
+              <div><small>Eventos locais prontos para envio</small><strong>{localUnlinked.length}</strong></div>
+              <div><small>Atualização automática</small><strong>A cada 5 min</strong></div>
+            </div>
+            <p className="apple-calendar-diagnostic-note">A sincronização automática ocorre quando esta página está aberta e visível. O Safari pode suspender a atividade em segundo plano.</p>
+          </div>
+          {localUnlinked.length > 0 && (
+            <div className="apple-calendar-picker">
+              <strong>Enviar compromissos locais ao Google</strong>
+              {localUnlinked.slice(0, 8).map((item) => (
+                <div className="apple-calendar-option" key={item.id}>
+                  <span><b>{item.title}</b><small>{new Date(item.startsAt).toLocaleString('pt-BR')}</small></span>
+                  <button className="text-action" type="button" disabled={busy || selectedIds.length === 0} onClick={() => void sendToGoogle(item)}>Enviar</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {linkedGoogle.length > 0 && (
+            <div className="apple-calendar-picker">
+              <strong>Compromissos vinculados</strong>
+              {linkedGoogle.slice(0, 8).map((item) => (
+                <div className="apple-calendar-option" key={item.id}>
+                  <span><b>{item.title}</b><small>Google · {new Date(item.startsAt).toLocaleString('pt-BR')}</small></span>
+                  <div><button className="text-action" type="button" disabled={busy} onClick={() => void updateInGoogle(item)}>Atualizar</button><button className="text-action" type="button" disabled={busy} onClick={() => void removeFromGoogle(item)}>Excluir no Google</button></div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {lastSync && <small className="apple-calendar-last-sync">Última sincronização: {new Date(lastSync).toLocaleString('pt-BR')}</small>}
+      {message && <p className="module-feedback" role="status">{message}</p>}
+      {error && <p className="module-error" role="alert">{error}</p>}
+    </section>
+  );
+}
