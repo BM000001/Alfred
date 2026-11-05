@@ -189,6 +189,8 @@ async function handleStart(request: Request, env: Env): Promise<Response> {
   const verifier = randomToken(48);
   const challenge = base64Url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
   const expiresAt = Math.floor(Date.now() / 1000) + 600;
+  await env.DB.prepare("DELETE FROM oauth_states WHERE expires_at < ?").bind(Math.floor(Date.now() / 1000)).run();
+  await env.DB.prepare("DELETE FROM oauth_tickets WHERE expires_at < ?").bind(Math.floor(Date.now() / 1000)).run();
   await env.DB.prepare("INSERT INTO oauth_states (state_hash, code_verifier, expires_at) VALUES (?, ?, ?)")
     .bind(await sha256(state), verifier, expiresAt).run();
 
@@ -253,16 +255,19 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
     : existing?.refresh_token_ciphertext;
   if (!refreshToken) return json({ error: "Google did not return offline access. Revoke Alfred access in Google Account settings and reconnect." }, 400);
 
-  const connectionId = existing?.id ?? crypto.randomUUID();
-  await env.DB.prepare(
-    "INSERT INTO google_connections (id, google_sub, refresh_token_ciphertext, scopes, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(google_sub) DO UPDATE SET refresh_token_ciphertext = excluded.refresh_token_ciphertext, scopes = excluded.scopes, updated_at = excluded.updated_at",
-  ).bind(connectionId, identity.sub, refreshToken, tokens.scope ?? GOOGLE_SCOPES, new Date().toISOString()).run();
+  const proposedConnectionId = existing?.id ?? crypto.randomUUID();
+  const savedConnection = await env.DB.prepare(
+    "INSERT INTO google_connections (id, google_sub, refresh_token_ciphertext, scopes, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(google_sub) DO UPDATE SET refresh_token_ciphertext = excluded.refresh_token_ciphertext, scopes = excluded.scopes, updated_at = excluded.updated_at RETURNING id",
+  ).bind(proposedConnectionId, identity.sub, refreshToken, tokens.scope ?? GOOGLE_SCOPES, new Date().toISOString()).first<{ id: string }>();
+  if (!savedConnection?.id) throw new Error("Could not save Google connection.");
+  const connectionId = savedConnection.id;
 
   const ticket = randomToken();
   await env.DB.prepare("INSERT INTO oauth_tickets (ticket_hash, connection_id, expires_at) VALUES (?, ?, ?)")
     .bind(await sha256(ticket), connectionId, Math.floor(Date.now() / 1000) + 120).run();
 
   const destination = new URL(env.ALFRED_RETURN_URL);
+  if (destination.origin !== env.ALFRED_ORIGIN) throw new Error("ALFRED_RETURN_URL must use the configured ALFRED_ORIGIN.");
   destination.hash = new URLSearchParams({ google_ticket: ticket }).toString();
   return redirect(destination.toString(), {
     "Set-Cookie": "alfred_google_state=; Path=/auth/google/callback; Max-Age=0; Secure; HttpOnly; SameSite=Lax",
