@@ -4,6 +4,7 @@ interface Env {
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REDIRECT_URI: string;
   ALFRED_ORIGIN: string;
+  ALFRED_RETURN_URL: string;
   TOKEN_ENCRYPTION_KEY: string;
   SESSION_SIGNING_KEY: string;
 }
@@ -179,7 +180,7 @@ async function googleApi<T>(connection: ConnectionRow, env: Env, path: string, i
   });
   if (response.status === 204) return undefined as T;
   const payload = await response.json().catch(() => ({})) as { error?: { message?: string } };
-  if (!response.ok) throw new Error(payload.error?.message || `Google Calendar API returned HTTP ${response.status}.`);
+  if (!response.ok) throw new Error(`Google Calendar API HTTP ${response.status}: ${payload.error?.message || 'request failed'}`);
   return payload as T;
 }
 
@@ -261,7 +262,7 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   await env.DB.prepare("INSERT INTO oauth_tickets (ticket_hash, connection_id, expires_at) VALUES (?, ?, ?)")
     .bind(await sha256(ticket), connectionId, Math.floor(Date.now() / 1000) + 120).run();
 
-  const destination = new URL(env.ALFRED_ORIGIN);
+  const destination = new URL(env.ALFRED_RETURN_URL);
   destination.hash = new URLSearchParams({ google_ticket: ticket }).toString();
   return redirect(destination.toString(), {
     "Set-Cookie": "alfred_google_state=; Path=/auth/google/callback; Max-Age=0; Secure; HttpOnly; SameSite=Lax",
@@ -356,7 +357,7 @@ export default {
       if (origin !== env.ALFRED_ORIGIN) return json({ error: "Origin not allowed." }, 403);
       return new Response(null, { status: 204, headers: cors });
     }
-    if (url.pathname.startsWith("/api/") && origin !== env.ALFRED_ORIGIN) return json({ error: "Origin not allowed." }, 403);
+    if ((url.pathname.startsWith("/api/") || url.pathname === "/auth/exchange") && origin !== env.ALFRED_ORIGIN) return json({ error: "Origin not allowed." }, 403);
     try {
       let response: Response;
       if (url.pathname === "/health" && request.method === "GET") response = json({ ok: true });
