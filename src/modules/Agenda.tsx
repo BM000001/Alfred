@@ -71,10 +71,21 @@ export function Agenda() {
   async function saveAppleEvents(response: Awaited<ReturnType<typeof syncAppleCalendar>>) {
     const currentSelection = [...selectedAppleCalendarsRef.current];
     const expectedCalendarIds = [...currentSelection].sort();
+    const selectionIsUnchanged = () => {
+      const latest = [...selectedAppleCalendarsRef.current].sort();
+      return latest.length === expectedCalendarIds.length &&
+        latest.every((id, index) => id === expectedCalendarIds[index]);
+    };
     const snapshot = validateAppleCalendarSnapshot(response, currentSelection);
     const { events, rangeStart, rangeEnd } = snapshot;
+    if (!selectionIsUnchanged()) {
+      throw new Error('A seleção de calendários mudou durante a leitura. Nenhum evento foi importado; sincronize novamente.');
+    }
     let imported = 0;
     for (const event of events) {
+      if (!selectionIsUnchanged()) {
+        throw new Error('A seleção de calendários mudou durante a importação. A reconciliação foi cancelada; sincronize novamente.');
+      }
       await agenda.upsertImported({
         importedUid: `apple:${event.id}`,
         importedStableUid: `apple-stable:${event.externalId || event.id}:${event.occurrenceDate || (event.isRecurring ? event.id : 'single')}`,
@@ -92,9 +103,8 @@ export function Agenda() {
     }
     // Selection must remain unchanged for the entire operation. Otherwise a
     // stale snapshot could archive events from a calendar the user just deselected.
-    if (selectedAppleCalendarsRef.current.length !== expectedCalendarIds.length ||
-        [...selectedAppleCalendarsRef.current].sort().some((id, index) => id !== expectedCalendarIds[index])) {
-      throw new Error('A seleção de calendários mudou durante a leitura. Nenhum evento ausente foi arquivado; sincronize novamente.');
+    if (!selectionIsUnchanged()) {
+      throw new Error('A seleção de calendários mudou durante a importação. Nenhum evento ausente foi arquivado; sincronize novamente.');
     }
     let removed = 0;
     for (const calendarId of currentSelection) {
