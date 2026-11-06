@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:pages": "node scripts/copy-ocr-assets.mjs && tsc -b && vite build --mode github-pages && cp manifest.webmanifest apple-touch-icon-180.png icon-192.png icon-512.png icon-maskable-512.png dist/",
-    "predev": "node scripts/copy-ocr-assets.mjs"
+    "predev": "node scripts/copy-ocr-assets.mjs",
+    "validate:apps-script": "node scripts/validate-apps-script.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
