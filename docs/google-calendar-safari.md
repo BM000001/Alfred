@@ -14,7 +14,7 @@
 
 **GitHub Pages (Alfred) + Google Apps Script Web App, executado como o usuário que acessa.**
 
-O Apps Script não será publicado como "executar como proprietário". Essa configuração daria ao backend acesso à agenda do proprietário do script, e não necessariamente à conta que está conectando o Alfred. A implantação obrigatoriamente deve usar **Execute as: User accessing the web app**.
+O projeto Apps Script deve ser criado pelo próprio usuário na mesma Conta Google cuja agenda será conectada. A implantação deve usar **Execute as: User accessing the web app** e **Who has access: Only myself**. Assim, a ponte é privada para a conta proprietária e o token de execução corresponde ao usuário que acessa.
 
 O Alfred abre o Apps Script por uma ação explícita do usuário. A janela/aba do Apps Script permanece aberta e funciona como ponte RPC:
 - A página Alfred abre a URL HTTPS /exec do Apps Script com um nonce aleatório de uso único.
@@ -32,7 +32,7 @@ O Content Service do Apps Script não oferece uma configuração geral de cabeç
 
 - Origem Alfred permitida no Apps Script: https://bm000001.github.io.
 - O Alfred valida que a mensagem veio da janela aberta por ele e de uma origem HTTPS do domínio Google Apps Script/Googleusercontent.
-- O Apps Script valida event.origin, event.source === window.opener e nonce.
+- O Apps Script valida event.origin, a referência ao opener da janela de topo e o nonce; o Alfred valida que a mensagem veio de um frame pertencente à janela aberta por ele.
 - O servidor aceita somente métodos RPC em allowlist e valida identificadores, parâmetros e tamanho dos eventos.
 - Nenhum token ou segredo é transportado por postMessage.
 - O Apps Script executa como a conta Google que autorizou o web app; nunca como o proprietário do script.
@@ -64,14 +64,14 @@ O token é criado e usado apenas no servidor Apps Script. A conta do usuário ve
 
 1. **Safari iPhone:** abrir Apps Script a partir de gesto do usuário deve preservar comunicação com a janela/aba de origem. Se o Safari abrir nova aba sem window.opener, a arquitetura precisa ser revista antes de liberar a integração.
 2. **Suspensão de aba:** o Safari pode suspender a aba/janela Apps Script enquanto Alfred está em primeiro plano. A ponte precisa continuar respondendo às chamadas RPC depois da troca de abas; se não continuar, a arquitetura não atende ao requisito de uso móvel.
-2. **Autorização:** implantação como usuário que acessa, com consentimento dos escopos mínimos. O Alfred deve falhar fechado se a autorização não estiver concedida.
-3. **Privacidade:** inspecionar logs e armazenamento do Apps Script para confirmar que não há payloads, tokens ou identificadores sensíveis persistidos.
-4. **Leitura:** listar todos os calendários e páginas de eventos; manter cursor incremental no IndexedDB.
-5. **Escrita:** criar, atualizar e excluir somente após confirmação individual no Alfred.
-6. **Conflito:** HTTP 412 do Google é apresentado como conflito recuperável; não repetir escrita automaticamente.
-7. **Desconexão:** fechar a janela de ponte, limpar estado em memória e preservar todos os compromissos locais. Explicar como revogar o script na Conta Google.
-8. **Falhas:** timeouts e erros de autorização devem ser exibidos sem apagar compromissos ou cursores locais.
-9. **Quotas:** respeitar quotas de execução/UrlFetch do Apps Script; falhas de quota não podem causar perda ou reconciliação parcial destrutiva.
+3. **Autorização:** implantação como usuário que acessa e acesso restrito a Only myself, com consentimento dos escopos mínimos. O Alfred deve falhar fechado se a autorização não estiver concedida.
+4. **Privacidade:** inspecionar logs e armazenamento do Apps Script para confirmar que não há payloads, tokens ou identificadores sensíveis persistidos.
+5. **Leitura:** listar todos os calendários e páginas de eventos; manter cursor incremental no IndexedDB.
+6. **Escrita:** criar, atualizar e excluir somente após confirmação individual no Alfred.
+7. **Conflito:** HTTP 412 do Google é apresentado como conflito recuperável; não repetir escrita automaticamente.
+8. **Desconexão:** fechar a janela de ponte, limpar estado em memória e preservar todos os compromissos locais. Explicar como revogar o script na Conta Google.
+9. **Falhas:** timeouts e erros de autorização devem ser exibidos sem apagar compromissos ou cursores locais.
+10. **Quotas:** respeitar quotas de execução/UrlFetch do Apps Script; falhas de quota não podem causar perda ou reconciliação parcial destrutiva.
 
 ## Implementação nesta branch
 
