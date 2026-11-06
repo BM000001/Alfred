@@ -13,5 +13,9 @@
   "webapp": {
     "executeAs": "USER_ACCESSING",
     "access": "MYSELF"
-  }
+  },
+  "urlFetchWhitelist": [
+    "https://www.googleapis.com/",
+    "https://openidconnect.googleapis.com/"
+  ]
 }
