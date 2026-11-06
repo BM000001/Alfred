@@ -26,6 +26,10 @@ if (!manifest.urlFetchWhitelist?.includes("https://www.googleapis.com/") ||
     !manifest.urlFetchWhitelist?.includes("https://openidconnect.googleapis.com/")) {
   throw new Error("Apps Script outbound URL allowlist is incomplete.");
 }
+if (!manifest.dependencies?.enabledAdvancedServices?.some((service) =>
+  service.userSymbol === "Calendar" && service.serviceId === "calendar" && service.version === "v3")) {
+  throw new Error("Google Calendar API v3 must be enabled for the Apps Script project.");
+}
 if (!server.includes('case "session"') || !server.includes('case "deleteEvent"') ||
     !server.includes("ScriptApp.getOAuthToken()") ||
     !server.includes("ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL)")) {
