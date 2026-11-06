@@ -336,10 +336,18 @@ export async function restoreBackup(input: unknown): Promise<void> {
       transaction.onerror = () => reject(transaction.error ?? new Error('Não foi possível restaurar o backup.'));
       transaction.onabort = () => reject(transaction.error ?? new Error('A restauração foi cancelada.'));
     });
-    for (const name of names) {
-      const store = transaction.objectStore(name);
-      store.clear();
-      for (const entity of rows[name]) store.put(entity);
+    try {
+      for (const name of names) {
+        const store = transaction.objectStore(name);
+        store.clear();
+        for (const entity of rows[name]) store.put(entity);
+      }
+    } catch (error) {
+      // A synchronous failure while queuing requests must not leave earlier
+      // clear/put requests free to commit as a partial restore.
+      try { transaction.abort(); } catch { /* The transaction may already be inactive. */ }
+      await completion.catch(() => undefined);
+      throw error;
     }
     await completion;
   } finally { database.close(); }
