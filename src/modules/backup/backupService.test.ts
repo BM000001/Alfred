@@ -85,7 +85,6 @@ describe('backupService', () => {
       }));
     } finally {
       await studyFlashcardRepository.delete(flashcard.id);
-      await studyFlashcardRepository.delete(staleFlashcard.id);
       await studyQuestionRepository.delete(question.id);
       await studyQuizAttemptRepository.delete(attempt.id);
       await fileRepository.delete(file.id);
@@ -138,6 +137,7 @@ describe('backupService', () => {
       expect(await restoredFile?.blob.text()).toBe('abc');
     } finally {
       await studyFlashcardRepository.delete(flashcard.id);
+      await studyFlashcardRepository.delete(staleFlashcard.id);
       await studyQuestionRepository.delete(question.id);
       await studyQuizAttemptRepository.delete(attempt.id);
       await fileRepository.delete(file.id);
