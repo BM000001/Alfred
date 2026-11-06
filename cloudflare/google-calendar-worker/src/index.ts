@@ -275,7 +275,7 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   if (!tokenInfoResponse.ok || !tokenInfo.scope) {
     return json({ error: "Não foi possível confirmar as permissões concedidas pelo Google. Tente conectar novamente." }, 502);
   }
-  const grantedScopes = new Set(tokenInfo.scope.split(/\\s+/).filter(Boolean));
+  const grantedScopes = new Set(tokenInfo.scope.split(/\s+/).filter(Boolean));
   const missingScopes = REQUIRED_GOOGLE_SCOPES.filter((scope) => !grantedScopes.has(scope));
   if (missingScopes.length) {
     return json({
@@ -300,7 +300,7 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   const proposedConnectionId = existing?.id ?? crypto.randomUUID();
   const savedConnection = await env.DB.prepare(
     "INSERT INTO google_connections (id, google_sub, refresh_token_ciphertext, scopes, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(google_sub) DO UPDATE SET refresh_token_ciphertext = excluded.refresh_token_ciphertext, scopes = excluded.scopes, updated_at = excluded.updated_at RETURNING id",
-  ).bind(proposedConnectionId, identity.sub, refreshToken, tokens.scope ?? GOOGLE_SCOPES, new Date().toISOString()).first<{ id: string }>();
+  ).bind(proposedConnectionId, identity.sub, refreshToken, tokenInfo.scope, new Date().toISOString()).first<{ id: string }>();
   if (!savedConnection?.id) throw new Error("Could not save Google connection.");
   const connectionId = savedConnection.id;
 
