@@ -26,6 +26,8 @@
       const BRIDGE_NONCE = <?!= JSON.stringify(bridgeNonce) ?>;
       const ALFRED_ORIGIN = <?!= JSON.stringify(alfredOrigin) ?>;
       const statusNode = document.getElementById("status");
+      const handledRequestIds = new Set();
+      const MAX_REQUESTS_PER_BRIDGE = 4096;
       // HtmlService runs this page inside a sandboxed iframe. In that case
       // window.opener belongs to the inner frame and is usually null; the
       // opener of the top-level Apps Script tab is the Alfred window.
@@ -51,7 +53,23 @@
         if (event.origin !== ALFRED_ORIGIN || event.source !== openerWindow) return;
         const data = event.data;
         if (!data || data.channel !== "alfred-google-calendar" || data.nonce !== BRIDGE_NONCE) return;
-        if (data.type !== "rpc" || !data.request || typeof data.request !== "object") return;
+        if (data.type !== "rpc" || !data.request || typeof data.request !== "object" || Array.isArray(data.request)) return;
+        if (typeof data.requestId !== "string" || !/^[1-9][0-9]{0,15}$/.test(data.requestId)) return;
+        // A nonce authenticates the bridge session; request IDs prevent a
+        // duplicated/replayed message from executing a write operation twice.
+        if (handledRequestIds.has(data.requestId)) return;
+        if (handledRequestIds.size >= MAX_REQUESTS_PER_BRIDGE) {
+          sendToAlfred({
+            channel: "alfred-google-calendar",
+            type: "rpc-result",
+            nonce: BRIDGE_NONCE,
+            requestId: data.requestId,
+            ok: false,
+            error: "Limite de solicitações desta conexão atingido. Reconecte o Google Calendar."
+          });
+          return;
+        }
+        handledRequestIds.add(data.requestId);
 
         google.script.run
           .withSuccessHandler(function(result) {
