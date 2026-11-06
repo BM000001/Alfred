@@ -50,7 +50,7 @@ A janela/aba do Apps Script precisa continuar aberta durante a conexão. Fechar 
 
 ## Bloqueio conhecido — Safari
 
-A comunicação depende de window.open, window.opener e postMessage. No iPhone, o Safari pode abrir uma nova aba ou alterar o comportamento de abertura. Se window.opener não estiver disponível, o Alfred falha fechado e não envia dados. **Não considerar a integração pronta até validar esse fluxo em Safari físico.**
+A comunicação depende de window.open, window.top.opener e postMessage. No iPhone, o Safari pode abrir uma nova aba, suspender a aba Apps Script em segundo plano ou alterar o comportamento de abertura. Se o opener não estiver disponível ou a ponte deixar de responder quando Alfred volta ao primeiro plano, o Alfred falha fechado e não envia dados. **Não considerar a integração pronta até validar abertura, troca de abas, retorno, suspensão e reconexão em Safari físico.**
 
 O projeto não usa iframe, pois há relatos recentes de Apps Script Web Apps bloqueados em iframes mesmo com XFrameOptionsMode.ALLOWALL.
 
