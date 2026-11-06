@@ -1,4 +1,9 @@
+import { Blob as NodeBlob } from 'node:buffer';
 import { describe, expect, it } from 'vitest';
+
+// jsdom's Blob is not preserved as a Blob by fake-indexeddb's structured clone.
+// Use Node's standards-based Blob implementation for IndexedDB persistence tests.
+Object.defineProperty(globalThis, 'Blob', { configurable: true, writable: true, value: NodeBlob });
 import { createBackup, inspectBackup, restoreBackup } from './backupService';
 import {
   egressSettingsRepository, fileRepository, focusSessionRepository, memoryRepository, studyFlashcardRepository,
