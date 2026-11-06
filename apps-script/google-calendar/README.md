@@ -45,6 +45,8 @@ A janela/aba do Apps Script precisa continuar aberta durante a conexão. Fechar 
 - O IndexedDB do Alfred continua sendo a fonte local dos compromissos e cursores.
 - Escritas remotas exigem confirmação individual no Alfred.
 - ETag/If-Match protege contra sobrescrita concorrente; conflitos devem ser resolvidos pelo usuário.
+- Criações usam um ID Google estável (base32hex) e um marcador privado `extendedProperties.private.alfredOperationId`. O Alfred persiste a operação e o snapshot exato do evento no IndexedDB antes da chamada; após timeout/reload, uma nova confirmação do usuário retoma o mesmo ID e payload. Em HTTP 409, o Apps Script só reconhece a criação anterior se o marcador privado corresponder; IDs ocupados por outra operação são rejeitados.
+- O registro de operações pendentes fica em uma store IndexedDB própria (migração DB v12), não é enviado ao Google como armazenamento de fila e não integra o backup exportado. O payload duplicado permanece somente no dispositivo para permitir retry idêntico.
 - A desconexão fecha a ponte e limpa o estado em memória, mas não confirma revogação OAuth. Para revogar completamente, abra a Conta Google → Segurança → Suas conexões com apps e serviços de terceiros e remova o acesso do script.
 - Safari pode suspender sincronização automática em segundo plano. O Apps Script também tem quotas e limites de execução/UrlFetch.
 
