@@ -251,31 +251,50 @@ if (retryResult.id !== stableEventId || serverCalls[4].options.method !== "post"
   throw new Error("Google Calendar create retry did not recover the matching existing event.");
 }
 
+// An existing event ID with a different marker must never be adopted.
+serverResponses.push({ status: 409, body: JSON.stringify({ error: { message: "Already exists" } }) });
+serverResponses.push({ status: 200, body: JSON.stringify({
+  id: stableEventId, extendedProperties: { private: { alfredOperationId: "ffffffffffffffffffffffffffffffff" } },
+}) });
+let foreignEventRejected = false;
+try {
+  invokeServer({
+    method: "createEvent",
+    params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId,
+      event: { summary: "Teste", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
+  });
+} catch (error) {
+  foreignEventRejected = String(error.message).includes("não pertence a esta operação");
+}
+if (!foreignEventRejected || serverCalls[7].options.method !== "get") {
+  throw new Error("Google Calendar create retry adopted an event with a foreign operation marker.");
+}
+
 serverResponses.push({ status: 200, body: JSON.stringify({ id: "created", etag: "etag-updated" }) });
 invokeServer({
   method: "updateEvent",
   params: { calendarId: "primary", eventId: "created", etag: "etag-v1", event: { summary: "Atualizado", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
 });
-if (serverCalls[6].options.method !== "patch" || serverCalls[6].options.headers["If-Match"] !== "etag-v1") {
+if (serverCalls[8].options.method !== "patch" || serverCalls[8].options.headers["If-Match"] !== "etag-v1") {
   throw new Error("Google Calendar update must use PATCH and preserve If-Match.");
 }
 
 serverResponses.push({ status: 204, body: "" });
 const deleteResult = invokeServer({ method: "deleteEvent", params: { calendarId: "primary", eventId: "created", etag: "etag-v2" } });
-if (!deleteResult.deleted || serverCalls[7].options.method !== "delete" ||
-    serverCalls[7].options.headers["If-Match"] !== "etag-v2") {
+if (!deleteResult.deleted || serverCalls[9].options.method !== "delete" ||
+    serverCalls[9].options.headers["If-Match"] !== "etag-v2") {
   throw new Error("Google Calendar delete/If-Match contract failed.");
 }
 
 let invalidMethodRejected = false;
 try { invokeServer({ method: "arbitraryMethod" }); } catch (_) { invalidMethodRejected = true; }
-if (!invalidMethodRejected || serverCalls.length !== 8) {
+if (!invalidMethodRejected || serverCalls.length !== 10) {
   throw new Error("Apps Script RPC dispatcher accepted a method outside its allowlist.");
 }
 let invalidEventRejected = false;
 try { invokeServer({ method: "createEvent", params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId, event: { summary: "missing dates" } } }); }
 catch (_) { invalidEventRejected = true; }
-if (!invalidEventRejected || serverCalls.length !== 8 || requiredScopes !== 9) {
+if (!invalidEventRejected || serverCalls.length !== 10 || requiredScopes !== 10) {
   throw new Error("Apps Script event validation or per-request scope enforcement failed.");
 }
 
