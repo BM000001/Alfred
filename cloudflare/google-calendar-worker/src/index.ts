@@ -119,19 +119,20 @@ async function signSession(connectionId: string, env: Env): Promise<string> {
 }
 
 async function verifySession(token: string, env: Env): Promise<string | null> {
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const key = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(env.SESSION_SIGNING_KEY),
-    { name: "HMAC", hash: "SHA-256" }, false, ["verify"],
-  );
-  const valid = await crypto.subtle.verify("HMAC", key, toArrayBuffer(fromBase64Url(parts[2])), toArrayBuffer(new TextEncoder().encode(`${parts[0]}.${parts[1]}`)));
-  if (!valid) return null;
   try {
+    const parts = token.split(".");
+    if (parts.length !== 3 || parts.some((part) => !part)) return null;
+    const key = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(env.SESSION_SIGNING_KEY),
+      { name: "HMAC", hash: "SHA-256" }, false, ["verify"],
+    );
+    const valid = await crypto.subtle.verify("HMAC", key, toArrayBuffer(fromBase64Url(parts[2])), toArrayBuffer(new TextEncoder().encode(`${parts[0]}.${parts[1]}`)));
+    if (!valid) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(parts[1]))) as { sub?: string; iss?: string; exp?: number };
     if (payload.iss !== "alfred-google-calendar" || !payload.sub || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) return null;
     return payload.sub;
   } catch {
+    // Malformed or tampered Bearer tokens are unauthenticated, not server errors.
     return null;
   }
 }
