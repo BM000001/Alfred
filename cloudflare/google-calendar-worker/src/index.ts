@@ -232,10 +232,12 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   if (!state || !code || state !== stateCookie) return json({ error: "OAuth state validation failed." }, 400);
 
   const stateHash = await sha256(state);
-  const flow = await env.DB.prepare("SELECT state_hash, code_verifier, expires_at FROM oauth_states WHERE state_hash = ?")
-    .bind(stateHash).first<OAuthStateRow>();
-  await env.DB.prepare("DELETE FROM oauth_states WHERE state_hash = ?").bind(stateHash).run();
-  if (!flow || flow.expires_at < Math.floor(Date.now() / 1000)) return json({ error: "OAuth flow expired. Please reconnect." }, 400);
+  // Consume OAuth state atomically so concurrent/replayed callbacks cannot
+  // both proceed with the same PKCE verifier.
+  const flow = await env.DB.prepare(
+    "DELETE FROM oauth_states WHERE state_hash = ? AND expires_at >= ? RETURNING code_verifier, expires_at",
+  ).bind(stateHash, Math.floor(Date.now() / 1000)).first<OAuthStateRow>();
+  if (!flow) return json({ error: "OAuth flow expired or already used. Please reconnect." }, 400);
 
   const tokenResponse = await fetch(GOOGLE_TOKEN, {
     method: "POST",
