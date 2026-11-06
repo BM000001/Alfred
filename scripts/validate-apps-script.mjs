@@ -36,4 +36,8 @@ if (!html.includes("event.source !== openerWindow") || !html.includes("event.ori
     !read("src/modules/agenda/googleCalendarApi.ts").includes("function isPopupFrame")) {
   throw new Error("Apps Script message origin/source validation is missing.");
 }
+if (/Logger\\.log|PropertiesService|CacheService|SpreadsheetApp/.test(server) ||
+    html.includes("getOAuthToken") || html.includes("Authorization: Bearer")) {
+  throw new Error("Apps Script bridge must not log or persist tokens/event payloads or expose OAuth tokens to HTML.");
+}
 console.log("Google Apps Script manifest, RPC bridge and JavaScript syntax validated.");
