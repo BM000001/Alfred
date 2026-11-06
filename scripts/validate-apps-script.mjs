@@ -99,3 +99,16 @@ messageHandler({
 if (emitted.length !== callCount) {
   throw new Error("Apps Script bridge accepted a message from an untrusted origin.");
 }
+messageHandler({
+  origin: "https://bm000001.github.io",
+  source: { closed: false, postMessage() {} },
+  data: { channel: "alfred-google-calendar", type: "rpc", nonce: "test-nonce", requestId: "wrong-source", request: { method: "session" } },
+});
+messageHandler({
+  origin: "https://bm000001.github.io",
+  source: alfredWindow,
+  data: { channel: "alfred-google-calendar", type: "rpc", nonce: "wrong-nonce", requestId: "wrong-nonce", request: { method: "session" } },
+});
+if (emitted.length !== callCount) {
+  throw new Error("Apps Script bridge accepted an untrusted source or nonce.");
+}
