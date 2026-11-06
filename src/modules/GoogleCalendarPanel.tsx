@@ -65,6 +65,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   const [accountId, setAccountId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<GoogleCalendarInfo[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectionPreferencesAccountId, setSelectionPreferencesAccountId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -118,8 +119,10 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   useEffect(() => {
     if (!accountId) {
       setSelectedIds([]);
+      setSelectionPreferencesAccountId(null);
       return;
     }
+    setSelectionPreferencesAccountId(null);
     try {
       const saved = window.localStorage.getItem('alfred.googleCalendarIds:' + accountId);
       const parsed: unknown = saved ? JSON.parse(saved) : [];
@@ -127,13 +130,14 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     } catch {
       setSelectedIds([]);
     }
+    setSelectionPreferencesAccountId(accountId);
   }, [accountId]);
 
   useEffect(() => {
-    if (accountId) {
+    if (accountId && selectionPreferencesAccountId === accountId) {
       window.localStorage.setItem('alfred.googleCalendarIds:' + accountId, JSON.stringify(selectedIds));
     }
-  }, [accountId, selectedIds]);
+  }, [accountId, selectedIds, selectionPreferencesAccountId]);
 
   async function syncCalendar(calendar: GoogleCalendarInfo): Promise<number> {
     if (!accountId) throw new Error('A conta Google não foi identificada. Reconecte antes de sincronizar.');
