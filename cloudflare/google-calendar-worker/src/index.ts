@@ -138,7 +138,7 @@ async function verifySession(token: string, env: Env): Promise<string | null> {
 
 function corsHeaders(request: Request, env: Env): Headers {
   const origin = request.headers.get("Origin");
-  const headers = new Headers({ "Vary": "Origin", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Authorization,Content-Type,If-Match" });
+  const headers = new Headers({ "Vary": "Origin", "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Authorization,Content-Type,If-Match" });
   if (origin === env.ALFRED_ORIGIN) {
     headers.set("Access-Control-Allow-Origin", origin);
     headers.set("Access-Control-Max-Age", "600");
@@ -288,11 +288,12 @@ async function handleExchange(request: Request, env: Env): Promise<Response> {
   const body = await request.json().catch(() => null) as { ticket?: string } | null;
   if (!body?.ticket || body.ticket.length > 200) return json({ error: "Invalid one-time authorization ticket." }, 400);
   const hash = await sha256(body.ticket);
+  // Consume the ticket atomically: concurrent exchange requests cannot both
+  // turn the same one-time OAuth ticket into valid sessions.
   const row = await env.DB.prepare(
-    "SELECT oauth_tickets.ticket_hash, oauth_tickets.connection_id, oauth_tickets.expires_at FROM oauth_tickets WHERE ticket_hash = ?",
-  ).bind(hash).first<{ ticket_hash: string; connection_id: string; expires_at: number }>();
-  await env.DB.prepare("DELETE FROM oauth_tickets WHERE ticket_hash = ?").bind(hash).run();
-  if (!row || row.expires_at < Math.floor(Date.now() / 1000)) return json({ error: "Authorization ticket expired. Please reconnect." }, 401);
+    "DELETE FROM oauth_tickets WHERE ticket_hash = ? AND expires_at >= ? RETURNING connection_id, expires_at",
+  ).bind(hash, Math.floor(Date.now() / 1000)).first<{ connection_id: string; expires_at: number }>();
+  if (!row) return json({ error: "Authorization ticket expired or already used. Please reconnect." }, 401);
   const sessionToken = await signSession(row.connection_id, env);
   return json({ accessToken: sessionToken, expiresIn: 1800 });
 }
@@ -337,7 +338,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const created = await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events`, { method: "POST", body: JSON.stringify(body) });
     return json(created, 201);
   }
-  if (eventMatch && ["PUT", "DELETE"].includes(request.method)) {
+  if (eventMatch && ["PATCH", "DELETE"].includes(request.method)) {
     const calendarId = url.searchParams.get("calendarId");
     if (!calendarId) return json({ error: "calendarId is required." }, 400);
     const eventId = decodeURIComponent(eventMatch[1]);
