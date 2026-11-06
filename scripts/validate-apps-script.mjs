@@ -219,15 +219,36 @@ if (!serverCalls[2]?.url?.includes("/calendars/owner%40example.com/events?") ||
   throw new Error("Google Calendar event pagination/sync query contract failed.");
 }
 
-serverResponses.push({ status: 200, body: JSON.stringify({ id: "created", etag: "etag-created" }) });
+const stableEventId = "0123456789abcdef0123456789abcdef";
+const stableOperationId = stableEventId;
+serverResponses.push({ status: 200, body: JSON.stringify({ id: stableEventId, etag: "etag-created" }) });
 invokeServer({
   method: "createEvent",
-  params: { calendarId: "primary", event: { summary: "Teste", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" }, ignoredField: "must-not-pass" } },
+  params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId,
+    event: { summary: "Teste", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" }, ignoredField: "must-not-pass" } },
 });
 const createCall = serverCalls[3];
 const createPayload = JSON.parse(createCall.options.payload);
-if (createCall.options.method !== "post" || createPayload.ignoredField !== undefined || createPayload.summary !== "Teste") {
-  throw new Error("Google Calendar create payload allowlist failed.");
+if (createCall.options.method !== "post" || createPayload.ignoredField !== undefined ||
+    createPayload.summary !== "Teste" || createPayload.id !== stableEventId ||
+    createPayload.extendedProperties.private.alfredOperationId !== stableOperationId) {
+  throw new Error("Google Calendar create payload or stable operation marker failed.");
+}
+
+// Simulate a lost response followed by a retry: Google reports ID conflict,
+// then returns the existing event. Only the matching private marker is accepted.
+serverResponses.push({ status: 409, body: JSON.stringify({ error: { message: "Already exists" } }) });
+serverResponses.push({ status: 200, body: JSON.stringify({
+  id: stableEventId, extendedProperties: { private: { alfredOperationId: stableOperationId } },
+}) });
+const retryResult = invokeServer({
+  method: "createEvent",
+  params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId,
+    event: { summary: "Teste", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
+});
+if (retryResult.id !== stableEventId || serverCalls[4].options.method !== "post" ||
+    serverCalls[5].options.method !== "get") {
+  throw new Error("Google Calendar create retry did not recover the matching existing event.");
 }
 
 serverResponses.push({ status: 200, body: JSON.stringify({ id: "created", etag: "etag-updated" }) });
@@ -235,14 +256,14 @@ invokeServer({
   method: "updateEvent",
   params: { calendarId: "primary", eventId: "created", etag: "etag-v1", event: { summary: "Atualizado", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
 });
-if (serverCalls[4].options.method !== "patch" || serverCalls[4].options.headers["If-Match"] !== "etag-v1") {
+if (serverCalls[6].options.method !== "patch" || serverCalls[6].options.headers["If-Match"] !== "etag-v1") {
   throw new Error("Google Calendar update must use PATCH and preserve If-Match.");
 }
 
 serverResponses.push({ status: 204, body: "" });
 const deleteResult = invokeServer({ method: "deleteEvent", params: { calendarId: "primary", eventId: "created", etag: "etag-v2" } });
-if (!deleteResult.deleted || serverCalls[5].options.method !== "delete" ||
-    serverCalls[5].options.headers["If-Match"] !== "etag-v2") {
+if (!deleteResult.deleted || serverCalls[7].options.method !== "delete" ||
+    serverCalls[7].options.headers["If-Match"] !== "etag-v2") {
   throw new Error("Google Calendar delete/If-Match contract failed.");
 }
 
@@ -254,7 +275,7 @@ if (!invalidMethodRejected || serverCalls.length !== 6) {
 let invalidEventRejected = false;
 try { invokeServer({ method: "createEvent", params: { calendarId: "primary", event: { summary: "missing dates" } } }); }
 catch (_) { invalidEventRejected = true; }
-if (!invalidEventRejected || serverCalls.length !== 6 || requiredScopes !== 8) {
+if (!invalidEventRejected || serverCalls.length !== 8 || requiredScopes !== 10) {
   throw new Error("Apps Script event validation or per-request scope enforcement failed.");
 }
 
