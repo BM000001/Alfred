@@ -40,7 +40,6 @@ let bridgeReady = false;
 let requestSequence = 0;
 let readyTimer = 0;
 let readyResolve: (() => void) | null = null;
-let readyReject: ((error: Error) => void) | null = null;
 const pending = new Map<string, PendingRequest>();
 
 function createNonce(): string {
@@ -77,7 +76,6 @@ function handleBridgeMessage(event: MessageEvent): void {
     window.clearTimeout(readyTimer);
     readyResolve?.();
     readyResolve = null;
-    readyReject = null;
     return;
   }
 
@@ -95,7 +93,7 @@ function ensureBridge(): void {
     throw new Error("A integração Google ainda não foi configurada. Falta definir VITE_GOOGLE_APPS_SCRIPT_URL.");
   }
   const url = new URL(APP_SCRIPT_URL);
-  if (url.protocol !== "https:" || url.hostname !== "script.google.com" || !url.pathname.includes("/macros/s/")) {
+  if (url.protocol !== "https:" || url.hostname !== "script.google.com" || !url.pathname.includes("/macros/s/") || !url.pathname.endsWith("/exec")) {
     throw new Error("A URL do Google Apps Script não é válida. Use a URL HTTPS de implantação /exec.");
   }
 }
@@ -125,11 +123,14 @@ export function beginGoogleCalendarConnection(): Promise<void> {
 
   return new Promise<void>((resolve, reject) => {
     readyResolve = resolve;
-    readyReject = reject;
     readyTimer = window.setTimeout(() => {
       readyResolve = null;
-      readyReject = null;
       window.removeEventListener("message", handleBridgeMessage);
+      if (popup && !popup.closed) popup.close();
+      popup = null;
+      popupOrigin = "";
+      bridgeReady = false;
+      bridgeNonce = "";
       reject(new Error("O Google Apps Script não estabeleceu comunicação com o Alfred. Verifique a autorização e se a janela continua aberta."));
     }, 90_000);
   });
@@ -141,13 +142,21 @@ export async function completeGoogleCalendarConnection(): Promise<boolean> {
 }
 
 export function isGoogleCalendarSessionActive(): boolean {
-  return Boolean(popup && !popup.closed && bridgeReady);
+  if (popup && popup.closed) {
+    popup = null;
+    popupOrigin = "";
+    bridgeReady = false;
+    bridgeNonce = "";
+    window.removeEventListener("message", handleBridgeMessage);
+    rejectPending("A janela de conexão do Google foi encerrada.");
+    return false;
+  }
+  return Boolean(popup && bridgeReady);
 }
 
 export function clearGoogleCalendarSession(): void {
   window.clearTimeout(readyTimer);
   readyResolve = null;
-  readyReject = null;
   if (popup && !popup.closed) popup.close();
   popup = null;
   popupOrigin = "";
