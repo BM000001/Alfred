@@ -284,11 +284,16 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   // the requested scopes were all approved. Token responses may omit scope
   // when it matches the request, so use Google's tokeninfo endpoint as the
   // authoritative grant record.
-  const tokenInfoResponse = await fetch(
-    "https://oauth2.googleapis.com/tokeninfo?access_token=" + encodeURIComponent(tokens.access_token),
-  );
-  const tokenInfo = await tokenInfoResponse.json() as GoogleTokenInfoResponse;
-  if (!tokenInfoResponse.ok || !tokenInfo.scope) {
+  let tokenInfo: GoogleTokenInfoResponse | null = null;
+  try {
+    const tokenInfoResponse = await fetch(
+      "https://oauth2.googleapis.com/tokeninfo?access_token=" + encodeURIComponent(tokens.access_token),
+    );
+    if (tokenInfoResponse.ok) tokenInfo = await tokenInfoResponse.json() as GoogleTokenInfoResponse;
+  } catch {
+    // A temporary tokeninfo outage must not leave a partially authorized grant behind.
+  }
+  if (!tokenInfo?.scope) {
     await revokeGoogleToken(tokens.refresh_token || tokens.access_token);
     return json({ error: "Não foi possível confirmar as permissões concedidas pelo Google. Tente conectar novamente." }, 502);
   }
