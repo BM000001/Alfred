@@ -45,10 +45,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Validate Google Calendar Worker
-        run: |
-          npm install --prefix cloudflare/google-calendar-worker
-          npm run check --prefix cloudflare/google-calendar-worker
+      - name: Validate Google Apps Script bridge
+        run: npm run validate:apps-script
 
       - name: Build application
         run: npm run build
