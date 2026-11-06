@@ -296,12 +296,16 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     if (!window.confirm('Desconectar o Google Calendar do Alfred? Os eventos já importados continuarão na sua agenda local.')) return;
     setBusy(true);
     try {
-      await disconnectGoogleCalendar();
+      const result = await disconnectGoogleCalendar();
       setConnected(false);
       setAccountId(null);
       setCalendars([]);
       setSelectedIds([]);
-      setMessage('Conta Google desconectada. Seus compromissos locais foram preservados.');
+      setMessage(
+        result.googleRevocation === 'confirmed'
+          ? 'Conta Google desconectada e autorização revogada no Google. Seus compromissos locais foram preservados.'
+          : 'Conta desconectada do Alfred e compromissos locais preservados, mas não foi possível confirmar a revogação no Google. Se desejar, revogue o acesso do Alfred nas configurações da sua Conta Google.',
+      );
     } catch (cause) {
       reportError(cause, 'Não foi possível desconectar a conta Google.');
     } finally {
