@@ -105,7 +105,7 @@ export class Brain {
       }
     }
 
-    const response = await this.provider.generate(request);
+    const response = await this.provider.generate({ ...request, intent: classification.intent });
     return { ...response, intent: classification.intent, providerId: this.provider.id };
   }
 }
