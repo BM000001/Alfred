@@ -71,6 +71,14 @@ export function createAgendaService(
     async upsertImported(input: CreateAppointmentInput & { importedUid: string; importedStableUid?: string; importedCalendarId?: string; importedCalendarName?: string; externalProvider?: 'google'; externalAccountId?: string; externalCalendarId?: string; externalEventId?: string; externalEtag?: string }): Promise<Appointment> {
       const all = await repository.getAll();
       const exactMatch = all.find((item) => item.importedUid === input.importedUid);
+      // Account-scoped external identity lets existing imports migrate safely
+      // when the local UID format changes, without colliding across Google accounts.
+      const externalMatch = input.externalProvider && input.externalAccountId && input.externalCalendarId && input.externalEventId
+        ? all.find((item) => item.externalProvider === input.externalProvider &&
+            item.externalAccountId === input.externalAccountId &&
+            item.externalCalendarId === input.externalCalendarId &&
+            item.externalEventId === input.externalEventId)
+        : undefined;
       const stableMatches = input.importedStableUid
         ? all.filter((item) => item.importedStableUid === input.importedStableUid)
         : [];
@@ -94,7 +102,7 @@ export function createAgendaService(
         : looksLikeMovedEvent
           ? onlyCrossCalendarMatch
           : undefined;
-      const existing = exactMatch ?? stableMatch;
+      const existing = exactMatch ?? externalMatch ?? stableMatch;
       if (existing) {
         const updated: Appointment = {
           ...existing,
