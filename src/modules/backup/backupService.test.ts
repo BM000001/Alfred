@@ -76,6 +76,8 @@ describe('backupService', () => {
       expect(inspected.payload.version).toBe(2);
       if (inspected.payload.version !== 2) throw new Error('Esperada versão 2.');
       expect(inspected.payload.data.studyFlashcards).toContainEqual(flashcard);
+      expect(Object.keys(inspected.payload.data)).not.toContain('assistantMessages');
+      expect(Object.keys(inspected.payload.data)).not.toContain('egressAudit');
       expect(inspected.payload.data.studyQuestions).toContainEqual(question);
       expect(inspected.payload.data.studyQuizAttempts).toContainEqual(attempt);
       expect(inspected.payload.data.files).toContainEqual(expect.objectContaining({
@@ -83,6 +85,7 @@ describe('backupService', () => {
       }));
     } finally {
       await studyFlashcardRepository.delete(flashcard.id);
+      await studyFlashcardRepository.delete(staleFlashcard.id);
       await studyQuestionRepository.delete(question.id);
       await studyQuizAttemptRepository.delete(attempt.id);
       await fileRepository.delete(file.id);
@@ -109,6 +112,10 @@ describe('backupService', () => {
       extraction: { format: 'txt', text: 'abc', characterCount: 3, wordCount: 1, extractedAt: '2026-11-02T10:00:00.000Z' },
       blob: new Blob(['abc'], { type: 'text/plain' }),
     };
+    const staleFlashcard: StudyFlashcard = {
+      id: 'backup-v2-stale-card', disciplineId: 'old-discipline', front: 'Antigo', back: 'Remover',
+      createdAt: '2026-11-01T10:00:00.000Z', nextReviewAt: '2026-11-02T10:00:00.000Z', intervalDays: 1, reviewCount: 1,
+    };
     const payload = {
       ...validV2,
       data: {
@@ -119,8 +126,10 @@ describe('backupService', () => {
       },
     };
     try {
+      await studyFlashcardRepository.save(staleFlashcard);
       await restoreBackup(payload);
       expect(await studyFlashcardRepository.getById(flashcard.id)).toEqual(flashcard);
+      expect(await studyFlashcardRepository.getById(staleFlashcard.id)).toBeUndefined();
       expect(await studyQuestionRepository.getById(question.id)).toEqual(question);
       expect(await studyQuizAttemptRepository.getById(attempt.id)).toEqual(attempt);
       const restoredFile = await fileRepository.getById(file.id);
