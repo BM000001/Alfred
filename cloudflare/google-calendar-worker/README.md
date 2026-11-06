@@ -70,12 +70,24 @@ As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial
 - Não há telemetria de conteúdo dos eventos nem logging de tokens; ainda assim, o Worker processa os dados dos eventos em memória como intermediário de rede.
 - Antes de liberar escrita na interface, cada operação deve passar por prévia e confirmação do usuário.
 
-## Ainda pendente
+## Estado da implementação
 
-- Integrar o client src/modules/agenda/googleCalendarApi.ts à interface da Agenda.
-- Implementar origem/provedor Google nos metadados locais sem confundir IDs Apple, ICS e Google.
-- Implementar sincronização incremental com cursor por calendário e recuperação de HTTP 410.
-- Implementar fila local de saída, reconciliação e tratamento de conflitos/ETag.
-- Adicionar testes de integração do Worker e do cliente web.
-- Configurar credenciais, D1, domínio/URL e publicar o Worker em conta Cloudflare.
-- Validar fluxo OAuth e sincronização no Safari físico.
+Concluído no código desta branch:
+
+- Cliente Google integrado ao painel da Agenda.
+- Metadados de origem e identidade externa Google separados das origens Apple/ICS.
+- Sincronização incremental por calendário, paginação, recorrências, cancelamentos e recuperação de cursor expirado (HTTP 410).
+- Reconciliação local e operações de criação, atualização e exclusão com confirmação e ETag/If-Match.
+- Testes automatizados, type-check do Worker e build da aplicação executados no CI.
+
+Pendente para disponibilização real:
+
+- Criar e configurar o D1, as variáveis e os secrets na conta Cloudflare.
+- Criar o cliente OAuth Web no Google Cloud Console e cadastrar o callback exato do Worker.
+- Publicar o Worker e configurar `VITE_GOOGLE_CALENDAR_API` nas variáveis do GitHub Actions.
+- Fazer merge somente após autorização do proprietário e publicar o GitHub Pages.
+- Validar OAuth, leitura, escrita, reconciliação e retomada de sessão no Safari físico.
+
+## Observações de identidade
+
+O estado de sincronização e a identidade local dos eventos são isolados por conta Google, calendário e evento. Assim, duas contas Google que possuam calendários com IDs coincidentes não compartilham cursores nem registros locais.
