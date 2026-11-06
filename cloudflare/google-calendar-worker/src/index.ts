@@ -390,14 +390,33 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   }
 
   if (path === "/api/disconnect" && request.method === "POST") {
-    const refresh = await decrypt(connection.refresh_token_ciphertext, env);
-    await fetch("https://oauth2.googleapis.com/revoke", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ token: refresh }),
-    });
+    // Local disconnection must succeed even if Google's revocation endpoint is
+    // temporarily unavailable. Remove the encrypted refresh token first, then
+    // report whether remote revocation was confirmed.
+    let refresh: string | null = null;
+    try {
+      refresh = await decrypt(connection.refresh_token_ciphertext, env);
+    } catch {
+      // A damaged ciphertext must not prevent the user from disconnecting.
+    }
+
     await env.DB.prepare("DELETE FROM google_connections WHERE id = ?").bind(connection.id).run();
-    return json({ disconnected: true });
+
+    let googleRevocation: "confirmed" | "not_confirmed" = "not_confirmed";
+    if (refresh) {
+      try {
+        const revocation = await fetch("https://oauth2.googleapis.com/revoke", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ token: refresh }),
+        });
+        if (revocation.ok) googleRevocation = "confirmed";
+      } catch {
+        // The Alfred connection is already deleted locally. The UI will
+        // explain that revocation at Google could not be confirmed.
+      }
+    }
+    return json({ disconnected: true, googleRevocation });
   }
   return json({ error: "Not found." }, 404);
 }
