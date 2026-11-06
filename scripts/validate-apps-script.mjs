@@ -269,11 +269,11 @@ if (!deleteResult.deleted || serverCalls[7].options.method !== "delete" ||
 
 let invalidMethodRejected = false;
 try { invokeServer({ method: "arbitraryMethod" }); } catch (_) { invalidMethodRejected = true; }
-if (!invalidMethodRejected || serverCalls.length !== 6) {
+if (!invalidMethodRejected || serverCalls.length !== 8) {
   throw new Error("Apps Script RPC dispatcher accepted a method outside its allowlist.");
 }
 let invalidEventRejected = false;
-try { invokeServer({ method: "createEvent", params: { calendarId: "primary", event: { summary: "missing dates" } } }); }
+try { invokeServer({ method: "createEvent", params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId, event: { summary: "missing dates" } } }); }
 catch (_) { invalidEventRejected = true; }
 if (!invalidEventRejected || serverCalls.length !== 8 || requiredScopes !== 10) {
   throw new Error("Apps Script event validation or per-request scope enforcement failed.");
