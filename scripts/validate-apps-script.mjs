@@ -55,6 +55,8 @@ if (!isTrustedOrigin("https://script.google.com") ||
 
 if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN") ||
     !html.includes("window.top") || !html.includes("topWindow.opener") ||
+    !html.includes("handledRequestIds.has(data.requestId)") ||
+    !html.includes("MAX_REQUESTS_PER_BRIDGE") ||
     !read("src/modules/agenda/googleCalendarApi.ts").includes("function isPopupFrame")) {
   throw new Error("Apps Script message origin/source validation is missing.");
 }
@@ -70,6 +72,7 @@ console.log("Google Apps Script manifest, sandbox opener handshake, RPC bridge a
 const emitted = [];
 let messageHandler = null;
 let dispatched = null;
+let dispatchCount = 0;
 let successHandler = null;
 const statusNode = { textContent: "" };
 const alfredWindow = {
@@ -85,7 +88,7 @@ const htmlWindow = {
 const scriptRunner = {
   withSuccessHandler(handler) { successHandler = handler; return this; },
   withFailureHandler() { return this; },
-  rpcDispatch(request) { dispatched = request; successHandler({ connected: true }); return this; },
+  rpcDispatch(request) { dispatched = request; dispatchCount += 1; successHandler({ connected: true }); return this; },
 };
 vm.runInNewContext(clientScript, {
   window: htmlWindow,
@@ -103,16 +106,41 @@ messageHandler({
     channel: "alfred-google-calendar",
     type: "rpc",
     nonce: "test-nonce",
-    requestId: "test-request",
+    requestId: "1",
     request: { method: "session" },
   },
 });
 if (!dispatched || dispatched.method !== "session" ||
     emitted[1]?.message?.type !== "rpc-result" ||
-    emitted[1]?.message?.requestId !== "test-request") {
+    emitted[1]?.message?.requestId !== "1" || dispatchCount !== 1) {
   throw new Error("Apps Script bridge failed its RPC request/response contract.");
 }
 const callCount = emitted.length;
+messageHandler({
+  origin: "https://bm000001.github.io",
+  source: alfredWindow,
+  data: {
+    channel: "alfred-google-calendar",
+    type: "rpc",
+    nonce: "test-nonce",
+    requestId: "1",
+    request: { method: "createEvent", params: { calendarId: "primary" } },
+  },
+});
+messageHandler({
+  origin: "https://bm000001.github.io",
+  source: alfredWindow,
+  data: {
+    channel: "alfred-google-calendar",
+    type: "rpc",
+    nonce: "test-nonce",
+    requestId: "not-numeric",
+    request: { method: "createEvent", params: { calendarId: "primary" } },
+  },
+});
+if (dispatchCount !== 1 || emitted.length !== callCount) {
+  throw new Error("Apps Script bridge executed a replayed or malformed RPC request ID.");
+}
 messageHandler({
   origin: "https://attacker.example",
   source: alfredWindow,
