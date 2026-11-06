@@ -116,3 +116,109 @@ messageHandler({
 if (emitted.length !== callCount) {
   throw new Error("Apps Script bridge accepted an untrusted source or nonce.");
 }
+
+
+// Server-side RPC contract tests with mocked Apps Script and Google HTTP APIs.
+const serverCalls = [];
+const serverResponses = [];
+let requiredScopes = 0;
+const serverContext = {
+  ScriptApp: {
+    AuthMode: { FULL: "FULL" },
+    requireAllScopes(mode) {
+      if (mode !== "FULL") throw new Error("Unexpected Apps Script auth mode.");
+      requiredScopes += 1;
+    },
+    getOAuthToken() { return "server-only-test-token"; },
+  },
+  UrlFetchApp: {
+    fetch(url, options) {
+      serverCalls.push({ url, options });
+      const response = serverResponses.shift();
+      if (!response) throw new Error("Unexpected Google API request.");
+      return {
+        getResponseCode: () => response.status,
+        getContentText: () => response.body ?? "",
+      };
+    },
+  },
+};
+vm.createContext(serverContext);
+vm.runInContext(server, serverContext);
+const invokeServer = (request) => vm.runInContext(
+  "rpcDispatch(" + JSON.stringify(request) + ")",
+  serverContext,
+);
+
+serverResponses.push({ status: 200, body: JSON.stringify({ sub: "google-subject", email: "owner@example.com" }) });
+const sessionResult = invokeServer({ method: "session" });
+if (sessionResult.accountId !== "google-subject" || sessionResult.email !== "owner@example.com" ||
+    serverCalls[0]?.options?.headers?.Authorization !== "Bearer server-only-test-token") {
+  throw new Error("Apps Script session identity or server-side OAuth token handling failed.");
+}
+
+serverResponses.push({ status: 200, body: JSON.stringify({ items: [{ id: "primary" }] }) });
+invokeServer({ method: "calendars", params: { pageToken: "next page" } });
+if (!serverCalls[1]?.url?.includes("pageToken=next%20page")) {
+  throw new Error("Calendar list pagination parameter was not encoded correctly.");
+}
+
+serverResponses.push({ status: 200, body: JSON.stringify({ items: [], nextSyncToken: "sync-next" }) });
+invokeServer({ method: "events", params: { calendarId: "owner@example.com", syncToken: "sync-token", singleEvents: true } });
+if (!serverCalls[2]?.url?.includes("/calendars/owner%40example.com/events?") ||
+    !serverCalls[2]?.url?.includes("syncToken=sync-token") ||
+    !serverCalls[2]?.url?.includes("singleEvents=true") ||
+    !serverCalls[2]?.url?.includes("showDeleted=true")) {
+  throw new Error("Google Calendar event pagination/sync query contract failed.");
+}
+
+serverResponses.push({ status: 200, body: JSON.stringify({ id: "created", etag: "etag-created" }) });
+invokeServer({
+  method: "createEvent",
+  params: { calendarId: "primary", event: { summary: "Teste", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" }, ignoredField: "must-not-pass" } },
+});
+const createCall = serverCalls[3];
+const createPayload = JSON.parse(createCall.options.payload);
+if (createCall.options.method !== "post" || createPayload.ignoredField !== undefined || createPayload.summary !== "Teste") {
+  throw new Error("Google Calendar create payload allowlist failed.");
+}
+
+serverResponses.push({ status: 200, body: JSON.stringify({ id: "created", etag: "etag-updated" }) });
+invokeServer({
+  method: "updateEvent",
+  params: { calendarId: "primary", eventId: "created", etag: "etag-v1", event: { summary: "Atualizado", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
+});
+if (serverCalls[4].options.method !== "patch" || serverCalls[4].options.headers["If-Match"] !== "etag-v1") {
+  throw new Error("Google Calendar update must use PATCH and preserve If-Match.");
+}
+
+serverResponses.push({ status: 204, body: "" });
+const deleteResult = invokeServer({ method: "deleteEvent", params: { calendarId: "primary", eventId: "created", etag: "etag-v2" } });
+if (!deleteResult.deleted || serverCalls[5].options.method !== "delete" ||
+    serverCalls[5].options.headers["If-Match"] !== "etag-v2") {
+  throw new Error("Google Calendar delete/If-Match contract failed.");
+}
+
+let invalidMethodRejected = false;
+try { invokeServer({ method: "arbitraryMethod" }); } catch (_) { invalidMethodRejected = true; }
+if (!invalidMethodRejected || serverCalls.length !== 6) {
+  throw new Error("Apps Script RPC dispatcher accepted a method outside its allowlist.");
+}
+let invalidEventRejected = false;
+try { invokeServer({ method: "createEvent", params: { calendarId: "primary", event: { summary: "missing dates" } } }); }
+catch (_) { invalidEventRejected = true; }
+if (!invalidEventRejected || serverCalls.length !== 6 || requiredScopes !== 8) {
+  throw new Error("Apps Script event validation or per-request scope enforcement failed.");
+}
+
+serverResponses.push({ status: 412, body: JSON.stringify({ error: { message: "ETag conflict" } }) });
+let conflictMapped = false;
+try {
+  invokeServer({
+    method: "updateEvent",
+    params: { calendarId: "primary", eventId: "created", etag: "stale", event: { summary: "x", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
+  });
+} catch (error) {
+  conflictMapped = String(error.message).includes("HTTP 409");
+}
+if (!conflictMapped) throw new Error("Google ETag HTTP 412 must be surfaced as a recoverable conflict.");
