@@ -58,11 +58,6 @@ function rpcDispatch(request) {
       return updateEvent_(token, params);
     case "deleteEvent":
       return deleteEvent_(token, params);
-    case "disconnect":
-      // The bridge is disconnected locally by closing its popup. Google account
-      // consent is not silently revoked here; the user can revoke it in Google
-      // Account > Security > Third-party connections.
-      return { disconnected: true, googleRevocation: "not_confirmed" };
     default:
       throw new Error("Operação não permitida.");
   }
