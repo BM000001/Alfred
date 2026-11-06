@@ -46,6 +46,7 @@ Manifesto explícito:
 - calendar.calendarlist.readonly: listar calendários.
 - userinfo.email e openid: identificar a conta para isolar os compromissos/cursors locais.
 - script.external_request: chamadas HTTPS do Apps Script para as APIs Google.
+- Google Calendar API v3 declarada como serviço avançado no manifesto para garantir sua ativação no projeto Apps Script; as operações continuam usando REST via UrlFetchApp.
 
 O token é criado e usado apenas no servidor Apps Script. A conta do usuário verá o nome do projeto/script na tela de consentimento. O Google pode exibir aviso de app não verificado ou aplicar limites de autorização; isso deve ser avaliado durante a configuração e não pode ser contornado pelo Alfred.
 
@@ -83,7 +84,7 @@ O token é criado e usado apenas no servidor Apps Script. A conta do usuário ve
 - [x] Revisão estática inicial de segurança do dispatcher e do protocolo de mensagens.
 - [x] Teste automatizado do handshake sandbox/opener, RPC, origem, janela de origem e nonce.
 - [ ] Testes de integração do Apps Script real e dos contratos completos de payload.
-- [ ] Teste de autorização e execução no Apps Script real.
+- [ ] Teste de autorização e execução no Apps Script real, incluindo confirmação de que Calendar API v3 está ativa.
 - [ ] Teste físico em Safari iPhone (popup, opener, retorno à aba Alfred, fechamento e reconexão).
 - [ ] Validar quotas, paginação e ETag/If-Match com eventos reais.
 - [ ] Configurar a variável GitHub Actions VITE_GOOGLE_APPS_SCRIPT_URL com a URL de implantação /exec.
