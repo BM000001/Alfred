@@ -40,8 +40,8 @@ function toGoogleEvent(item: Appointment) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   return {
     summary: item.title,
-    ...(item.description ? { description: item.description } : {}),
-    ...(item.location ? { location: item.location } : {}),
+    description: item.description ?? '',
+    location: item.location ?? '',
     start: item.isAllDay
       ? { date: localDate(item.startsAt) }
       : { dateTime: item.startsAt, timeZone },
