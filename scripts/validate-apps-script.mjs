@@ -22,6 +22,10 @@ if (!manifest.oauthScopes?.includes("https://www.googleapis.com/auth/calendar.ev
     !manifest.oauthScopes?.includes("https://www.googleapis.com/auth/calendar.calendarlist.readonly")) {
   throw new Error("Required least-privilege Calendar scopes are missing.");
 }
+if (!manifest.urlFetchWhitelist?.includes("https://www.googleapis.com/") ||
+    !manifest.urlFetchWhitelist?.includes("https://openidconnect.googleapis.com/")) {
+  throw new Error("Apps Script outbound URL allowlist is incomplete.");
+}
 if (!server.includes('case "session"') || !server.includes('case "deleteEvent"') ||
     !server.includes("ScriptApp.getOAuthToken()") ||
     !server.includes("ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL)")) {
