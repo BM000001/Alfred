@@ -7,8 +7,8 @@ const { Blob: NodeBlob } = await import(/* @vite-ignore */ nodeBufferModuleName)
 Object.defineProperty(globalThis, 'Blob', { configurable: true, writable: true, value: NodeBlob });
 import { createBackup, inspectBackup, restoreBackup } from './backupService';
 import {
-  egressSettingsRepository, fileRepository, focusSessionRepository, memoryRepository, studyFlashcardRepository,
-  studyQuestionRepository, studyQuizAttemptRepository,
+  egressSettingsRepository, fileRepository, focusSessionRepository, memoryRepository, projectRepository,
+  studyFlashcardRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository,
 } from '../../storage/repositories';
 import type { AssistantMemory } from '../memory/types';
 import type { FocusSession } from '../productivity/types';
@@ -177,6 +177,37 @@ describe('backupService', () => {
       await studyFlashcardRepository.delete(flashcard.id);
       await focusSessionRepository.delete(session.id);
       await memoryRepository.delete(memory.id);
+    }
+  });
+
+  it('faz rollback de todas as categorias quando uma gravação falha durante a restauração', async () => {
+    const oldTask = { id: 'backup-rollback-old-task', title: 'Tarefa antiga', status: 'pending' as const, priority: 'low' as const, createdAt: '2026-11-02T10:00:00.000Z' };
+    const oldProject = { id: 'backup-rollback-old-project', name: 'Projeto antigo', status: 'active' as const, createdAt: '2026-11-02T10:00:00.000Z' };
+    const newTask = { id: 'backup-rollback-new-task', title: 'Tarefa nova', status: 'pending' as const, priority: 'high' as const, createdAt: '2026-11-03T10:00:00.000Z' };
+    const newProject = { id: 'backup-rollback-new-project', name: 'Projeto novo', status: 'active' as const, createdAt: '2026-11-03T10:00:00.000Z' };
+    const payload = { ...validV2, data: { ...validV2.data, tasks: [newTask], projects: [newProject] } };
+    const originalPut = IDBObjectStore.prototype.put;
+    try {
+      await taskRepository.save(oldTask);
+      await projectRepository.save(oldProject);
+      IDBObjectStore.prototype.put = function (value: unknown, key?: IDBValidKey): IDBRequest<IDBValidKey> {
+        if (this.name === 'projects' && (value as { id?: string }).id === newProject.id) {
+          throw new DOMException('Falha de gravação simulada', 'DataError');
+        }
+        return originalPut.call(this, value, key);
+      };
+
+      await expect(restoreBackup(payload)).rejects.toThrow('Falha de gravação simulada');
+      expect(await taskRepository.getById(oldTask.id)).toEqual(oldTask);
+      expect(await taskRepository.getById(newTask.id)).toBeUndefined();
+      expect(await projectRepository.getById(oldProject.id)).toEqual(oldProject);
+      expect(await projectRepository.getById(newProject.id)).toBeUndefined();
+    } finally {
+      IDBObjectStore.prototype.put = originalPut;
+      await taskRepository.delete(oldTask.id);
+      await taskRepository.delete(newTask.id);
+      await projectRepository.delete(oldProject.id);
+      await projectRepository.delete(newProject.id);
     }
   });
 
