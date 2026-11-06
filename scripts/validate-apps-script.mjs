@@ -23,7 +23,8 @@ if (!manifest.oauthScopes?.includes("https://www.googleapis.com/auth/calendar.ev
   throw new Error("Required least-privilege Calendar scopes are missing.");
 }
 if (!server.includes('case "session"') || !server.includes('case "deleteEvent"') ||
-    !server.includes("ScriptApp.getOAuthToken()")) {
+    !server.includes("ScriptApp.getOAuthToken()") ||
+    !server.includes("ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL)")) {
   throw new Error("Apps Script RPC dispatcher is incomplete.");
 }
 if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN")) {
