@@ -99,8 +99,18 @@ export async function getGoogleCalendarSession(): Promise<{ connected: boolean; 
 }
 
 export async function listGoogleCalendars(): Promise<GoogleCalendarInfo[]> {
-  const result = await request<{ items?: GoogleCalendarInfo[] }>("/api/calendars");
-  return result.items ?? [];
+  const calendars: GoogleCalendarInfo[] = [];
+  let pageToken: string | undefined;
+  do {
+    const params = new URLSearchParams();
+    if (pageToken) params.set("pageToken", pageToken);
+    const result = await request<{ items?: GoogleCalendarInfo[]; nextPageToken?: string }>(
+      "/api/calendars" + (params.size ? "?" + params.toString() : ""),
+    );
+    calendars.push(...(result.items ?? []));
+    pageToken = result.nextPageToken;
+  } while (pageToken);
+  return calendars;
 }
 
 export async function listGoogleEvents(
