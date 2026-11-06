@@ -97,9 +97,29 @@ function listEvents_(token, params) {
 
 function createEvent_(token, params) {
   const calendarId = requiredId_(params.calendarId, "calendário");
+  const eventId = requiredId_(params.eventId, "evento");
+  const operationId = requiredId_(params.operationId, "operação");
+  if (!/^[0-9a-v]{5,1024}$/.test(eventId) || !/^[0-9a-v]{5,1024}$/.test(operationId)) {
+    throw new Error("Identificador idempotente inválido.");
+  }
   const body = validateEventBody_(params.event);
-  return googleRequest_(token,
-    "/calendars/" + encodeURIComponent(calendarId) + "/events", "post", body);
+  body.id = eventId;
+  body.extendedProperties = { private: { alfredOperationId: operationId } };
+  try {
+    return googleRequest_(token,
+      "/calendars/" + encodeURIComponent(calendarId) + "/events", "post", body);
+  } catch (error) {
+    // A retry after a lost response may find that Google already created the
+    // deterministic event ID. Accept it only when its private marker matches.
+    if (!String(error && error.message || error).includes("HTTP 409")) throw error;
+    const existing = googleRequest_(token,
+      "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId),
+      "get");
+    const marker = existing && existing.extendedProperties && existing.extendedProperties.private &&
+      existing.extendedProperties.private.alfredOperationId;
+    if (marker === operationId) return existing;
+    throw new Error("O ID do evento já existe no Google, mas não pertence a esta operação. Nenhum evento foi alterado.");
+  }
 }
 
 function updateEvent_(token, params) {
