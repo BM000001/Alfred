@@ -26,7 +26,7 @@ O Alfred abre o Apps Script por uma ação explícita do usuário. A janela/aba 
 
 ### Por que não usar iframe ou fetch direto
 
-O Content Service do Apps Script não oferece uma configuração geral de cabeçalhos CORS para a aplicação cliente. Além disso, houve relatos recentes de web apps Apps Script bloqueados em iframes mesmo com XFrameOptionsMode.ALLOWALL. Por isso, o desenho inicial usa uma janela/aba aberta por gesto do usuário, não iframe nem fetch cross-origin. A compatibilidade de window.opener e postMessage no Safari iOS ainda é um critério obrigatório de prova de conceito; não será considerada garantida antes do teste físico.
+O Content Service do Apps Script não oferece uma configuração geral de cabeçalhos CORS para a aplicação cliente. Além disso, houve relatos recentes de web apps Apps Script bloqueados em iframes mesmo com XFrameOptionsMode.ALLOWALL. Por isso, o desenho inicial usa uma janela/aba aberta por gesto do usuário, não iframe nem fetch cross-origin. A compatibilidade de window.opener dentro do sandbox HTML Service e postMessage no Safari iOS ainda é um critério obrigatório de prova de conceito. Se o sandbox não expuser o opener da janela de topo, a ponte falha fechada e esta arquitetura não poderá ser liberada. Não será considerada garantida antes do teste físico.
 
 ### Segurança do canal
 
