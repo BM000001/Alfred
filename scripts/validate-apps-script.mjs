@@ -8,11 +8,11 @@ const html = read("apps-script/google-calendar/Index.html");
 const manifest = JSON.parse(read("apps-script/google-calendar/appsscript.json"));
 
 new vm.Script(server, { filename: "Code.gs" });
-const scriptTag = html.match(/<script>([\\s\\S]*?)<\\/script>/i);
+const scriptTag = html.match(/<script>([\s\S]*?)<\/script>/i);
 if (!scriptTag) throw new Error("Apps Script bridge HTML has no inline script.");
 const clientScript = scriptTag[1]
-  .replace(/<\\?!=\\s*JSON\\.stringify\\(bridgeNonce\\)\\s*\\?>/g, '"test-nonce"')
-  .replace(/<\\?!=\\s*JSON\\.stringify\\(alfredOrigin\\)\\s*\\?>/g, '"https://bm000001.github.io"');
+  .replace(/<\?!=\s*JSON\.stringify\(bridgeNonce\)\s*\?>/g, '"test-nonce"')
+  .replace(/<\?!=\s*JSON\.stringify\(alfredOrigin\)\s*\?>/g, '"https://bm000001.github.io"');
 new vm.Script(clientScript, { filename: "Index.html inline script" });
 
 if (manifest.webapp?.executeAs !== "USER_ACCESSING") {
