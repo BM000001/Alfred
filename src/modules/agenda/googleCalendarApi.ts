@@ -147,9 +147,12 @@ export function deleteGoogleEvent(calendarId: string, eventId: string, etag?: st
   });
 }
 
-export async function disconnectGoogleCalendar(): Promise<void> {
+export async function disconnectGoogleCalendar(): Promise<{ googleRevocation: "confirmed" | "not_confirmed" }> {
   try {
-    await request("/api/disconnect", { method: "POST" });
+    return await request<{ disconnected: boolean; googleRevocation: "confirmed" | "not_confirmed" }>(
+      "/api/disconnect",
+      { method: "POST" },
+    );
   } finally {
     clearGoogleCalendarSession();
   }
