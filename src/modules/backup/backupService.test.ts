@@ -135,16 +135,34 @@ describe('backupService', () => {
     }
   });
 
-  it('preserva categorias que não existem em backups v1', async () => {
+  it('preserva categorias ausentes em backups v1 antigos', async () => {
     const flashcard: StudyFlashcard = {
       id: 'backup-v1-preserve-card', disciplineId: 'd1', front: 'F', back: 'V',
       createdAt: '2026-11-02T10:00:00.000Z', nextReviewAt: '2026-11-03T10:00:00.000Z', intervalDays: 1, reviewCount: 0,
     };
+    const session: FocusSession = {
+      id: 'backup-v1-preserve-session', startedAt: '2026-11-02T10:00:00.000Z',
+      completedAt: '2026-11-02T10:25:00.000Z', durationMinutes: 25, kind: 'focus',
+    };
+    const memory: AssistantMemory = {
+      id: 'backup-v1-preserve-memory', title: 'Meta', content: 'Preservar dado local.',
+      category: 'goal', createdAt: '2026-11-02T10:00:00.000Z', updatedAt: '2026-11-02T10:00:00.000Z',
+    };
+    const { focusSessions: _focusSessions, memories: _memories, ...legacyData } = validBackup.data;
+    const legacyWithoutOptionalCategories = { ...validBackup, data: legacyData };
     try {
       await studyFlashcardRepository.save(flashcard);
-      await restoreBackup(validBackup);
+      await focusSessionRepository.save(session);
+      await memoryRepository.save(memory);
+      await restoreBackup(legacyWithoutOptionalCategories);
       expect(await studyFlashcardRepository.getById(flashcard.id)).toEqual(flashcard);
-    } finally { await studyFlashcardRepository.delete(flashcard.id); }
+      expect(await focusSessionRepository.getById(session.id)).toEqual(session);
+      expect(await memoryRepository.getById(memory.id)).toEqual(memory);
+    } finally {
+      await studyFlashcardRepository.delete(flashcard.id);
+      await focusSessionRepository.delete(session.id);
+      await memoryRepository.delete(memory.id);
+    }
   });
 
   it('preserva as configurações locais de privacidade ao restaurar um backup v2', async () => {
