@@ -41,6 +41,7 @@ let bridgeReady = false;
 let requestSequence = 0;
 let readyTimer = 0;
 let readyResolve: (() => void) | null = null;
+let readyReject: ((error: Error) => void) | null = null;
 const pending = new Map<string, PendingRequest>();
 
 function createNonce(): string {
@@ -91,6 +92,7 @@ function handleBridgeMessage(event: MessageEvent): void {
     window.clearTimeout(readyTimer);
     readyResolve?.();
     readyResolve = null;
+    readyReject = null;
     return;
   }
 
@@ -117,6 +119,10 @@ export function beginGoogleCalendarConnection(): Promise<void> {
   ensureBridge();
   if (popup && !popup.closed && bridgeReady) return Promise.resolve();
 
+  window.clearTimeout(readyTimer);
+  readyReject?.(new Error("A tentativa anterior de conexão foi substituída."));
+  readyResolve = null;
+  readyReject = null;
   if (popup && !popup.closed) popup.close();
   popup = null;
   popupOrigin = "";
@@ -139,8 +145,10 @@ export function beginGoogleCalendarConnection(): Promise<void> {
 
   return new Promise<void>((resolve, reject) => {
     readyResolve = resolve;
+    readyReject = reject;
     readyTimer = window.setTimeout(() => {
       readyResolve = null;
+      readyReject = null;
       window.removeEventListener("message", handleBridgeMessage);
       if (popup && !popup.closed) popup.close();
       popup = null;
@@ -174,6 +182,8 @@ export function isGoogleCalendarSessionActive(): boolean {
 export function clearGoogleCalendarSession(): void {
   window.clearTimeout(readyTimer);
   readyResolve = null;
+  readyReject?.(new Error("A conexão com o Google foi encerrada."));
+  readyReject = null;
   if (popup && !popup.closed) popup.close();
   popup = null;
   popupOrigin = "";
