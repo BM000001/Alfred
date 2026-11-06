@@ -1,6 +1,6 @@
 # Alfred — Google Calendar via Apps Script
 
-Este projeto substitui o Cloudflare Worker/D1 por um Google Apps Script Web App. Ele é um backend de execução por usuário: cada pessoa autoriza o próprio script a acessar a própria agenda.
+Este projeto substitui o Cloudflare Worker/D1 por um Google Apps Script Web App privado. Ele é um backend de execução por usuário e deve ser criado pelo próprio usuário, na mesma Conta Google cuja agenda será conectada.
 
 ## Regra de implantação obrigatória
 
@@ -24,7 +24,7 @@ Nunca escolha "Me" / proprietário. Se o Web App executar como o proprietário, 
 6. Salve o projeto.
 7. Em **Deploy → New deployment → Web app**, configure:
    - Execute as: **User accessing the web app**.
-   - Who has access: **Anyone** (usuários precisam entrar com uma Conta Google e autorizar o acesso).
+   - Who has access: **Only myself**. O projeto é de uso pessoal e deve ser criado na mesma Conta Google cuja agenda será conectada.
 8. Implante e copie a URL HTTPS terminada em /exec.
 9. No repositório GitHub, abra **Settings → Secrets and variables → Actions → Variables** e crie VITE_GOOGLE_APPS_SCRIPT_URL com essa URL. Não coloque a URL em um secret nem em arquivo versionado.
 10. Atualize/reexecute o workflow de Pages somente depois da autorização de merge e do planejamento de publicação.
