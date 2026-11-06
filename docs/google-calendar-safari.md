@@ -83,6 +83,7 @@ O token é criado e usado apenas no servidor Apps Script. A conta do usuário ve
 - [x] Cliente TypeScript substituindo as chamadas HTTP ao Worker por RPC via janela Apps Script.
 - [x] Revisão estática inicial de segurança do dispatcher e do protocolo de mensagens.
 - [x] Teste automatizado do handshake sandbox/opener, RPC, origem, janela de origem e nonce.
+- [x] Testes simulados do dispatcher Apps Script: identidade, token apenas no servidor, allowlist RPC, paginação, payloads, PATCH/DELETE, ETag e conflito 412.
 - [ ] Testes de integração do Apps Script real e dos contratos completos de payload.
 - [ ] Teste de autorização e execução no Apps Script real, incluindo confirmação de que Calendar API v3 está ativa.
 - [ ] Teste físico em Safari iPhone (popup, opener, retorno à aba Alfred, fechamento e reconexão).
