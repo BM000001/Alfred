@@ -41,7 +41,8 @@ if (!originGuard || !originGuard[0].includes('url.hostname.endsWith(".script.goo
     originGuard[0].includes('url.hostname.endsWith(".googleusercontent.com")')) {
   throw new Error("Apps Script bridge must trust only the Apps Script Googleusercontent host family.");
 }
-const isTrustedOrigin = vm.runInNewContext("(" + originGuard[0] + ")");
+const originGuardJavaScript = originGuard[0].replace("(origin: string): boolean", "(origin)");
+const isTrustedOrigin = vm.runInNewContext("(" + originGuardJavaScript + ")");
 if (!isTrustedOrigin("https://script.google.com") ||
     !isTrustedOrigin("https://n-abc-script.googleusercontent.com") ||
     isTrustedOrigin("https://evil.googleusercontent.com") ||
