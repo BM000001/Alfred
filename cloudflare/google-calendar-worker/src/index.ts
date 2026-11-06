@@ -55,6 +55,19 @@ const REQUIRED_GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
 ];
 
+async function revokeGoogleToken(token: string): Promise<boolean> {
+  try {
+    const response = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 function json(data: unknown, status = 200, headers: HeadersInit = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -276,11 +289,15 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   );
   const tokenInfo = await tokenInfoResponse.json() as GoogleTokenInfoResponse;
   if (!tokenInfoResponse.ok || !tokenInfo.scope) {
+    await revokeGoogleToken(tokens.refresh_token || tokens.access_token);
     return json({ error: "Não foi possível confirmar as permissões concedidas pelo Google. Tente conectar novamente." }, 502);
   }
   const grantedScopes = new Set(tokenInfo.scope.split(/\s+/).filter(Boolean));
   const missingScopes = REQUIRED_GOOGLE_SCOPES.filter((scope) => !grantedScopes.has(scope));
   if (missingScopes.length) {
+    // Do not leave an unusable refresh token/grant behind after rejecting
+    // a connection that lacks required Calendar API permissions.
+    await revokeGoogleToken(tokens.refresh_token || tokens.access_token);
     return json({
       error: "O Google não concedeu todas as permissões necessárias (leitura da lista de calendários e leitura/escrita de eventos). Revise a tela de consentimento e conecte novamente.",
       missingScopes,
@@ -406,18 +423,8 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     await env.DB.prepare("DELETE FROM google_connections WHERE id = ?").bind(connection.id).run();
 
     let googleRevocation: "confirmed" | "not_confirmed" = "not_confirmed";
-    if (refresh) {
-      try {
-        const revocation = await fetch("https://oauth2.googleapis.com/revoke", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ token: refresh }),
-        });
-        if (revocation.ok) googleRevocation = "confirmed";
-      } catch {
-        // The Alfred connection is already deleted locally. The UI will
-        // explain that revocation at Google could not be confirmed.
-      }
+    if (refresh && await revokeGoogleToken(refresh)) {
+      googleRevocation = "confirmed";
     }
     return json({ disconnected: true, googleRevocation });
   }
