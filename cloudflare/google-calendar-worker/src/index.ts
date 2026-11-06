@@ -174,10 +174,12 @@ async function googleAccessToken(connection: ConnectionRow, env: Env): Promise<s
   });
   const result = await response.json() as GoogleTokenResponse;
   if (!response.ok || !result.access_token) {
+    const message = result.error_description || result.error || "Google authorization could not be refreshed.";
     if (result.error === "invalid_grant") {
       await env.DB.prepare("DELETE FROM google_connections WHERE id = ?").bind(connection.id).run();
+      throw new UpstreamError("A autorização do Google expirou ou foi revogada. Reconecte sua conta.", 401);
     }
-    throw new Error(result.error_description || result.error || "Google authorization could not be refreshed.");
+    throw new UpstreamError(message, 502);
   }
   return result.access_token;
 }
@@ -393,7 +395,9 @@ export default {
       headers.set("Referrer-Policy", "no-referrer");
       return new Response(response.body, { status: response.status, headers });
     } catch (error) {
-      const status = error instanceof UpstreamError ? (error.status === 412 ? 409 : error.status === 410 ? 410 : 502) : 500;
+      const status = error instanceof UpstreamError
+        ? error.status === 412 ? 409 : error.status === 410 ? 410 : error.status
+        : 500;
       return json({ error: error instanceof Error ? error.message : "Unexpected server error." }, status, cors);
     }
   },
