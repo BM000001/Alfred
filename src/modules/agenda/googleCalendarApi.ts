@@ -261,9 +261,11 @@ export async function listGoogleEvents(
 
 export function createGoogleEvent(
   calendarId: string,
+  eventId: string,
+  operationId: string,
   event: Omit<GoogleCalendarEvent, "id" | "etag" | "status" | "updated" | "htmlLink">,
 ): Promise<GoogleCalendarEvent> {
-  return request({ method: "createEvent", params: { calendarId, event } });
+  return request({ method: "createEvent", params: { calendarId, eventId, operationId, event } });
 }
 
 export function updateGoogleEvent(
