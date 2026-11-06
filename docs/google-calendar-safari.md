@@ -63,6 +63,7 @@ O token é criado e usado apenas no servidor Apps Script. A conta do usuário ve
 ## Limitações e critérios de aceitação
 
 1. **Safari iPhone:** abrir Apps Script a partir de gesto do usuário deve preservar comunicação com a janela/aba de origem. Se o Safari abrir nova aba sem window.opener, a arquitetura precisa ser revista antes de liberar a integração.
+2. **Suspensão de aba:** o Safari pode suspender a aba/janela Apps Script enquanto Alfred está em primeiro plano. A ponte precisa continuar respondendo às chamadas RPC depois da troca de abas; se não continuar, a arquitetura não atende ao requisito de uso móvel.
 2. **Autorização:** implantação como usuário que acessa, com consentimento dos escopos mínimos. O Alfred deve falhar fechado se a autorização não estiver concedida.
 3. **Privacidade:** inspecionar logs e armazenamento do Apps Script para confirmar que não há payloads, tokens ou identificadores sensíveis persistidos.
 4. **Leitura:** listar todos os calendários e páginas de eventos; manter cursor incremental no IndexedDB.
