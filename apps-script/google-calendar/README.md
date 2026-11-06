@@ -21,7 +21,7 @@ Nunca escolha "Me" / proprietário. Se o Web App executar como o proprietário, 
 3. Substitua o conteúdo de Code.gs pelo arquivo deste diretório.
 4. Crie um arquivo HTML chamado Index (sem extensão) e cole o conteúdo de Index.html.
 5. Substitua o manifesto pelo appsscript.json deste diretório.
-6. Salve o projeto.
+6. Salve o projeto e confirme que **Services → Calendar API v3** aparece habilitado. O manifesto já declara esse serviço. Se o Apps Script estiver associado a um projeto Google Cloud padrão (standard), habilite também a **Google Calendar API** em APIs e serviços nesse projeto; em projetos padrão criados automaticamente pelo Apps Script, a ativação do serviço avançado é gerenciada pelo próprio Apps Script.
 7. Em **Deploy → New deployment → Web app**, configure:
    - Execute as: **User accessing the web app**.
    - Who has access: **Only myself**. O projeto é de uso pessoal e deve ser criado na mesma Conta Google cuja agenda será conectada.
@@ -29,7 +29,7 @@ Nunca escolha "Me" / proprietário. Se o Web App executar como o proprietário, 
 9. No repositório GitHub, abra **Settings → Secrets and variables → Actions → Variables** e crie VITE_GOOGLE_APPS_SCRIPT_URL com essa URL. Não coloque a URL em um secret nem em arquivo versionado.
 10. Atualize/reexecute o workflow de Pages somente depois da autorização de merge e do planejamento de publicação.
 
-O projeto pede apenas os escopos definidos no manifesto. Na primeira conexão, o Google exibirá a tela de consentimento. Se o Google mostrar um aviso de app não verificado, não ignore automaticamente: confirme que o script/proprietário e os escopos exibidos são os esperados. Não adicione usuários externos nem publique o script para terceiros sem revisar a verificação OAuth e as políticas aplicáveis.
+O projeto pede apenas os escopos definidos no manifesto. A API Calendar v3 é ativada como serviço avançado para garantir que a API esteja habilitada no projeto associado, embora as chamadas sejam feitas pela REST API com UrlFetchApp. Na primeira conexão, o Google exibirá a tela de consentimento. Se o Google mostrar um aviso de app não verificado, não ignore automaticamente: confirme que o script/proprietário e os escopos exibidos são os esperados. Não adicione usuários externos nem publique o script para terceiros sem revisar a verificação OAuth e as políticas aplicáveis.
 
 ## Como a ponte funciona
 
