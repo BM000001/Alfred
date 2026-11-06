@@ -144,10 +144,11 @@ function validateV2Entities(data: Record<string, unknown>): void {
     assertDate(item.createdAt, 'studyFlashcards.createdAt'); assertDate(item.nextReviewAt, 'studyFlashcards.nextReviewAt');
     assertOptionalDate(item.lastReviewedAt, 'studyFlashcards.lastReviewedAt');
     assertNumber(item.intervalDays, 'studyFlashcards.intervalDays'); assertNumber(item.reviewCount, 'studyFlashcards.reviewCount');
+    if (!Number.isInteger(item.intervalDays) || !Number.isInteger(item.reviewCount)) throw new Error('O backup contém intervalos ou contagens inválidos em studyFlashcards.');
   }
   for (const item of data.studyQuestions as Record<string, unknown>[]) {
     assertString(item.disciplineId, 'studyQuestions.disciplineId'); assertString(item.prompt, 'studyQuestions.prompt');
-    if (!Array.isArray(item.options) || item.options.length < 2 || !item.options.every((option) => typeof option === 'string' && option.trim().length > 0)) throw new Error('O backup contém opções inválidas em studyQuestions.');
+    if (!Array.isArray(item.options) || item.options.length < 2 || item.options.length > 6 || !item.options.every((option) => typeof option === 'string' && option.trim().length > 0)) throw new Error('O backup contém opções inválidas em studyQuestions.');
     assertNumber(item.correctOptionIndex, 'studyQuestions.correctOptionIndex');
     if (!Number.isInteger(item.correctOptionIndex) || item.correctOptionIndex >= item.options.length) throw new Error('O backup contém índice de resposta inválido em studyQuestions.');
     assertEnum(item.difficulty, ['easy', 'medium', 'hard'], 'studyQuestions.difficulty'); assertDate(item.createdAt, 'studyQuestions.createdAt');
@@ -155,7 +156,7 @@ function validateV2Entities(data: Record<string, unknown>): void {
   }
   for (const item of data.studyQuizAttempts as Record<string, unknown>[]) {
     assertString(item.disciplineId, 'studyQuizAttempts.disciplineId'); assertDate(item.startedAt, 'studyQuizAttempts.startedAt'); assertDate(item.completedAt, 'studyQuizAttempts.completedAt');
-    assertNumber(item.totalQuestions, 'studyQuizAttempts.totalQuestions'); assertNumber(item.correctAnswers, 'studyQuizAttempts.correctAnswers');
+    assertNumber(item.totalQuestions, 'studyQuizAttempts.totalQuestions', 1); assertNumber(item.correctAnswers, 'studyQuizAttempts.correctAnswers');
     if (!Number.isInteger(item.totalQuestions) || !Number.isInteger(item.correctAnswers) || item.correctAnswers > item.totalQuestions || !Array.isArray(item.answers) || item.answers.length !== item.totalQuestions) throw new Error('O backup contém uma tentativa de simulado inválida.');
     for (const answer of item.answers) {
       if (!isRecord(answer)) throw new Error('O backup contém uma resposta de simulado inválida.');
@@ -196,7 +197,10 @@ function validateExtraction(value: unknown): asserts value is StoredTextExtracti
   assertDate(value.extractedAt, 'files.extraction.extractedAt');
   if (value.extractionMethod !== undefined) assertEnum(value.extractionMethod, ['text', 'ocr'], 'files.extraction.extractionMethod');
   assertOptionalString(value.language, 'files.extraction.language');
-  if (value.pageCount !== undefined) assertNumber(value.pageCount, 'files.extraction.pageCount');
+  if (value.pageCount !== undefined) {
+    assertNumber(value.pageCount, 'files.extraction.pageCount');
+    if (!Number.isInteger(value.pageCount)) throw new Error('Contagem de páginas inválida na extração do arquivo.');
+  }
   if (value.pages !== undefined) {
     if (!Array.isArray(value.pages)) throw new Error('Páginas extraídas inválidas.');
     for (const page of value.pages) {
