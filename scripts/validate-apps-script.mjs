@@ -15,8 +15,8 @@ const clientScript = scriptTag[1]
   .replace(/<\?!=\s*JSON\.stringify\(alfredOrigin\)\s*\?>/g, '"https://bm000001.github.io"');
 new vm.Script(clientScript, { filename: "Index.html inline script" });
 
-if (manifest.webapp?.executeAs !== "USER_ACCESSING") {
-  throw new Error("Apps Script must execute as the user accessing the web app.");
+if (manifest.webapp?.executeAs !== "USER_ACCESSING" || manifest.webapp?.access !== "MYSELF") {
+  throw new Error("Apps Script must execute as the accessing user and remain private to the script owner.");
 }
 if (!manifest.oauthScopes?.includes("https://www.googleapis.com/auth/calendar.events") ||
     !manifest.oauthScopes?.includes("https://www.googleapis.com/auth/calendar.calendarlist.readonly")) {
@@ -27,7 +27,9 @@ if (!server.includes('case "session"') || !server.includes('case "deleteEvent"')
     !server.includes("ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL)")) {
   throw new Error("Apps Script RPC dispatcher is incomplete.");
 }
-if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN")) {
+if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN") ||
+    !html.includes("window.top.opener") ||
+    !read("src/modules/agenda/googleCalendarApi.ts").includes("function isPopupFrame")) {
   throw new Error("Apps Script message origin/source validation is missing.");
 }
 console.log("Google Apps Script manifest, RPC bridge and JavaScript syntax validated.");
