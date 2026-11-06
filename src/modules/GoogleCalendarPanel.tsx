@@ -127,7 +127,9 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   }, [selectedIds]);
 
   async function syncCalendar(calendar: GoogleCalendarInfo): Promise<number> {
-    const stateId = 'google:' + calendar.id;
+    if (!accountId) throw new Error('A conta Google não foi identificada. Reconecte antes de sincronizar.');
+    const accountCalendarId = 'google:' + accountId + ':' + calendar.id;
+    const stateId = accountCalendarId;
     const savedState = await calendarSyncRepository.getById(stateId);
     const from = new Date(Date.now() - SYNC_WINDOW_PAST_DAYS * 86400000);
     const to = new Date(Date.now() + SYNC_WINDOW_FUTURE_DAYS * 86400000);
@@ -169,7 +171,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     const currentItems = await agenda.list();
     for (const event of result.events) {
       if (!event.id) throw new Error('Google retornou um evento sem identificador. A reconciliação foi interrompida.');
-      const uid = 'google:' + calendar.id + ':' + event.id;
+      const uid = accountCalendarId + ':' + event.id;
       if (event.status === 'cancelled') {
         const existing = currentItems.find((item) => item.externalProvider === 'google' &&
           item.externalCalendarId === calendar.id && item.externalEventId === event.id);
@@ -185,7 +187,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       await agenda.upsertImported({
         importedUid: uid,
         importedStableUid: uid,
-        importedCalendarId: 'google:' + calendar.id,
+        importedCalendarId: accountCalendarId,
         importedCalendarName: calendar.summary,
         externalProvider: 'google',
         externalAccountId: accountId ?? undefined,
@@ -206,7 +208,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     }
 
     if (fullSnapshot) {
-      await agenda.reconcileImportedCalendar('google:' + calendar.id, seen, from.toISOString(), to.toISOString());
+      await agenda.reconcileImportedCalendar(accountCalendarId, seen, from.toISOString(), to.toISOString());
     }
     if (result.nextSyncToken) {
       await calendarSyncRepository.save({
@@ -310,9 +312,9 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
     try {
       const created = await createGoogleEvent(calendar.id, toGoogleEvent(item));
       await agenda.update(item.id, {
-        importedUid: 'google:' + calendar.id + ':' + created.id,
-        importedStableUid: 'google:' + calendar.id + ':' + created.id,
-        importedCalendarId: 'google:' + calendar.id,
+        importedUid: 'google:' + accountId + ':' + calendar.id + ':' + created.id,
+        importedStableUid: 'google:' + accountId + ':' + calendar.id + ':' + created.id,
+        importedCalendarId: 'google:' + accountId + ':' + calendar.id,
         importedCalendarName: calendar.summary,
         externalProvider: 'google',
         externalAccountId: accountId ?? undefined,
