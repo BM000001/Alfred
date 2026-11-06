@@ -1,8 +1,9 @@
-import { Blob as NodeBlob } from 'node:buffer';
 import { describe, expect, it } from 'vitest';
 
 // jsdom's Blob is not preserved as a Blob by fake-indexeddb's structured clone.
-// Use Node's standards-based Blob implementation for IndexedDB persistence tests.
+// Load Node's Blob without requiring @types/node in this browser-focused project.
+const nodeBufferModuleName: string = 'node:buffer';
+const { Blob: NodeBlob } = await import(/* @vite-ignore */ nodeBufferModuleName);
 Object.defineProperty(globalThis, 'Blob', { configurable: true, writable: true, value: NodeBlob });
 import { createBackup, inspectBackup, restoreBackup } from './backupService';
 import {
