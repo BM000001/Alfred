@@ -348,7 +348,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     }
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") return json({ error: "Event body is required." }, 400);
-    const updated = await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "PUT", headers: request.headers.get("If-Match") ? { "If-Match": request.headers.get("If-Match")! } : {}, body: JSON.stringify(body) });
+    const updated = await googleApi(connection, env, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "PATCH", headers: request.headers.get("If-Match") ? { "If-Match": request.headers.get("If-Match")! } : {}, body: JSON.stringify(body) });
     return json(updated);
   }
 
