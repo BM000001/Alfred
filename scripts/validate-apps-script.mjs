@@ -275,7 +275,7 @@ if (!invalidMethodRejected || serverCalls.length !== 8) {
 let invalidEventRejected = false;
 try { invokeServer({ method: "createEvent", params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId, event: { summary: "missing dates" } } }); }
 catch (_) { invalidEventRejected = true; }
-if (!invalidEventRejected || serverCalls.length !== 8 || requiredScopes !== 10) {
+if (!invalidEventRejected || serverCalls.length !== 8 || requiredScopes !== 9) {
   throw new Error("Apps Script event validation or per-request scope enforcement failed.");
 }
 
