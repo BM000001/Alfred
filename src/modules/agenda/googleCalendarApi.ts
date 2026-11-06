@@ -104,8 +104,9 @@ export async function listGoogleCalendars(): Promise<GoogleCalendarInfo[]> {
   do {
     const params = new URLSearchParams();
     if (pageToken) params.set("pageToken", pageToken);
+    const query = params.toString();
     const result = await request<{ items?: GoogleCalendarInfo[]; nextPageToken?: string }>(
-      "/api/calendars" + (params.size ? "?" + params.toString() : ""),
+      "/api/calendars" + (query ? "?" + query : ""),
     );
     calendars.push(...(result.items ?? []));
     pageToken = result.nextPageToken;
