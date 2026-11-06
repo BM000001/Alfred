@@ -126,11 +126,20 @@ function updateEvent_(token, params) {
   const calendarId = requiredId_(params.calendarId, "calendário");
   const eventId = requiredId_(params.eventId, "evento");
   const body = validateEventBody_(params.event);
+  const path = "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId);
   const headers = {};
   if (params.etag) headers["If-Match"] = String(params.etag).slice(0, 512);
-  return googleRequest_(token,
-    "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId),
-    "patch", body, headers);
+  try {
+    return googleRequest_(token, path, "patch", body, headers);
+  } catch (error) {
+    // A retry after a lost PATCH response receives 412 because the original
+    // ETag is stale. Treat it as complete only if the current remote values
+    // already equal the exact desired values; never overwrite newer edits.
+    if (!String(error && error.message || error).includes("HTTP 409")) throw error;
+    const current = googleRequest_(token, path, "get");
+    if (eventMatchesDesired_(current, body)) return current;
+    throw new Error("O evento mudou no Google e não corresponde às alterações desejadas. Revise o conflito antes de tentar novamente. (HTTP 409)");
+  }
 }
 
 function deleteEvent_(token, params) {
@@ -138,10 +147,35 @@ function deleteEvent_(token, params) {
   const eventId = requiredId_(params.eventId, "evento");
   const headers = {};
   if (params.etag) headers["If-Match"] = String(params.etag).slice(0, 512);
-  googleRequest_(token,
-    "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId),
-    "delete", null, headers);
-  return { deleted: true };
+  const path = "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId);
+  try {
+    googleRequest_(token, path, "delete", null, headers);
+  } catch (error) {
+    // If a prior DELETE succeeded but its response was lost, the same target
+    // is now absent. A 404 is therefore an idempotent success; ETag conflicts
+    // and all other failures remain visible.
+    if (!String(error && error.message || error).includes("HTTP 404")) throw error;
+    return { deleted: true, alreadyAbsent: true };
+  }
+  return { deleted: true, alreadyAbsent: false };
+}
+
+function eventMatchesDesired_(current, desired) {
+  if (!current || String(current.summary || "") !== String(desired.summary || "") ||
+      String(current.description || "") !== String(desired.description || "") ||
+      String(current.location || "") !== String(desired.location || "")) return false;
+  return eventTimeMatches_(current.start, desired.start) && eventTimeMatches_(current.end, desired.end);
+}
+
+function eventTimeMatches_(current, desired) {
+  if (!current || !desired) return false;
+  if (desired.date) return current.date === desired.date;
+  if (desired.dateTime) {
+    const currentTime = Date.parse(current.dateTime || "");
+    const desiredTime = Date.parse(desired.dateTime);
+    return Number.isFinite(currentTime) && Number.isFinite(desiredTime) && currentTime === desiredTime;
+  }
+  return false;
 }
 
 function validateEventBody_(event) {
