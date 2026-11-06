@@ -34,7 +34,7 @@ jobs:
 
       - name: Build application
         env:
-          VITE_GOOGLE_CALENDAR_API: ${{ vars.VITE_GOOGLE_CALENDAR_API }}
+          VITE_GOOGLE_APPS_SCRIPT_URL: ${{ vars.VITE_GOOGLE_APPS_SCRIPT_URL }}
         run: npm run build:pages
 
       - name: Upload Pages artifact
