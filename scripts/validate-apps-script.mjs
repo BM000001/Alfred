@@ -32,7 +32,7 @@ if (!server.includes('case "session"') || !server.includes('case "deleteEvent"')
   throw new Error("Apps Script RPC dispatcher is incomplete.");
 }
 if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN") ||
-    !html.includes("const openerWindow = window.opener") ||
+    !html.includes("window.top") || !html.includes("topWindow.opener") ||
     !read("src/modules/agenda/googleCalendarApi.ts").includes("function isPopupFrame")) {
   throw new Error("Apps Script message origin/source validation is missing.");
 }
@@ -40,4 +40,62 @@ if (/Logger\.log|PropertiesService|CacheService|SpreadsheetApp/.test(server) ||
     html.includes("getOAuthToken") || html.includes("Authorization: Bearer")) {
   throw new Error("Apps Script bridge must not log or persist tokens/event payloads or expose OAuth tokens to HTML.");
 }
-console.log("Google Apps Script manifest, RPC bridge and JavaScript syntax validated.");
+console.log("Google Apps Script manifest, sandbox opener handshake, RPC bridge and JavaScript syntax validated.");
+
+
+// Runtime contract test: HtmlService's inner frame has no opener, but its
+// top-level Apps Script tab must retain the Alfred opener.
+const emitted = [];
+let messageHandler = null;
+let dispatched = null;
+let successHandler = null;
+const statusNode = { textContent: "" };
+const alfredWindow = {
+  closed: false,
+  postMessage(message, targetOrigin) { emitted.push({ message, targetOrigin }); },
+};
+const topWindow = { opener: alfredWindow };
+const htmlWindow = {
+  opener: null,
+  top: topWindow,
+  addEventListener(type, handler) { if (type === "message") messageHandler = handler; },
+};
+const scriptRunner = {
+  withSuccessHandler(handler) { successHandler = handler; return this; },
+  withFailureHandler() { return this; },
+  rpcDispatch(request) { dispatched = request; successHandler({ connected: true }); return this; },
+};
+vm.runInNewContext(clientScript, {
+  window: htmlWindow,
+  document: { getElementById: () => statusNode },
+  google: { script: { run: scriptRunner } },
+});
+if (!messageHandler || emitted[0]?.message?.type !== "ready" ||
+    emitted[0]?.targetOrigin !== "https://bm000001.github.io") {
+  throw new Error("Apps Script sandbox could not establish the opener handshake.");
+}
+messageHandler({
+  origin: "https://bm000001.github.io",
+  source: alfredWindow,
+  data: {
+    channel: "alfred-google-calendar",
+    type: "rpc",
+    nonce: "test-nonce",
+    requestId: "test-request",
+    request: { method: "session" },
+  },
+});
+if (!dispatched || dispatched.method !== "session" ||
+    emitted[1]?.message?.type !== "rpc-result" ||
+    emitted[1]?.message?.requestId !== "test-request") {
+  throw new Error("Apps Script bridge failed its RPC request/response contract.");
+}
+const callCount = emitted.length;
+messageHandler({
+  origin: "https://attacker.example",
+  source: alfredWindow,
+  data: { channel: "alfred-google-calendar", type: "rpc", nonce: "test-nonce", request: { method: "session" } },
+});
+if (emitted.length !== callCount) {
+  throw new Error("Apps Script bridge accepted a message from an untrusted origin.");
+}
