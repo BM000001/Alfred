@@ -68,7 +68,9 @@ export function createReadOnlyTools(data: ReadToolData): ToolDefinition<ReadTool
       async execute(input) {
         const topics = data.topics.filter((topic) => !input.query || matches(topic.title, input.query));
         const topicIds = new Set(topics.map(topic => topic.id));
-        const dueCards = flashcards.filter(card => isFlashcardDue(card, now));
+        const selectedDisciplineIds = new Set(topics.map(topic => topic.disciplineId));
+        const dueCards = flashcards.filter(card => isFlashcardDue(card, now) &&
+          (!input.query || selectedDisciplineIds.has(card.disciplineId)));
         const scopedQuestions = questions.filter(question =>
           !input.query || (question.topicId ? topicIds.has(question.topicId) : matches(question.prompt, input.query)),
         );
