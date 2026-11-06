@@ -73,7 +73,8 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
 
   function reportError(cause: unknown, fallback: string) {
     const message = cause instanceof Error ? cause.message : fallback;
-    if (message.includes('HTTP 401') || message.includes('sessão expirou')) {
+    if (message.includes('HTTP 401') || message.includes('sessão expirou') ||
+        message.includes('janela de conexão do Google') || message.includes('conexão com o Google foi encerrada')) {
       setConnected(false);
       setAccountId(null);
     }
@@ -414,7 +415,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
         <div><span className="card-label">INTEGRAÇÃO WEB</span><h3 id="google-calendar-title">Google Calendar</h3></div>
         <span className={connected ? 'apple-calendar-indicator' : 'apple-calendar-unavailable'}><span /> {connected ? 'Conectado nesta sessão' : 'Não conectado'}</span>
       </div>
-      <p>Conecte sua conta Google para importar eventos e enviar compromissos do Alfred. Seus dados continuam no dispositivo; somente operações que você confirmar serão enviadas ao Google.</p>
+      <p>Conecte sua conta Google para importar eventos e enviar compromissos do Alfred. Seus dados continuam no dispositivo; somente operações que você confirmar serão enviadas ao Google. Mantenha a janela do Google Apps Script aberta durante a conexão.</p>
       <div className="apple-calendar-actions">
         {!connected ? (
           <button className="primary-action" type="button" disabled={busy} onClick={() => void connect()}>Conectar Google Calendar</button>
