@@ -1,0 +1,187 @@
+/**
+ * Alfred Google Calendar bridge.
+ *
+ * IMPORTANT: Deploy this Web App as "User accessing the web app".
+ * Never deploy as the script owner: that would expose the owner's calendar.
+ * OAuth access tokens stay server-side and are never returned to the browser.
+ */
+const ALFRED_ORIGIN = "https://bm000001.github.io";
+const GOOGLE_API_BASE = "https://www.googleapis.com/calendar/v3";
+const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
+const MAX_EVENT_BODY_CHARS = 32000;
+
+function doGet(e) {
+  const nonce = String((e && e.parameter && e.parameter.nonce) || "");
+  if (!/^[A-Za-z0-9_-]{32,128}$/.test(nonce)) {
+    return HtmlService.createHtmlOutput("Abra esta integração pelo botão Conectar do Alfred.");
+  }
+  const template = HtmlService.createTemplateFromFile("Index");
+  template.bridgeNonce = nonce;
+  template.alfredOrigin = ALFRED_ORIGIN;
+  return template.evaluate()
+    .setTitle("Alfred — Google Calendar")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
+
+/**
+ * Single allowlisted RPC entry point used by the Alfred popup.
+ * google.script.run only exposes this dispatcher to the browser.
+ */
+function rpcDispatch(request) {
+  if (!request || typeof request !== "object" || Array.isArray(request)) {
+    throw new Error("Solicitação inválida.");
+  }
+  const serialized = JSON.stringify(request);
+  if (serialized.length > 40000) throw new Error("Solicitação excede o limite permitido.");
+  const method = String(request.method || "");
+  const params = request.params && typeof request.params === "object" && !Array.isArray(request.params)
+    ? request.params
+    : {};
+
+  // A user-scoped OAuth token is created only inside this execution context.
+  // It is never returned, cached, logged, or persisted.
+  const token = ScriptApp.getOAuthToken();
+  switch (method) {
+    case "session":
+      return getSession_(token);
+    case "calendars":
+      return listCalendars_(token, params);
+    case "events":
+      return listEvents_(token, params);
+    case "createEvent":
+      return createEvent_(token, params);
+    case "updateEvent":
+      return updateEvent_(token, params);
+    case "deleteEvent":
+      return deleteEvent_(token, params);
+    case "disconnect":
+      // The bridge is disconnected locally by closing its popup. Google account
+      // consent is not silently revoked here; the user can revoke it in Google
+      // Account > Security > Third-party connections.
+      return { disconnected: true, googleRevocation: "not_confirmed" };
+    default:
+      throw new Error("Operação não permitida.");
+  }
+}
+
+function getSession_(token) {
+  const response = UrlFetchApp.fetch(GOOGLE_USERINFO_URL, {
+    method: "get",
+    headers: { Authorization: "Bearer " + token },
+    muteHttpExceptions: true,
+  });
+  const code = response.getResponseCode();
+  if (code !== 200) throw apiError_("Não foi possível identificar a conta Google.", code);
+  const identity = JSON.parse(response.getContentText());
+  if (!identity || !identity.sub) throw new Error("O Google não retornou um identificador de conta válido.");
+  return { connected: true, accountId: String(identity.sub), email: String(identity.email || "") };
+}
+
+function listCalendars_(token, params) {
+  const query = { maxResults: "250" };
+  if (params.pageToken) query.pageToken = String(params.pageToken).slice(0, 2048);
+  return googleRequest_(token, "/users/me/calendarList?" + queryString_(query), "get");
+}
+
+function listEvents_(token, params) {
+  const calendarId = requiredId_(params.calendarId, "calendário");
+  const allowed = ["syncToken", "timeMin", "timeMax", "pageToken", "singleEvents", "orderBy"];
+  const query = { maxResults: "250", showDeleted: "true" };
+  allowed.forEach(function(key) {
+    if (params[key] !== undefined && params[key] !== null && params[key] !== "") {
+      query[key] = String(params[key]).slice(0, 4096);
+    }
+  });
+  return googleRequest_(token,
+    "/calendars/" + encodeURIComponent(calendarId) + "/events?" + queryString_(query), "get");
+}
+
+function createEvent_(token, params) {
+  const calendarId = requiredId_(params.calendarId, "calendário");
+  const body = validateEventBody_(params.event);
+  return googleRequest_(token,
+    "/calendars/" + encodeURIComponent(calendarId) + "/events", "post", body);
+}
+
+function updateEvent_(token, params) {
+  const calendarId = requiredId_(params.calendarId, "calendário");
+  const eventId = requiredId_(params.eventId, "evento");
+  const body = validateEventBody_(params.event);
+  const headers = {};
+  if (params.etag) headers["If-Match"] = String(params.etag).slice(0, 512);
+  return googleRequest_(token,
+    "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId),
+    "patch", body, headers);
+}
+
+function deleteEvent_(token, params) {
+  const calendarId = requiredId_(params.calendarId, "calendário");
+  const eventId = requiredId_(params.eventId, "evento");
+  const headers = {};
+  if (params.etag) headers["If-Match"] = String(params.etag).slice(0, 512);
+  googleRequest_(token,
+    "/calendars/" + encodeURIComponent(calendarId) + "/events/" + encodeURIComponent(eventId),
+    "delete", null, headers);
+  return { deleted: true };
+}
+
+function validateEventBody_(event) {
+  if (!event || typeof event !== "object" || Array.isArray(event)) {
+    throw new Error("Dados do evento inválidos.");
+  }
+  const body = JSON.stringify(event);
+  if (body.length > MAX_EVENT_BODY_CHARS) throw new Error("Evento excede o limite permitido.");
+  const allowed = ["summary", "description", "location", "start", "end", "recurrence", "attendees", "reminders", "visibility", "transparency", "colorId"];
+  const clean = {};
+  allowed.forEach(function(key) {
+    if (Object.prototype.hasOwnProperty.call(event, key)) clean[key] = event[key];
+  });
+  if (!clean.summary || !clean.start || !clean.end) {
+    throw new Error("O evento precisa ter título, início e fim.");
+  }
+  return clean;
+}
+
+function googleRequest_(token, path, method, body, extraHeaders) {
+  const options = {
+    method: method,
+    headers: Object.assign({ Authorization: "Bearer " + token }, extraHeaders || {}),
+    muteHttpExceptions: true,
+  };
+  if (body !== null && body !== undefined) {
+    options.contentType = "application/json";
+    options.payload = JSON.stringify(body);
+  }
+  const response = UrlFetchApp.fetch(GOOGLE_API_BASE + path, options);
+  const status = response.getResponseCode();
+  if (status === 204) return null;
+  const text = response.getContentText();
+  let payload = {};
+  try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = {}; }
+  if (status < 200 || status >= 300) {
+    const mapped = status === 412 ? 409 : status;
+    const message = payload && payload.error && payload.error.message
+      ? String(payload.error.message)
+      : "Google Calendar respondeu HTTP " + status + ".";
+    throw apiError_(message, mapped);
+  }
+  return payload;
+}
+
+function apiError_(message, status) {
+  return new Error(String(message) + " (HTTP " + Number(status) + ")");
+}
+
+function requiredId_(value, label) {
+  const result = String(value || "");
+  if (!result || result.length > 1024 || /[\u0000-\u001f]/.test(result)) {
+    throw new Error("Identificador de " + label + " inválido.");
+  }
+  return result;
+}
+
+function queryString_(values) {
+  return Object.keys(values).map(function(key) {
+    return encodeURIComponent(key) + "=" + encodeURIComponent(values[key]);
+  }).join("&");
+}
