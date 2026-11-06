@@ -153,6 +153,7 @@ export function beginGoogleCalendarConnection(): Promise<void> {
       if (popup && !popup.closed) popup.close();
       popup = null;
       popupOrigin = "";
+      bridgeWindow = null;
       bridgeReady = false;
       bridgeNonce = "";
       reject(new Error("O Google Apps Script não estabeleceu comunicação com o Alfred. Verifique a autorização e se a janela continua aberta."));
@@ -167,6 +168,10 @@ export async function completeGoogleCalendarConnection(): Promise<boolean> {
 
 export function isGoogleCalendarSessionActive(): boolean {
   if (popup && popup.closed) {
+    window.clearTimeout(readyTimer);
+    readyResolve = null;
+    readyReject?.(new Error("A janela de conexão do Google foi encerrada."));
+    readyReject = null;
     popup = null;
     popupOrigin = "";
     bridgeWindow = null;
