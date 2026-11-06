@@ -74,6 +74,8 @@ function assertEntities(value: unknown, label: string): asserts value is Array<R
   if (!Array.isArray(value) || !value.every((item) => isRecord(item) && typeof item.id === 'string' && item.id.trim().length > 0)) {
     throw new Error(`O backup contém dados inválidos em: ${label}.`);
   }
+  const ids = (value as Array<{ id: string }>).map((item) => item.id);
+  if (new Set(ids).size !== ids.length) throw new Error(`O backup contém identificadores duplicados em: ${label}.`);
 }
 
 function assertString(value: unknown, field: string, allowEmpty = false): asserts value is string {
@@ -288,7 +290,9 @@ export function inspectBackup(raw: string): { createdAt: string; version: 1 | 2;
 
 export async function restoreBackup(input: unknown): Promise<void> {
   // Revalidate at the service boundary, even when callers already displayed a preview.
-  const payload = inspectBackup(JSON.stringify(input)).payload;
+  const serialized = JSON.stringify(input);
+  if (typeof serialized !== 'string') throw new Error('Payload de backup inválido.');
+  const payload = inspectBackup(serialized).payload;
   const isV2 = payload.version === BACKUP_VERSION;
   const data = payload.data;
   const restoredFiles = data.files.map((file) => {
