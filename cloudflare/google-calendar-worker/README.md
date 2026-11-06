@@ -68,6 +68,7 @@ As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial
 - A sincronização automática deve rodar no frontend enquanto a página estiver ativa. Safari/iOS pode suspender a página em segundo plano.
 - Sessões frontend são temporárias e em memória; recarregar exige nova conexão.
 - O token de atualização Google é criptografado em D1; a chave AES fica em secret do Worker.
+- Se o Google responder `invalid_grant` ao renovar o token, o Worker remove a conexão inválida do D1 e responde HTTP 401 para a interface encerrar a sessão e solicitar nova conexão. Falhas transitórias no endpoint de tokens são tratadas como HTTP 502, sem apagar a conexão.
 - O ticket OAuth é aleatório, de uso único, armazenado somente como hash e expira em 2 minutos.
 - O estado OAuth é validado com cookie Secure/HttpOnly/SameSite=Lax, e PKCE S256.
 - Não há telemetria de conteúdo dos eventos nem logging de tokens; ainda assim, o Worker processa os dados dos eventos em memória como intermediário de rede.
