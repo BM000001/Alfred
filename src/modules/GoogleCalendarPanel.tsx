@@ -273,8 +273,15 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   async function connect() {
     setError('');
     try {
-      beginGoogleCalendarConnection();
+      await beginGoogleCalendarConnection();
+      setConnected(true);
+      const session = await getGoogleCalendarSession();
+      setAccountId(session.accountId);
+      await loadCalendars();
+      setMessage('Conta Google conectada. Mantenha a janela do Apps Script aberta durante a sincronização.');
     } catch (cause) {
+      setConnected(false);
+      setAccountId(null);
       setError(cause instanceof Error ? cause.message : 'Não foi possível iniciar a conexão Google.');
     }
   }
