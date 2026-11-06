@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Brain } from './Brain';
 import { LocalAssistantProvider } from '../../assistant/localAssistant';
+import { ToolRegistry } from '../tools/toolRegistry';
 
 describe('Brain', () => {
   it('routes memory requests using the Brain classification', async () => {
@@ -37,7 +38,7 @@ describe('Brain', () => {
         return { message: 'provider fallback', usedTools: [], warnings: [] };
       },
     };
-    const brain = new Brain({ provider, tools: new (await import('../tools/toolRegistry')).ToolRegistry() });
+    const brain = new Brain({ provider, tools: new ToolRegistry() });
     const result = await brain.process([{ id: 'u-missing', role: 'user', content: 'Quais tarefas estão pendentes?', createdAt: '' }], {
       locale: 'pt-BR', now: '2026-11-06T12:00:00.000Z', timezone: 'America/Sao_Paulo',
     });
