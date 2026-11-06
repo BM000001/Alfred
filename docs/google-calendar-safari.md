@@ -1,58 +1,92 @@
-# Google Calendar no Safari — implementação em andamento
+# Google Calendar no Alfred — integração via Google Apps Script
 
 ## Decisões confirmadas
 
 - Fonte: Google Calendar.
-- Sincronização: manual e automática enquanto a Agenda estiver ativa.
-- Permissões: leitura e escrita, com confirmação antes de enviar alterações ao Google.
+- Sincronização: manual e automática enquanto a Agenda do Alfred estiver aberta e visível.
+- Permissões: leitura e escrita; toda criação, atualização ou exclusão remota exige confirmação explícita no Alfred.
 - Plataforma prioritária: Safari no iPhone, sem exigir aplicativo iOS nativo.
-- IndexedDB permanece como base local do Alfred.
-- Nenhum segredo OAuth ou token de atualização será armazenado no navegador ou versionado.
+- IndexedDB continua sendo a fonte local de verdade dos compromissos e dos cursores incrementais.
+- Nenhum access token, refresh token, client secret ou credencial Google será salvo no Alfred, IndexedDB, localStorage, sessionStorage, backup ou repositório.
+- Não usar Cloudflare, D1 ou Vercel nesta integração.
 
-## Arquitetura escolhida
+## Arquitetura proposta
 
-Frontend estático em GitHub Pages + Cloudflare Worker + D1.
+**GitHub Pages (Alfred) + Google Apps Script Web App, executado como o usuário que acessa.**
 
-- O Worker executa OAuth Authorization Code com PKCE S256.
-- O refresh token Google é criptografado com AES-GCM antes de ser gravado no D1.
-- O frontend recebe um ticket aleatório de uso único via fragmento da URL, troca-o por uma sessão Bearer assinada de 30 minutos e mantém essa sessão somente em memória.
-- Não usamos cookies de terceiros para as chamadas de API, evitando depender do comportamento de ITP no Safari entre github.io e workers.dev.
-- O Worker renova access tokens Google sob demanda e não envia refresh tokens ao navegador. Como intermediário de rede, ele vê temporariamente os payloads de eventos nas operações de leitura/escrita; não os grava no D1 nem registra o conteúdo em logs.
-- D1 armazena somente identidade Google e refresh token criptografado. O Worker atua como proxy e processa payloads de eventos em memória durante as chamadas, mas não os persiste; os eventos da agenda permanecem no IndexedDB e só são enviados ao Google quando o usuário confirma uma gravação.
+O Apps Script não será publicado como "executar como proprietário". Essa configuração daria ao backend acesso à agenda do proprietário do script, e não necessariamente à conta que está conectando o Alfred. A implantação obrigatoriamente deve usar **Execute as: User accessing the web app**.
 
-Escopos solicitados: openid/email para identificar a conta, calendar.events para leitura e escrita de eventos e calendar.calendarlist.readonly para listar calendários.
+O Alfred abre o Apps Script por uma ação explícita do usuário. A janela/aba do Apps Script permanece aberta e funciona como ponte RPC:
+- A página Alfred abre a URL HTTPS /exec do Apps Script com um nonce aleatório de uso único.
+- O Apps Script estabelece um canal postMessage validando origem, janela de origem e nonce.
+- O navegador envia somente operações permitidas; o Apps Script executa-as com google.script.run.
+- O token OAuth é obtido no servidor com ScriptApp.getOAuthToken(), usado apenas em memória durante a execução e nunca devolvido ao Alfred.
+- O Apps Script chama a Google Calendar REST API via UrlFetchApp; não mantém cópia persistente de eventos ou tokens.
+- A conexão da interface depende da janela/aba Apps Script aberta. Fechar a janela ou recarregar o Alfred encerra a sessão local e exige reconexão.
 
-## Limite real da sincronização automática
+### Por que não usar iframe ou fetch direto
 
-A sincronização automática será executada por timer/retorno ao primeiro plano enquanto o Alfred estiver aberto. Safari/iOS pode suspender a página em segundo plano ou quando fechada. Uma aplicação web estática não consegue garantir execução contínua nesse estado. Não será enviada uma cópia da agenda local ao backend apenas para simular sincronização em background.
+O Content Service do Apps Script não oferece uma configuração geral de cabeçalhos CORS para a aplicação cliente. Além disso, houve relatos recentes de web apps Apps Script bloqueados em iframes mesmo com XFrameOptionsMode.ALLOWALL. Por isso, o desenho inicial usa uma janela/aba aberta por gesto do usuário, não iframe nem fetch cross-origin. A compatibilidade de window.opener e postMessage no Safari iOS ainda é um critério obrigatório de prova de conceito; não será considerada garantida antes do teste físico.
 
-A sessão frontend expira em 30 minutos e não é persistida. Depois de recarregar a página ou expirar a sessão, o usuário precisa reconectar. Essa é uma limitação deliberada para evitar armazenar um bearer de longa duração no dispositivo.
+### Segurança do canal
 
-## Implementado nesta branch
+- Origem Alfred permitida no Apps Script: https://bm000001.github.io.
+- O Alfred valida que a mensagem veio da janela aberta por ele e de uma origem HTTPS do domínio Google Apps Script/Googleusercontent.
+- O Apps Script valida event.origin, event.source === window.opener e nonce.
+- O servidor aceita somente métodos RPC em allowlist e valida identificadores, parâmetros e tamanho dos eventos.
+- Nenhum token ou segredo é transportado por postMessage.
+- O Apps Script executa como a conta Google que autorizou o web app; nunca como o proprietário do script.
+- Nenhum conteúdo de evento é gravado em PropertiesService, CacheService, planilha, logs ou outro armazenamento.
+- A desconexão fecha a ponte local. A revogação do consentimento Google deve ser feita nas configurações da Conta Google; a interface não alegará revogação remota confirmada.
 
-- [x] Branch isolada a partir de main.
-- [x] Decisão de usar Cloudflare Workers, sem Vercel.
-- [x] Worker com fluxo OAuth, PKCE, estado anti-CSRF, ticket de uso único e sessão curta.
-- [x] Criptografia AES-GCM do refresh token no D1.
-- [x] Proxy autenticado para listar calendários/eventos e criar, atualizar e excluir eventos.
-- [x] CORS restrito à origem do Alfred.
-- [x] Client TypeScript inicial para o frontend.
-- [x] Migração D1 e configuração Wrangler.
-- [x] CI ampliado para verificar tipos do Worker.
-- [x] CI do commit atual aprovado (testes, type-check do Worker e build).
-- [x] Interface de conexão, seleção de calendários e estado de sincronização na Agenda.
-- [x] Metadados de origem Google, calendário, evento, conta e ETag no modelo local.
-- [x] Sincronização incremental com cursor IndexedDB, paginação, recorrências e recuperação de HTTP 410.
-- [x] Escrita manual confirmada para criar, atualizar e excluir eventos Google.
-- [x] Atualizações e exclusões condicionais com ETag/If-Match; conflitos não sobrescrevem silenciosamente.
-- [x] Testes do serviço de agenda e persistência local do cursor; type-check do Worker no CI.
-- [ ] Testes de integração ponta a ponta e revisão de segurança independente.
-- [ ] Configurar projeto Google Cloud, D1, secrets e publicar Worker.
-- [ ] Configurar variável GitHub Actions VITE_GOOGLE_CALENDAR_API.
-- [ ] Validar o fluxo completo no Safari físico.
+## Escopos mínimos
 
-## Configuração/deploy
+Manifesto explícito:
+- calendar.events: ler e gravar eventos.
+- calendar.calendarlist.readonly: listar calendários.
+- userinfo.email e openid: identificar a conta para isolar os compromissos/cursors locais.
+- script.external_request: chamadas HTTPS do Apps Script para as APIs Google.
 
-As instruções detalhadas estão em [cloudflare/google-calendar-worker/README.md](../cloudflare/google-calendar-worker/README.md).
+O token é criado e usado apenas no servidor Apps Script. A conta do usuário verá o nome do projeto/script na tela de consentimento. O Google pode exibir aviso de app não verificado ou aplicar limites de autorização; isso deve ser avaliado durante a configuração e não pode ser contornado pelo Alfred.
 
-Nenhum secret foi criado, nenhum Worker foi publicado, nenhum deploy Pages foi executado e nenhum merge foi feito. A PR permanece Draft.
+## Dados e sincronização
+
+- IndexedDB permanece como base local dos compromissos.
+- O cursor incremental syncToken fica no IndexedDB, separado por conta + calendário.
+- Paginação, recorrências, cancelamentos e recuperação de cursor expirado (HTTP 410) permanecem no cliente.
+- A janela inicial continua de 90 dias no passado e 365 dias no futuro.
+- O Apps Script encaminha temporariamente os dados da requisição/resposta entre o Alfred e o Google, mas não os persiste.
+- Atualizações e exclusões usam ETag/If-Match. Um conflito não deve sobrescrever silenciosamente uma alteração feita fora do Alfred.
+- A sincronização automática roda a cada 5 minutos enquanto a página estiver visível; Safari pode suspender timers em segundo plano ou quando a aba estiver fechada.
+- Nenhuma sincronização em background é prometida.
+
+## Limitações e critérios de aceitação
+
+1. **Safari iPhone:** abrir Apps Script a partir de gesto do usuário deve preservar comunicação com a janela/aba de origem. Se o Safari abrir nova aba sem window.opener, a arquitetura precisa ser revista antes de liberar a integração.
+2. **Autorização:** implantação como usuário que acessa, com consentimento dos escopos mínimos. O Alfred deve falhar fechado se a autorização não estiver concedida.
+3. **Privacidade:** inspecionar logs e armazenamento do Apps Script para confirmar que não há payloads, tokens ou identificadores sensíveis persistidos.
+4. **Leitura:** listar todos os calendários e páginas de eventos; manter cursor incremental no IndexedDB.
+5. **Escrita:** criar, atualizar e excluir somente após confirmação individual no Alfred.
+6. **Conflito:** HTTP 412 do Google é apresentado como conflito recuperável; não repetir escrita automaticamente.
+7. **Desconexão:** fechar a janela de ponte, limpar estado em memória e preservar todos os compromissos locais. Explicar como revogar o script na Conta Google.
+8. **Falhas:** timeouts e erros de autorização devem ser exibidos sem apagar compromissos ou cursores locais.
+9. **Quotas:** respeitar quotas de execução/UrlFetch do Apps Script; falhas de quota não podem causar perda ou reconciliação parcial destrutiva.
+
+## Implementação nesta branch
+
+- [x] Integração de calendário local, identidade externa e cursores incrementais em IndexedDB.
+- [x] Interface de seleção de calendários e sincronização manual/automática.
+- [x] Confirmação individual antes de criar, atualizar e excluir eventos no Google.
+- [x] Primeira implementação do Apps Script RPC bridge, com execução como usuário que acessa.
+- [x] Cliente TypeScript substituindo as chamadas HTTP ao Worker por RPC via janela Apps Script.
+- [ ] Revisão estática de segurança do dispatcher e do protocolo de mensagens.
+- [ ] Testes automatizados do bridge e dos contratos de payload.
+- [ ] Teste de autorização e execução no Apps Script real.
+- [ ] Teste físico em Safari iPhone (popup, opener, retorno à aba Alfred, fechamento e reconexão).
+- [ ] Validar quotas, paginação e ETag/If-Match com eventos reais.
+- [ ] Configurar a variável GitHub Actions VITE_GOOGLE_APPS_SCRIPT_URL com a URL de implantação /exec.
+- [ ] Publicar GitHub Pages somente depois de merge autorizado.
+
+## Estado operacional
+
+Nenhuma implantação Apps Script foi criada ou publicada nesta etapa. Nenhuma conta foi conectada. Nenhum teste real no Safari foi executado. O PR permanece Draft, aberto e sem merge. A integração ainda não está pronta para uso real.
