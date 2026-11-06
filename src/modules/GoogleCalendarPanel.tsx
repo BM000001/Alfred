@@ -17,7 +17,7 @@ import {
   type GoogleCalendarEvent,
   type GoogleCalendarInfo,
 } from './agenda/googleCalendarApi';
-import { appointmentRepository, calendarSyncRepository } from '../storage/repositories';
+import { appointmentRepository, calendarSyncRepository, pendingGoogleCalendarCreateRepository } from '../storage/repositories';
 
 const agenda = createAgendaService(appointmentRepository);
 const SYNC_WINDOW_PAST_DAYS = 90;
@@ -331,26 +331,77 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       setError('Selecione um calendário de destino antes de enviar compromissos.');
       return;
     }
-    if (!window.confirm('Enviar "' + item.title + '" para o calendário Google "' + calendar.summary + '"?')) return;
+    if (!accountId) {
+      setError('A conta Google não foi identificada. Reconecte antes de enviar.');
+      return;
+    }
+
+    let operation: Awaited<ReturnType<typeof pendingGoogleCalendarCreateRepository.getById>> | undefined;
+    try {
+      const pending = await pendingGoogleCalendarCreateRepository.getAll();
+      const existing = pending.find((candidate) => candidate.appointmentId === item.id);
+      if (existing && (existing.accountId !== accountId || existing.calendarId !== calendar.id)) {
+        setError('Este compromisso possui um envio pendente para outra conta ou calendário. Reconecte a origem e resolva essa tentativa antes de iniciar outra.');
+        return;
+      }
+      operation = existing;
+    } catch (cause) {
+      reportError(cause, 'Não foi possível verificar operações Google pendentes no dispositivo.');
+      return;
+    }
+
+    const confirmation = operation
+      ? 'O envio anterior de "' + item.title + '" pode ter sido concluído no Google, mas a resposta não foi confirmada. Deseja retomar a mesma operação no calendário "' + calendar.summary + '"?'
+      : 'Enviar "' + item.title + '" para o calendário Google "' + calendar.summary + '"?';
+    if (!window.confirm(confirmation)) return;
+
     setBusy(true);
     setError('');
     try {
-      const created = await createGoogleEvent(calendar.id, toGoogleEvent(item));
+      if (!operation) {
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        const operationId = Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
+        operation = {
+          id: operationId,
+          provider: 'google',
+          appointmentId: item.id,
+          accountId,
+          calendarId: calendar.id,
+          eventId: operationId,
+          event: toGoogleEvent(item),
+          createdAt: new Date().toISOString(),
+          status: 'pending',
+        };
+        // Persist before the network call: retries after timeout/reload reuse
+        // the same Google event ID and exact event snapshot.
+        await pendingGoogleCalendarCreateRepository.save(operation);
+      }
+
+      const created = await createGoogleEvent(calendar.id, operation.eventId, operation.id, operation.event);
       await agenda.update(item.id, {
         importedUid: 'google:' + accountId + ':' + calendar.id + ':' + created.id,
         importedStableUid: 'google:' + accountId + ':' + calendar.id + ':' + created.id,
         importedCalendarId: 'google:' + accountId + ':' + calendar.id,
         importedCalendarName: calendar.summary,
         externalProvider: 'google',
-        externalAccountId: accountId ?? undefined,
+        externalAccountId: accountId,
         externalCalendarId: calendar.id,
         externalEventId: created.id,
         externalEtag: created.etag,
       });
-      setMessage('Compromisso enviado ao Google com confirmação. A cópia local foi mantida.');
+      await pendingGoogleCalendarCreateRepository.delete(operation.id);
+      setMessage('Compromisso enviado ao Google. A operação foi confirmada e a cópia local foi mantida.');
       await onChanged();
     } catch (cause) {
-      reportError(cause, 'Não foi possível enviar o compromisso ao Google.');
+      if (operation) {
+        try {
+          await pendingGoogleCalendarCreateRepository.save({ ...operation, status: 'uncertain' });
+        } catch {
+          setError('O resultado do envio é incerto e não foi possível atualizar o registro local da tentativa. Não crie outro evento manualmente; verifique o Google Calendar antes de tentar novamente.');
+          return;
+        }
+      }
+      reportError(cause, 'Não foi possível confirmar o envio. A tentativa foi preservada localmente para uma retomada segura.');
     } finally {
       setBusy(false);
     }
