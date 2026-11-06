@@ -12,7 +12,7 @@ import { LocalAssistantProvider } from './assistant/localAssistant';
 import { Brain } from './brain';
 import { AssistantMemoryPanel } from './AssistantMemoryPanel';
 import { ManualExportPanel } from './ManualExportPanel';
-import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
+import { appointmentRepository, assistantMessageRepository, memoryRepository, studyFlashcardRepository, studyQuestionRepository, studyQuizAttemptRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return { id: crypto.randomUUID(), role, content, createdAt: new Date().toISOString() };
@@ -188,7 +188,7 @@ export function Assistant() {
         setMessages((current) => [...current, createMessage('assistant', creation.reason)]);
         return;
       }
-      const provider = new LocalAssistantProvider({ tasks, appointments, topics }, memories);
+      const provider = new LocalAssistantProvider({ tasks, appointments, topics, flashcards, questions, quizAttempts }, memories);
       const brain = new Brain({ provider });
       const response = await brain.process(nextMessages, {
         locale: 'pt-BR',
