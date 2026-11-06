@@ -211,8 +211,6 @@ function validateExtraction(value: unknown): asserts value is StoredTextExtracti
 }
 
 function validateLegacyData(data: Record<string, unknown>): void {
-  if (data.focusSessions === undefined) data.focusSessions = [];
-  if (data.memories === undefined) data.memories = [];
   for (const name of ['tasks', 'projects', 'appointments', 'disciplines', 'studyTopics', 'focusSessions', 'memories', 'files']) assertEntities(data[name], name);
   const validCategories = ['preference', 'goal', 'project', 'routine', 'other'];
   if (!(data.memories as unknown[]).every((item) => isRecord(item) && typeof item.title === 'string' && item.title.trim().length > 0 && item.title.length <= 80 && typeof item.content === 'string' && item.content.trim().length > 0 && item.content.length <= 500 && validCategories.includes(String(item.category)) && typeof item.createdAt === 'string' && !Number.isNaN(Date.parse(item.createdAt)) && typeof item.updatedAt === 'string' && !Number.isNaN(Date.parse(item.updatedAt)))) {
@@ -308,15 +306,20 @@ export async function restoreBackup(input: unknown): Promise<void> {
       [STORE_NAMES.appointments]: data.appointments,
       [STORE_NAMES.disciplines]: data.disciplines,
       [STORE_NAMES.studyTopics]: data.studyTopics,
-      [STORE_NAMES.focusSessions]: data.focusSessions ?? [],
       [STORE_NAMES.files]: restoredFiles,
-      [STORE_NAMES.memories]: data.memories ?? [],
     };
     if (isV2) {
       const v2 = payload as BackupPayload;
+      rows[STORE_NAMES.focusSessions] = v2.data.focusSessions;
+      rows[STORE_NAMES.memories] = v2.data.memories;
       rows[STORE_NAMES.studyFlashcards] = v2.data.studyFlashcards;
       rows[STORE_NAMES.studyQuestions] = v2.data.studyQuestions;
       rows[STORE_NAMES.studyQuizAttempts] = v2.data.studyQuizAttempts;
+    } else {
+      const legacy = payload as LegacyBackupPayload;
+      // Optional fields absent from early v1 backups must remain untouched locally.
+      if (legacy.data.focusSessions !== undefined) rows[STORE_NAMES.focusSessions] = legacy.data.focusSessions;
+      if (legacy.data.memories !== undefined) rows[STORE_NAMES.memories] = legacy.data.memories;
     }
     const names = Object.keys(rows);
     const transaction = database.transaction(names, 'readwrite');
