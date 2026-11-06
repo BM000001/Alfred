@@ -35,6 +35,12 @@ interface GoogleTokenResponse {
   error_description?: string;
 }
 
+interface GoogleTokenInfoResponse {
+  scope?: string;
+  error?: string;
+  error_description?: string;
+}
+
 const GOOGLE_AUTHORIZE = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
 const GOOGLE_API = "https://www.googleapis.com/calendar/v3";
@@ -44,6 +50,7 @@ const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
 ].join(" ");
+const REQUIRED_GOOGLE_SCOPES = GOOGLE_SCOPES.split(" ");
 
 function json(data: unknown, status = 200, headers: HeadersInit = {}): Response {
   return new Response(JSON.stringify(data), {
@@ -255,6 +262,26 @@ async function handleCallback(request: Request, env: Env): Promise<Response> {
   const tokens = await tokenResponse.json() as GoogleTokenResponse;
   if (!tokenResponse.ok || !tokens.access_token) {
     return json({ error: tokens.error_description || tokens.error || "Google token exchange failed." }, 400);
+  }
+
+  // Verify the scopes actually granted by Google instead of assuming that
+  // the requested scopes were all approved. Token responses may omit scope
+  // when it matches the request, so use Google's tokeninfo endpoint as the
+  // authoritative grant record.
+  const tokenInfoResponse = await fetch(
+    "https://oauth2.googleapis.com/tokeninfo?access_token=" + encodeURIComponent(tokens.access_token),
+  );
+  const tokenInfo = await tokenInfoResponse.json() as GoogleTokenInfoResponse;
+  if (!tokenInfoResponse.ok || !tokenInfo.scope) {
+    return json({ error: "Não foi possível confirmar as permissões concedidas pelo Google. Tente conectar novamente." }, 502);
+  }
+  const grantedScopes = new Set(tokenInfo.scope.split(/\\s+/).filter(Boolean));
+  const missingScopes = REQUIRED_GOOGLE_SCOPES.filter((scope) => !grantedScopes.has(scope));
+  if (missingScopes.length) {
+    return json({
+      error: "O Google não concedeu todas as permissões necessárias (leitura da lista de calendários e leitura/escrita de eventos). Revise a tela de consentimento e conecte novamente.",
+      missingScopes,
+    }, 403);
   }
 
   const identityResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
