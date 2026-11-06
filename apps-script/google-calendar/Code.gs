@@ -38,6 +38,10 @@ function rpcDispatch(request) {
     ? request.params
     : {};
 
+  // Fail closed if the user has not granted every explicit least-privilege
+  // scope in the manifest. Apps Script owns the consent prompt.
+  ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
+
   // A user-scoped OAuth token is created only inside this execution context.
   // It is never returned, cached, logged, or persisted.
   const token = ScriptApp.getOAuthToken();
