@@ -37,13 +37,15 @@ if (!server.includes('case "session"') || !server.includes('case "deleteEvent"')
 }
 const bridgeClient = read("src/modules/agenda/googleCalendarApi.ts");
 const originGuard = bridgeClient.match(/function isTrustedAppsScriptOrigin\(origin: string\): boolean \{[\s\S]*?\n\}/);
-if (!originGuard || !originGuard[0].includes('url.hostname.endsWith(".script.googleusercontent.com")') ||
+if (!originGuard || !originGuard[0].includes('url.hostname === "script.googleusercontent.com"') ||
+    !originGuard[0].includes('url.hostname.endsWith(".script.googleusercontent.com")') ||
     originGuard[0].includes('url.hostname.endsWith(".googleusercontent.com")')) {
   throw new Error("Apps Script bridge must trust only the Apps Script Googleusercontent host family.");
 }
 const originGuardJavaScript = originGuard[0].replace("(origin: string): boolean", "(origin)");
 const isTrustedOrigin = vm.runInNewContext("(" + originGuardJavaScript + ")");
 if (!isTrustedOrigin("https://script.google.com") ||
+    !isTrustedOrigin("https://script.googleusercontent.com") ||
     !isTrustedOrigin("https://n-abc-script.googleusercontent.com") ||
     isTrustedOrigin("https://evil.googleusercontent.com") ||
     isTrustedOrigin("https://script.google.com.attacker.example") ||
