@@ -306,8 +306,11 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (path === "/api/session" && request.method === "GET") return json({ connected: true, provider: "google", accountId: connection.google_sub });
 
   if (path === "/api/calendars" && request.method === "GET") {
-    const result = await googleApi<{ items?: unknown[] }>(connection, env, "/users/me/calendarList?maxResults=250");
-    return json({ items: result.items ?? [] });
+    const params = new URLSearchParams({ maxResults: "250" });
+    const pageToken = url.searchParams.get("pageToken");
+    if (pageToken) params.set("pageToken", pageToken);
+    const result = await googleApi<{ items?: unknown[]; nextPageToken?: string }>(connection, env, "/users/me/calendarList?" + params.toString());
+    return json({ items: result.items ?? [], ...(result.nextPageToken ? { nextPageToken: result.nextPageToken } : {}) });
   }
 
   if (path === "/api/events" && request.method === "GET") {
