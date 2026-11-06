@@ -279,22 +279,46 @@ if (serverCalls[8].options.method !== "patch" || serverCalls[8].options.headers[
   throw new Error("Google Calendar update must use PATCH and preserve If-Match.");
 }
 
+// A retry with a stale ETag is complete only when a GET confirms the desired
+// state is already present; a different current event remains a conflict.
+serverResponses.push({ status: 412, body: JSON.stringify({ error: { message: "ETag conflict" } }) });
+serverResponses.push({ status: 200, body: JSON.stringify({
+  summary: "Atualizado", description: "", location: "",
+  start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" },
+}) });
+const updateRetry = invokeServer({
+  method: "updateEvent",
+  params: { calendarId: "primary", eventId: "created", etag: "etag-v1",
+    event: { summary: "Atualizado", start: { dateTime: "2026-11-07T10:00:00Z" }, end: { dateTime: "2026-11-07T11:00:00Z" } } },
+});
+if (updateRetry.summary !== "Atualizado" || serverCalls[10].options.method !== "patch" ||
+    serverCalls[11].options.method !== "get") {
+  throw new Error("Google Calendar update retry did not verify the already-applied desired state.");
+}
+
 serverResponses.push({ status: 204, body: "" });
 const deleteResult = invokeServer({ method: "deleteEvent", params: { calendarId: "primary", eventId: "created", etag: "etag-v2" } });
-if (!deleteResult.deleted || serverCalls[9].options.method !== "delete" ||
-    serverCalls[9].options.headers["If-Match"] !== "etag-v2") {
+if (!deleteResult.deleted || serverCalls[12].options.method !== "delete" ||
+    serverCalls[12].options.headers["If-Match"] !== "etag-v2") {
   throw new Error("Google Calendar delete/If-Match contract failed.");
+}
+
+// A repeated delete after a lost 204 is idempotent when the same event is absent.
+serverResponses.push({ status: 404, body: JSON.stringify({ error: { message: "Not found" } }) });
+const deleteRetry = invokeServer({ method: "deleteEvent", params: { calendarId: "primary", eventId: "created", etag: "etag-v2" } });
+if (!deleteRetry.deleted || !deleteRetry.alreadyAbsent || serverCalls[13].options.method !== "delete") {
+  throw new Error("Google Calendar delete retry did not accept an already-absent target.");
 }
 
 let invalidMethodRejected = false;
 try { invokeServer({ method: "arbitraryMethod" }); } catch (_) { invalidMethodRejected = true; }
-if (!invalidMethodRejected || serverCalls.length !== 10) {
+if (!invalidMethodRejected || serverCalls.length !== 14) {
   throw new Error("Apps Script RPC dispatcher accepted a method outside its allowlist.");
 }
 let invalidEventRejected = false;
 try { invokeServer({ method: "createEvent", params: { calendarId: "primary", eventId: stableEventId, operationId: stableOperationId, event: { summary: "missing dates" } } }); }
 catch (_) { invalidEventRejected = true; }
-if (!invalidEventRejected || serverCalls.length !== 10 || requiredScopes !== 10) {
+if (!invalidEventRejected || serverCalls.length !== 14 || requiredScopes !== 12) {
   throw new Error("Apps Script event validation or per-request scope enforcement failed.");
 }
 
