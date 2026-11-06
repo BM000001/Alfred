@@ -55,10 +55,18 @@ export class LocalAssistantProvider implements AIProvider {
       };
     }
 
+    if (request.intent === 'unknown') {
+      return {
+        message: 'Não consegui identificar com segurança a área do pedido. A classificação e o roteamento são responsabilidade do Brain; reformule a solicitação com um assunto mais específico.',
+        usedTools: [],
+        warnings: ['Nenhuma ferramenta foi executada porque a intenção não foi reconhecida.'],
+      };
+    }
+
     return {
       message: 'Posso ajudar com tarefas, compromissos, progresso dos estudos e memórias locais. Ainda não utilizo um modelo de IA generativa; esta versão interpreta os pedidos por regras locais.',
       usedTools: [],
-      warnings: ['Assistente local: a classificação e o roteamento são responsabilidade do Brain.'],
+      warnings: ['Intenção não fornecida pelo Brain; nenhuma ferramenta foi executada.'],
     };
   }
 }
