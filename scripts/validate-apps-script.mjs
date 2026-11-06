@@ -32,7 +32,7 @@ if (!server.includes('case "session"') || !server.includes('case "deleteEvent"')
   throw new Error("Apps Script RPC dispatcher is incomplete.");
 }
 if (!html.includes("event.source !== openerWindow") || !html.includes("event.origin !== ALFRED_ORIGIN") ||
-    !html.includes("window.top.opener") ||
+    !html.includes("const openerWindow = window.opener") ||
     !read("src/modules/agenda/googleCalendarApi.ts").includes("function isPopupFrame")) {
   throw new Error("Apps Script message origin/source validation is missing.");
 }
