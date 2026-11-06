@@ -15,6 +15,9 @@ O uso de Authorization: Bearer evita depender de cookies de terceiros entre gith
 1. Criar projeto no Google Cloud Console e habilitar Google Calendar API.
 2. Configurar a tela de consentimento OAuth e criar credencial OAuth do tipo Web Application.
 3. Cadastrar o redirect URI exato do Worker: https://SEU-WORKER.workers.dev/auth/google/callback.
+
+**Atenção ao status do consentimento OAuth:** se o tipo de usuário for External e o app permanecer em Testing, o Google emite refresh tokens que expiram em 7 dias quando o app solicita escopos do Calendar. Para uso contínuo, será necessário publicar o app em Production no Google Auth Platform; dependendo da classificação e do público dos escopos, o Google poderá exigir verificação. Enquanto estiver em Testing, considere a reconexão semanal como limitação conhecida — não trate isso como falha do Alfred.
+
 4. Criar um D1 chamado alfred-google-calendar e copiar seu database ID para wrangler.toml.
 5. Definir GOOGLE_REDIRECT_URI para o callback real e ALFRED_RETURN_URL para https://bm000001.github.io/Alfred/.
 6. Definir GOOGLE_CLIENT_ID como variável do Worker.
