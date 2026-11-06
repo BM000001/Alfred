@@ -80,8 +80,9 @@ O token é criado e usado apenas no servidor Apps Script. A conta do usuário ve
 - [x] Confirmação individual antes de criar, atualizar e excluir eventos no Google.
 - [x] Primeira implementação do Apps Script RPC bridge, com execução como usuário que acessa.
 - [x] Cliente TypeScript substituindo as chamadas HTTP ao Worker por RPC via janela Apps Script.
-- [ ] Revisão estática de segurança do dispatcher e do protocolo de mensagens.
-- [ ] Testes automatizados do bridge e dos contratos de payload.
+- [x] Revisão estática inicial de segurança do dispatcher e do protocolo de mensagens.
+- [x] Teste automatizado do handshake sandbox/opener, RPC, origem, janela de origem e nonce.
+- [ ] Testes de integração do Apps Script real e dos contratos completos de payload.
 - [ ] Teste de autorização e execução no Apps Script real.
 - [ ] Teste físico em Safari iPhone (popup, opener, retorno à aba Alfred, fechamento e reconexão).
 - [ ] Validar quotas, paginação e ETag/If-Match com eventos reais.
