@@ -36,7 +36,7 @@ if (!server.includes('case "session"') || !server.includes('case "deleteEvent"')
   throw new Error("Apps Script RPC dispatcher is incomplete.");
 }
 const bridgeClient = read("src/modules/agenda/googleCalendarApi.ts");
-const originGuard = bridgeClient.match(/function isTrustedAppsScriptOrigin\\(origin: string\\): boolean \\{[\\s\\S]*?\\n\\}/);
+const originGuard = bridgeClient.match(/function isTrustedAppsScriptOrigin\(origin: string\): boolean \{[\s\S]*?\n\}/);
 if (!originGuard || !originGuard[0].includes('url.hostname.endsWith(".script.googleusercontent.com")') ||
     originGuard[0].includes('url.hostname.endsWith(".googleusercontent.com")')) {
   throw new Error("Apps Script bridge must trust only the Apps Script Googleusercontent host family.");
