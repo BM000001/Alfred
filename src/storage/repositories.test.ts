@@ -4,7 +4,7 @@ import type { Project } from '../modules/projects/types';
 import type { Appointment } from '../modules/agenda/types';
 import type { Task } from '../modules/tasks/types';
 import { ALFRED_DATABASE_NAME } from './database';
-import { appointmentRepository, calendarSyncRepository, egressAuditRepository, egressSettingsRepository, projectRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository } from './repositories';
+import { appointmentRepository, calendarSyncRepository, pendingGoogleCalendarCreateRepository, egressAuditRepository, egressSettingsRepository, projectRepository, studyQuestionRepository, studyQuizAttemptRepository, taskRepository } from './repositories';
 import type { StudyQuestion, StudyQuizAttempt } from '../modules/studies/questionTypes';
 
 const task: Task = {
@@ -130,6 +130,31 @@ describe('calendarSyncRepository', () => {
     await calendarSyncRepository.save(state);
     expect(await calendarSyncRepository.getById(state.id)).toEqual(state);
     expect(await calendarSyncRepository.getAll()).toEqual([state]);
+  });
+});
+
+describe('pendingGoogleCalendarCreateRepository', () => {
+  it('persists a confirmed create operation and its exact payload locally for safe retries', async () => {
+    const operation = {
+      id: '0123456789abcdef0123456789abcdef',
+      provider: 'google' as const,
+      appointmentId: 'appointment-1',
+      accountId: 'google-account-1',
+      calendarId: 'primary',
+      eventId: '0123456789abcdef0123456789abcdef',
+      event: {
+        summary: 'Aula de programação',
+        description: 'Conteúdo acadêmico',
+        start: { dateTime: '2026-11-07T10:00:00.000Z', timeZone: 'America/Sao_Paulo' },
+        end: { dateTime: '2026-11-07T11:00:00.000Z', timeZone: 'America/Sao_Paulo' },
+      },
+      createdAt: '2026-11-06T12:00:00.000Z',
+      status: 'uncertain' as const,
+    };
+    await pendingGoogleCalendarCreateRepository.save(operation);
+    expect(await pendingGoogleCalendarCreateRepository.getById(operation.id)).toEqual(operation);
+    await pendingGoogleCalendarCreateRepository.delete(operation.id);
+    expect(await pendingGoogleCalendarCreateRepository.getById(operation.id)).toBeUndefined();
   });
 });
 
