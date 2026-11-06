@@ -1,5 +1,5 @@
 export const ALFRED_DATABASE_NAME = 'alfred';
-export const ALFRED_DATABASE_VERSION = 11;
+export const ALFRED_DATABASE_VERSION = 12;
 export const STORE_NAMES = {
   tasks: 'tasks',
   projects: 'projects',
@@ -16,6 +16,7 @@ export const STORE_NAMES = {
   egressAudit: 'egressAudit',
   egressSettings: 'egressSettings',
   calendarSyncStates: 'calendarSyncStates',
+  pendingGoogleCalendarOperations: 'pendingGoogleCalendarOperations',
 } as const;
 
 export function openAlfredDatabase(factory: IDBFactory = indexedDB): Promise<IDBDatabase> {
