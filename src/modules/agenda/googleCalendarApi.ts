@@ -35,6 +35,7 @@ const APP_SCRIPT_URL = (import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL ?? "").trim(
 const CHANNEL = "alfred-google-calendar";
 let popup: Window | null = null;
 let popupOrigin = "";
+let bridgeWindow: Window | null = null;
 let bridgeNonce = "";
 let bridgeReady = false;
 let requestSequence = 0;
@@ -65,13 +66,27 @@ function rejectPending(message: string): void {
   }
 }
 
+function isPopupFrame(source: MessageEventSource | null): source is Window {
+  if (!popup || !source) return false;
+  if (source === popup) return true;
+  try {
+    for (let index = 0; index < popup.length; index += 1) {
+      if (popup.frames[index] === source) return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 function handleBridgeMessage(event: MessageEvent): void {
-  if (!popup || event.source !== popup || !isTrustedAppsScriptOrigin(event.origin)) return;
+  if (!popup || !isPopupFrame(event.source) || !isTrustedAppsScriptOrigin(event.origin)) return;
   const data = event.data as Record<string, unknown> | null;
   if (!data || data.channel !== CHANNEL || data.nonce !== bridgeNonce) return;
 
   if (data.type === "ready") {
     popupOrigin = event.origin;
+    bridgeWindow = event.source as Window;
     bridgeReady = true;
     window.clearTimeout(readyTimer);
     readyResolve?.();
@@ -79,7 +94,7 @@ function handleBridgeMessage(event: MessageEvent): void {
     return;
   }
 
-  if (data.type !== "rpc-result" || typeof data.requestId !== "string") return;
+  if (event.source !== bridgeWindow || data.type !== "rpc-result" || typeof data.requestId !== "string") return;
   const item = pending.get(data.requestId);
   if (!item) return;
   window.clearTimeout(item.timeout);
@@ -105,6 +120,7 @@ export function beginGoogleCalendarConnection(): Promise<void> {
   if (popup && !popup.closed) popup.close();
   popup = null;
   popupOrigin = "";
+  bridgeWindow = null;
   bridgeReady = false;
   bridgeNonce = createNonce();
 
@@ -145,13 +161,14 @@ export function isGoogleCalendarSessionActive(): boolean {
   if (popup && popup.closed) {
     popup = null;
     popupOrigin = "";
+    bridgeWindow = null;
     bridgeReady = false;
     bridgeNonce = "";
     window.removeEventListener("message", handleBridgeMessage);
     rejectPending("A janela de conexão do Google foi encerrada.");
     return false;
   }
-  return Boolean(popup && bridgeReady);
+  return Boolean(popup && !popup.closed && bridgeWindow && bridgeReady);
 }
 
 export function clearGoogleCalendarSession(): void {
@@ -160,6 +177,7 @@ export function clearGoogleCalendarSession(): void {
   if (popup && !popup.closed) popup.close();
   popup = null;
   popupOrigin = "";
+  bridgeWindow = null;
   bridgeReady = false;
   bridgeNonce = "";
   window.removeEventListener("message", handleBridgeMessage);
@@ -167,7 +185,7 @@ export function clearGoogleCalendarSession(): void {
 }
 
 async function request<T>(request: RpcRequest): Promise<T> {
-  if (!isGoogleCalendarSessionActive() || !popup || !popupOrigin) {
+  if (!isGoogleCalendarSessionActive() || !bridgeWindow || !popupOrigin) {
     throw new Error("A janela de conexão do Google não está ativa. Conecte novamente.");
   }
   const requestId = String(++requestSequence);
@@ -182,7 +200,7 @@ async function request<T>(request: RpcRequest): Promise<T> {
       timeout,
     });
     try {
-      popup!.postMessage({
+      bridgeWindow!.postMessage({
         channel: CHANNEL,
         type: "rpc",
         nonce: bridgeNonce,
