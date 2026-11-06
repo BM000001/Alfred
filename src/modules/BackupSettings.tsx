@@ -91,7 +91,7 @@ export function BackupSettings() {
   }
 
   async function confirmRestore() {
-    if (!preview || !window.confirm('Atenção: a restauração substituirá todos os dados atuais do Alfred neste dispositivo. Essa ação não pode ser desfeita. Deseja continuar?')) return;
+    if (!preview || !window.confirm('Atenção: a restauração substituirá as categorias incluídas no arquivo. Histórico de mensagens, auditoria e configurações locais de privacidade serão preservados. Essa ação não pode ser desfeita. Deseja continuar?')) return;
     setBusy(true); setError(''); setFeedback('');
     try {
       await restoreBackup(preview.payload);
