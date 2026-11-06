@@ -60,7 +60,7 @@ Configure GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, ALFRED_ORIGIN e ALFRED_RETURN_U
 - DELETE /api/events/:eventId?calendarId=...
 - POST /api/disconnect
 
-As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial do Alfred. A listagem de calendários e eventos usa paginação até consumir todos os resultados. O Worker renova o access token Google sob demanda; não o devolve ao frontend. O endpoint de desconexão revoga o refresh token e apaga a conexão.
+As rotas de API exigem sessão Bearer assinada e CORS limitado à origem oficial do Alfred. A listagem de calendários e eventos usa paginação até consumir todos os resultados. O Worker renova o access token Google sob demanda; não o devolve ao frontend. No callback OAuth, confirma via Google tokeninfo que os escopos de calendário necessários foram realmente concedidos antes de salvar a conexão. Se a verificação falhar ou faltar algum escopo, rejeita a conexão e tenta revogar a autorização recém-obtida. Na desconexão, apaga primeiro a conexão local e tenta revogar o token no Google; a resposta informa se a revogação remota foi confirmada.
 
 ## Limites e segurança
 
