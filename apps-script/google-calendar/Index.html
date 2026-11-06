@@ -26,7 +26,18 @@
       const BRIDGE_NONCE = <?!= JSON.stringify(bridgeNonce) ?>;
       const ALFRED_ORIGIN = <?!= JSON.stringify(alfredOrigin) ?>;
       const statusNode = document.getElementById("status");
-      const openerWindow = window.opener;
+      // HtmlService runs this page inside a sandboxed iframe. In that case
+      // window.opener belongs to the inner frame and is usually null; the
+      // opener of the top-level Apps Script tab is the Alfred window.
+      let openerWindow = null;
+      try {
+        const topWindow = window.top;
+        openerWindow = topWindow && topWindow !== window
+          ? topWindow.opener
+          : window.opener;
+      } catch (_) {
+        openerWindow = window.opener;
+      }
 
       function sendToAlfred(message) {
         if (!openerWindow || openerWindow.closed) {
