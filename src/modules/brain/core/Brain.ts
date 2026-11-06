@@ -80,8 +80,7 @@ export class Brain {
           providerId: this.provider.id,
         };
       }
-      {
-        if (tool.risk !== 'read' || tool.approval !== 'never') {
+      if (tool.risk !== 'read' || tool.approval !== 'never') {
           return {
             message: 'A consulta foi bloqueada porque a ferramenta registrada não está configurada como somente leitura.',
             usedTools: [],
