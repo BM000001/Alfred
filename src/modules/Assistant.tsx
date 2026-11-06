@@ -84,8 +84,14 @@ export function Assistant() {
     setLoading(true);
     setError('');
     try {
-      const [tasks, appointments, topics, memories] = await Promise.all([
-        taskRepository.getAll(), appointmentRepository.getAll(), studyTopicRepository.getAll(), memoryRepository.getAll(),
+      const [tasks, appointments, topics, memories, flashcards, questions, quizAttempts] = await Promise.all([
+        taskRepository.getAll(),
+        appointmentRepository.getAll(),
+        studyTopicRepository.getAll(),
+        memoryRepository.getAll(),
+        studyFlashcardRepository.getAll(),
+        studyQuestionRepository.getAll(),
+        studyQuizAttemptRepository.getAll(),
       ]);
       const priorityUpdate = prepareTaskPriorityUpdate(content, tasks, { referenceTaskId: recentTaskIdRef.current });
       if (priorityUpdate.kind === 'proposal') {
