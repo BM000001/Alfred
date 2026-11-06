@@ -64,15 +64,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   const [connected, setConnected] = useState(isGoogleCalendarSessionActive());
   const [accountId, setAccountId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<GoogleCalendarInfo[]>([]);
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
-    try {
-      const saved = window.localStorage.getItem('alfred.googleCalendarIds');
-      const parsed: unknown = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) && parsed.every((id): id is string => typeof id === 'string') ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -123,8 +115,24 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem('alfred.googleCalendarIds', JSON.stringify(selectedIds));
-  }, [selectedIds]);
+    if (!accountId) {
+      setSelectedIds([]);
+      return;
+    }
+    try {
+      const saved = window.localStorage.getItem('alfred.googleCalendarIds:' + accountId);
+      const parsed: unknown = saved ? JSON.parse(saved) : [];
+      setSelectedIds(Array.isArray(parsed) && parsed.every((id): id is string => typeof id === 'string') ? parsed : []);
+    } catch {
+      setSelectedIds([]);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    if (accountId) {
+      window.localStorage.setItem('alfred.googleCalendarIds:' + accountId, JSON.stringify(selectedIds));
+    }
+  }, [accountId, selectedIds]);
 
   async function syncCalendar(calendar: GoogleCalendarInfo): Promise<number> {
     if (!accountId) throw new Error('A conta Google não foi identificada. Reconecte antes de sincronizar.');
@@ -174,7 +182,8 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       const uid = accountCalendarId + ':' + event.id;
       if (event.status === 'cancelled') {
         const existing = currentItems.find((item) => item.externalProvider === 'google' &&
-          item.externalCalendarId === calendar.id && item.externalEventId === event.id);
+          item.externalAccountId === accountId && item.externalCalendarId === calendar.id &&
+          item.externalEventId === event.id);
         if (existing && existing.status !== 'cancelled') await agenda.cancel(existing.id);
         continue;
       }
@@ -259,7 +268,7 @@ export function GoogleCalendarPanel({ appointments, onChanged }: GoogleCalendarP
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', runIfVisible);
     };
-  }, [connected, calendars, selectedIds]);
+  }, [connected, accountId, calendars, selectedIds]);
 
   async function connect() {
     setError('');
