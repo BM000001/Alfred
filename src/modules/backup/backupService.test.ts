@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createBackup, inspectBackup, restoreBackup } from './backupService';
 import {
-  fileRepository, focusSessionRepository, memoryRepository, studyFlashcardRepository,
+  egressSettingsRepository, fileRepository, focusSessionRepository, memoryRepository, studyFlashcardRepository,
   studyQuestionRepository, studyQuizAttemptRepository,
 } from '../../storage/repositories';
 import type { AssistantMemory } from '../memory/types';
@@ -145,6 +145,26 @@ describe('backupService', () => {
       await restoreBackup(validBackup);
       expect(await studyFlashcardRepository.getById(flashcard.id)).toEqual(flashcard);
     } finally { await studyFlashcardRepository.delete(flashcard.id); }
+  });
+
+  it('preserva as configurações locais de privacidade ao restaurar um backup v2', async () => {
+    const original = await egressSettingsRepository.getById('global');
+    try {
+      await egressSettingsRepository.save({ id: 'global', enabled: false });
+      await restoreBackup(validV2);
+      expect(await egressSettingsRepository.getById('global')).toEqual({ id: 'global', enabled: false });
+    } finally {
+      if (original) await egressSettingsRepository.save(original);
+      else await egressSettingsRepository.delete('global');
+    }
+  });
+
+  it('rejeita IDs duplicados em uma categoria v2', () => {
+    const duplicate = { ...validV2, data: { ...validV2.data, studyFlashcards: [
+      { id: 'same', disciplineId: 'd1', front: 'F', back: 'B', createdAt: '2026-11-02T10:00:00.000Z', nextReviewAt: '2026-11-03T10:00:00.000Z', intervalDays: 1, reviewCount: 0 },
+      { id: 'same', disciplineId: 'd1', front: 'F2', back: 'B2', createdAt: '2026-11-02T10:00:00.000Z', nextReviewAt: '2026-11-03T10:00:00.000Z', intervalDays: 1, reviewCount: 0 },
+    ] } };
+    expect(() => inspectBackup(JSON.stringify(duplicate))).toThrow('identificadores duplicados');
   });
 
   it('rejeita payload v2 inválido na própria fronteira de restauração', async () => {
