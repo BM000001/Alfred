@@ -323,6 +323,10 @@ if (!invalidEventRejected || serverCalls.length !== 13 || requiredScopes !== 12)
 }
 
 serverResponses.push({ status: 412, body: JSON.stringify({ error: { message: "ETag conflict" } }) });
+serverResponses.push({ status: 200, body: JSON.stringify({
+  summary: "Alterado externamente", description: "", location: "",
+  start: { dateTime: "2026-11-07T12:00:00Z" }, end: { dateTime: "2026-11-07T13:00:00Z" },
+}) });
 let conflictMapped = false;
 try {
   invokeServer({
