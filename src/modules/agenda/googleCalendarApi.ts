@@ -264,9 +264,8 @@ export function deleteGoogleEvent(calendarId: string, eventId: string, etag?: st
 }
 
 export async function disconnectGoogleCalendar(): Promise<{ googleRevocation: "confirmed" | "not_confirmed" }> {
-  try {
-    return await request({ method: "disconnect" });
-  } finally {
-    clearGoogleCalendarSession();
-  }
+  // Local disconnection must work even if the Google authorization has already
+  // expired or been revoked. The OAuth grant itself is revoked in Google Account.
+  clearGoogleCalendarSession();
+  return { googleRevocation: "not_confirmed" };
 }
