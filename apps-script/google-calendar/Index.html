@@ -26,15 +26,7 @@
       const BRIDGE_NONCE = <?!= JSON.stringify(bridgeNonce) ?>;
       const ALFRED_ORIGIN = <?!= JSON.stringify(alfredOrigin) ?>;
       const statusNode = document.getElementById("status");
-      // HtmlService hosts this page in Google's own sandbox frame. The Alfred
-      // tab is the opener of the top-level Apps Script window, not this inner
-      // frame, so resolve it through window.top when the browser permits it.
-      let openerWindow = null;
-      try {
-        openerWindow = window.top && window.top.opener ? window.top.opener : window.opener;
-      } catch (_) {
-        openerWindow = window.opener;
-      }
+      const openerWindow = window.opener;
 
       function sendToAlfred(message) {
         if (!openerWindow || openerWindow.closed) {

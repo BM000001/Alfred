@@ -22,13 +22,12 @@ Nunca escolha "Me" / proprietário. Se o Web App executar como o proprietário, 
 4. Crie um arquivo HTML chamado Index (sem extensão) e cole o conteúdo de Index.html.
 5. Substitua o manifesto pelo appsscript.json deste diretório.
 6. Salve o projeto.
-7. Em **Project Settings**, confira o projeto Google Cloud associado. Habilite a **Google Calendar API** nesse projeto; a chamada REST do Apps Script usa o token OAuth do usuário.
-8. Em **Deploy → New deployment → Web app**, configure:
+7. Em **Deploy → New deployment → Web app**, configure:
    - Execute as: **User accessing the web app**.
    - Who has access: **Anyone** (usuários precisam entrar com uma Conta Google e autorizar o acesso).
-9. Implante e copie a URL HTTPS terminada em /exec.
-10. No repositório GitHub, abra **Settings → Secrets and variables → Actions → Variables** e crie VITE_GOOGLE_APPS_SCRIPT_URL com essa URL. Não coloque a URL em um secret nem em arquivo versionado.
-11. Atualize/reexecute o workflow de Pages somente depois da autorização de merge e do planejamento de publicação.
+8. Implante e copie a URL HTTPS terminada em /exec.
+9. No repositório GitHub, abra **Settings → Secrets and variables → Actions → Variables** e crie VITE_GOOGLE_APPS_SCRIPT_URL com essa URL. Não coloque a URL em um secret nem em arquivo versionado.
+10. Atualize/reexecute o workflow de Pages somente depois da autorização de merge e do planejamento de publicação.
 
 O projeto pede apenas os escopos definidos no manifesto. Na primeira conexão, o Google exibirá a tela de consentimento. Se o Google mostrar um aviso de app não verificado, não ignore automaticamente: confirme que o script/proprietário e os escopos exibidos são os esperados. Não adicione usuários externos nem publique o script para terceiros sem revisar a verificação OAuth e as políticas aplicáveis.
 
