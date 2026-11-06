@@ -54,7 +54,7 @@ function isTrustedAppsScriptOrigin(origin: string): boolean {
     const url = new URL(origin);
     return url.protocol === "https:" &&
       (url.hostname === "script.google.com" || url.hostname === "script.googleusercontent.com" ||
-        url.hostname.endsWith(".script.googleusercontent.com"));
+        /^n-[a-z0-9-]+-script\.googleusercontent\.com$/.test(url.hostname));
   } catch {
     return false;
   }
