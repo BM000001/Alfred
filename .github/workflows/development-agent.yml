@@ -1,6 +1,9 @@
 name: Protótipo agente Desenvolvimento
 on:
   workflow_dispatch:
+  schedule:
+    # 09:00 America/Sao_Paulo (UTC-3); agendamento só é ativo na branch padrão.
+    - cron: '0 12 * * 1-5'
   pull_request:
     paths:
       - 'scripts/development_agent.py'
