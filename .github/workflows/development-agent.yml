@@ -20,8 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Instalar dependências travadas
-        run: npm ci
+      - name: Instalar dependências (repositório sem lockfile)
+        run: npm install --no-audit --no-fund
       - name: Executar verificações de desenvolvimento
         run: python3 scripts/development_agent.py
       - name: Publicar relatório mesmo em caso de falha
