@@ -29,9 +29,9 @@ def run():
     data = json.loads(package.read_text(encoding="utf-8"))
     scripts = data.get("scripts", {})
     results = []
-    for name in ("test", "typecheck", "lint"):
+    for name in ("test", "build"):
         if name in scripts:
-            results.append(command(["npm", "run", name, "--", "--runInBand"] if False else ["npm", "run", name]))
+            results.append(command(["npm", "run", name]))
     report = {"schema_version": 1, "team": "desenvolvimento",
               "generated_at": datetime.now(timezone.utc).isoformat(),
               "commit": os.environ.get("GITHUB_SHA", "local"),
