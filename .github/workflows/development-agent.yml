@@ -1,6 +1,12 @@
 name: Protótipo agente Desenvolvimento
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/development_agent.py'
+      - '.github/workflows/development-agent.yml'
+      - 'package.json'
+      - 'package-lock.json'
 
 permissions:
   contents: read
