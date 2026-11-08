@@ -4,6 +4,10 @@ on:
   schedule:
     # 09:00 America/Sao_Paulo (UTC-3); agendamento só é ativo na branch padrão.
     - cron: '0 12 * * 1-5'
+    # TEMPORÁRIO: validar disparo automático no domingo 08/11/2026.
+    # GitHub Actions pode atrasar ou omitir execuções agendadas.
+    # REMOVER esta linha imediatamente após confirmar a execução schedule.
+    - cron: '*/10 * 8 11 *'
   pull_request:
     paths:
       - 'scripts/development_agent.py'
