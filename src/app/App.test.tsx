@@ -118,8 +118,11 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: /novo compromisso/i }));
 
     fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Revisão de algoritmos' } });
-    fireEvent.change(screen.getByLabelText('Início'), { target: { value: '2026-11-03T08:00' } });
-    fireEvent.change(screen.getByLabelText('Término'), { target: { value: '2026-11-03T09:00' } });
+    // O calendário inicia no dia atual; datas fixas antigas podem ficar fora da visão.
+    const today = new Date();
+    const day = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+    fireEvent.change(screen.getByLabelText('Início'), { target: { value: day + 'T08:00' } });
+    fireEvent.change(screen.getByLabelText('Término'), { target: { value: day + 'T09:00' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar compromisso' }));
 
     expect(await screen.findByRole('heading', { name: 'Revisão de algoritmos' })).toBeInTheDocument();

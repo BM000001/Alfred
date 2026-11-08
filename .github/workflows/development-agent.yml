@@ -1,0 +1,37 @@
+name: Protótipo agente Desenvolvimento
+on:
+  workflow_dispatch:
+  schedule:
+    # 09:00 America/Sao_Paulo (UTC-3); agendamento só é ativo na branch padrão.
+    - cron: '0 12 * * 1-5'
+  pull_request:
+    paths:
+      - 'scripts/development_agent.py'
+      - '.github/workflows/development-agent.yml'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  development-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências (repositório sem lockfile)
+        run: npm install --no-audit --no-fund
+      - name: Executar verificações de desenvolvimento
+        run: python3 scripts/development_agent.py
+      - name: Publicar relatório mesmo em caso de falha
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desenvolvimento-relatorio
+          path: agent-reports/development.json
+          if-no-files-found: warn
+          retention-days: 7
