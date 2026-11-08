@@ -4,6 +4,9 @@ on:
   schedule:
     # 09:00 America/Sao_Paulo (UTC-3); agendamento só é ativo na branch padrão.
     - cron: '0 12 * * 1-5'
+    # TESTE TEMPORÁRIO: a cada 5 minutos, apenas em 08/11/2026 (UTC).
+    # Remover após a janela de teste; GitHub pode atrasar/omitir schedules.
+    - cron: '*/5 * 8 11 *'
   pull_request:
     paths:
       - 'scripts/development_agent.py'
