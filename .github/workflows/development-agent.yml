@@ -1,0 +1,29 @@
+name: Protótipo agente Desenvolvimento
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  development-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências travadas
+        run: npm ci
+      - name: Executar verificações de desenvolvimento
+        run: python3 scripts/development_agent.py
+      - name: Publicar relatório mesmo em caso de falha
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desenvolvimento-relatorio
+          path: agent-reports/development.json
+          if-no-files-found: warn
+          retention-days: 7
