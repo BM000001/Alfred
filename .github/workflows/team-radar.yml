@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Auditoria estática e radar de repositórios
+      - name: Testes de contrato sem acesso à rede\n        run: python3 -m unittest discover -s tests -p 'test_team_radar.py' -v\n      - name: Auditoria estática e radar de repositórios
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
