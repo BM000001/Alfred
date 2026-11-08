@@ -41,3 +41,9 @@ Auditar as telas e navegação existentes antes de produzir propostas. Registrar
 - Definir pontos de adaptação pelo espaço disponível e pela tarefa, não por marca ou modelo.
 - Validar navegação por toque e teclado, leitores de tela, orientações retrato/paisagem, diferentes tamanhos de tela e desempenho.
 - Priorizar consistência de funções entre dispositivos, com apresentações específicas quando fizer sentido.
+
+## Autonomia autorizada pelo usuário (08/11/2026)
+- A equipe pode pesquisar referências, auditar a interface, elaborar protótipos e preparar alterações em branches isoladas e PRs em rascunho.
+- Não fazer merge de mudanças visuais, substituir a interface principal ou publicar um novo design sem aprovação explícita do usuário.
+- Trabalhar de forma incremental, com testes e revisão antes de solicitar decisão.
+- Esta autorização define escopo de trabalho; não implica que agentes autônomos estejam ativos ou que tarefas sejam executadas continuamente em segundo plano.
