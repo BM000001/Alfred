@@ -1,0 +1,25 @@
+name: Radar semanal das equipes Alfred
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * 1'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: alfred-team-radar
+  cancel-in-progress: false
+
+jobs:
+  research-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auditoria estática e radar de repositórios
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/team_radar.py
