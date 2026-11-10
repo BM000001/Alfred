@@ -45,5 +45,8 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Validate Google Apps Script bridge
+        run: npm run validate:apps-script
+
       - name: Build application
         run: npm run build

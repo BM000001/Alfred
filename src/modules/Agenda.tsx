@@ -4,6 +4,7 @@ import { classifyImportedAppointment, findAppointmentConflicts, sortAppointments
 import { createAgendaService } from './agenda/agendaService';
 import { appointmentRepository } from '../storage/repositories';
 import { ICalendarImport } from './ICalendarImport';
+import { GoogleCalendarPanel } from './GoogleCalendarPanel';
 import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
 
 const agenda = createAgendaService(appointmentRepository);
@@ -355,6 +356,7 @@ export function Agenda() {
           <p className="apple-calendar-note">A conexão direta está em preparação e ainda não pode ser ativada nesta página. Enquanto isso, você pode importar um arquivo .ics na seção abaixo.</p>
         </>}
       </section>
+      <GoogleCalendarPanel appointments={items} onChanged={refresh} />
       <ICalendarImport existing={items} onImported={refresh} />
 
       <div className="agenda-controls">
