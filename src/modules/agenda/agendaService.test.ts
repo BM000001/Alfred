@@ -220,7 +220,36 @@ describe('agendaService', () => {
     )).rejects.toThrow('Intervalo inválido');
   });
 
-  it('keeps the same Alfred appointment when EventKit changes an event ID after a calendar move', async () => {
+  it('archives missing events that overlap the snapshot window even when they began before it', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `overlap-${++id}`; })() });
+    const overlapping = await service.upsertImported({
+      importedUid: 'apple:overlap',
+      importedCalendarId: 'calendar-a',
+      title: 'Evento que atravessa o início da janela',
+      type: 'other',
+      startsAt: '2026-11-03T23:00:00.000Z',
+      endsAt: '2026-11-04T01:00:00.000Z',
+    });
+    const beforeWindow = await service.upsertImported({
+      importedUid: 'apple:before-window',
+      importedCalendarId: 'calendar-a',
+      title: 'Evento encerrado antes da janela',
+      type: 'other',
+      startsAt: '2026-11-03T20:00:00.000Z',
+      endsAt: '2026-11-03T21:00:00.000Z',
+    });
+
+    const count = await service.reconcileImportedCalendar(
+      'calendar-a', [], '2026-11-04T00:00:00.000Z', '2026-11-06T00:00:00.000Z',
+    );
+
+    expect(count).toBe(1);
+    expect((await service.get(overlapping.id))?.status).toBe('cancelled');
+    expect((await service.get(beforeWindow.id))?.status).toBe('scheduled');
+  });
+
+  it('keeps a cross-calendar move separate and archives the old source entry', async () => {
     const repository = createMemoryRepository<Appointment>();
     const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `stable-${++id}`; })() });
     const first = await service.upsertImported({
@@ -244,8 +273,9 @@ describe('agendaService', () => {
       endsAt: '2026-11-12T15:00:00.000Z',
     });
 
-    expect(moved.id).toBe(first.id);
-    expect(await service.list()).toHaveLength(1);
+    expect(moved.id).not.toBe(first.id);
+    expect(await service.list()).toHaveLength(2);
+    expect((await service.get(first.id))?.status).toBe('scheduled');
     expect(moved).toMatchObject({
       importedUid: 'apple:new-event-id',
       importedStableUid: 'apple-stable:server-event-42:single',
@@ -253,6 +283,40 @@ describe('agendaService', () => {
       importedCalendarName: 'Trabalho',
       title: 'Consulta remarcada',
     });
+
+    await service.reconcileImportedCalendar(
+      'calendar-personal', [], '2026-11-12T00:00:00.000Z', '2026-11-13T00:00:00.000Z',
+    );
+    expect((await service.get(first.id))?.status).toBe('cancelled');
+    expect((await service.get(moved.id))?.status).toBe('scheduled');
+  });
+
+  it('does not merge an independent cross-calendar copy when its title or time differs', async () => {
+    const repository = createMemoryRepository<Appointment>();
+    const service = createAgendaService(repository, { createId: (() => { let id = 0; return () => `cross-copy-${++id}`; })() });
+    const original = await service.upsertImported({
+      importedUid: 'apple:original-copy',
+      importedStableUid: 'apple-stable:shared-external-id:single',
+      importedCalendarId: 'calendar-personal',
+      title: 'Reunião pessoal',
+      type: 'personal',
+      startsAt: '2026-11-12T10:00:00.000Z',
+      endsAt: '2026-11-12T11:00:00.000Z',
+    });
+    const copy = await service.upsertImported({
+      importedUid: 'apple:independent-copy',
+      importedStableUid: 'apple-stable:shared-external-id:single',
+      importedCalendarId: 'calendar-work',
+      title: 'Reunião de trabalho',
+      type: 'personal',
+      startsAt: '2026-11-12T13:00:00.000Z',
+      endsAt: '2026-11-12T14:00:00.000Z',
+    });
+
+    expect(copy.id).not.toBe(original.id);
+    expect(await service.list()).toHaveLength(2);
+    expect((await service.get(original.id))?.title).toBe('Reunião pessoal');
+    expect((await service.get(copy.id))?.title).toBe('Reunião de trabalho');
   });
 
   it('does not merge duplicate external copies when stable identity is ambiguous', async () => {
