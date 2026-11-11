@@ -71,8 +71,16 @@ export class Brain {
     const toolId = readToolByIntent[classification.intent];
     if (toolId) {
       const tool = this.tools.get(toolId);
-      if (tool) {
-        if (tool.risk !== 'read' || tool.approval !== 'never') {
+      if (!tool) {
+        return {
+          message: 'Não foi possível executar a consulta porque a ferramenta necessária não está disponível.',
+          usedTools: [],
+          warnings: [`Ferramenta obrigatória não registrada: ${toolId}. Execução bloqueada em modo fail-closed.`],
+          intent: classification.intent,
+          providerId: this.provider.id,
+        };
+      }
+      if (tool.risk !== 'read' || tool.approval !== 'never') {
           return {
             message: 'A consulta foi bloqueada porque a ferramenta registrada não está configurada como somente leitura.',
             usedTools: [],
@@ -105,7 +113,7 @@ export class Brain {
       }
     }
 
-    const response = await this.provider.generate(request);
+    const response = await this.provider.generate({ ...request, intent: classification.intent });
     return { ...response, intent: classification.intent, providerId: this.provider.id };
   }
 }

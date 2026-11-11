@@ -16,6 +16,8 @@ export interface AssistantContext {
 export interface AssistantRequest {
   messages: AssistantMessage[];
   context: AssistantContext;
+  /** Intent already classified by Brain; providers must not classify the prompt again. */
+  intent?: 'tasks' | 'agenda' | 'studies' | 'memory' | 'unknown';
 }
 
 export interface AssistantResponse {
