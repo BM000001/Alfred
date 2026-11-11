@@ -34,4 +34,4 @@ No Xcode, selecione o target **Alfred**, configure uma equipe de assinatura em *
 - A ponte só aceita mensagens da origem HTTPS oficial e do frame principal.
 - A integração é somente leitura; não cria nem altera eventos no Apple Calendar.
 - A compilação para simulador é verificada pelo workflow **Alfred iOS Build**. A instalação em dispositivo físico exige assinatura e provisionamento Apple.
-- A sincronização incremental em segundo plano e a reconciliação de eventos excluídos ainda não estão implementadas.
+- A sincronização em segundo plano enquanto o app está suspenso ainda não está implementada; a reconciliação de eventos ausentes já ocorre localmente após um snapshot completo e validado, por calendário selecionado, com cancelamento lógico na Agenda.
