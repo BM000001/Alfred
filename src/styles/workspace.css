@@ -1,25 +1,85 @@
 @font-face{font-family:Alfred;src:url('../assets/fonts/noto-regular.ttf') format('truetype');font-weight:400;font-display:swap}
 @font-face{font-family:Alfred;src:url('../assets/fonts/noto-bold.ttf') format('truetype');font-weight:700;font-display:swap}
-:root{--paper:#f4f1e9;--sheet:#fcfaf5;--ink:#292c28;--quiet:#606658;--line:#d6d7ca;--accent:#795c2c;--gold:#ddc18d;--navy:var(--ink);--blue:var(--accent);--bronze:var(--accent);--surface:var(--sheet);--muted:var(--quiet);color-scheme:light}
-:root[data-appearance=technical]{--paper:#171c19;--sheet:#222a24;--ink:#f1eedf;--quiet:#b7c0af;--line:#455142;--accent:#e1c083;--gold:#ddc18d;color-scheme:dark}
-html body{background:var(--paper);color:var(--ink);font-family:Alfred,system-ui,sans-serif}
+:root {
+  --font-body: Alfred, system-ui, sans-serif;
+  --font-display: Georgia, serif;
+  --paper: #f4f1e9;
+  --sheet: #fcfaf5;
+  --ink: #29261f;
+  --quiet: #625b4e;
+  --line: #d8cfbe;
+  --accent: #795c2c;
+  --gold: #ddc18d;
+  --gold-hover: #ecd3a8;
+  --on-gold: #28251d;
+  --nav-surface: #24211d;
+  --nav-line: #534a3d;
+  --nav-text: #ddd3c3;
+  --soft: color-mix(in srgb, var(--accent) 8%, var(--sheet));
+  --focus-ring: color-mix(in srgb, var(--accent) 24%, transparent);
+  --danger: #962e2e;
+  --success: #306442;
+  --navy: var(--ink);
+  --blue: var(--accent);
+  --bronze: var(--accent);
+  --surface: var(--sheet);
+  --muted: var(--quiet);
+  --alfred-bg: var(--paper);
+  --alfred-text: var(--ink);
+  --alfred-heading: var(--ink);
+  --alfred-panel: var(--sheet);
+  --alfred-panel-raised: var(--soft);
+  --alfred-border: var(--line);
+  --alfred-accent: var(--accent);
+  --alfred-accent-strong: var(--accent);
+  --alfred-accent-soft: var(--soft);
+  --alfred-muted: var(--quiet);
+  --alfred-control-bg: var(--paper);
+  --alfred-control-border: var(--line);
+  --alfred-focus: var(--focus-ring);
+  --alfred-cyan: var(--accent);
+  --alfred-violet: var(--accent);
+  --alfred-blue: var(--accent);
+  --alfred-orange: var(--accent);
+  font-family: var(--font-body);
+  color-scheme: light;
+}
+
+:root[data-appearance=technical] {
+  --paper: #191714;
+  --sheet: #25211c;
+  --ink: #f3ecdf;
+  --quiet: #c4b9a7;
+  --line: #574c3e;
+  --accent: #e1c083;
+  --danger: #ffb9b9;
+  --success: #a9d9b9;
+  color-scheme: dark;
+}
+
+html body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
 html body::before,html body::after{display:none}
 html .app-shell{width:min(100% - 48px,1440px);background:transparent}
 html .topbar{background:transparent;border-color:var(--line);box-shadow:none}
 html .brand{color:var(--ink)}
-html .brand-mark{background:#242c23;color:var(--gold)}
+html .brand-mark{background:var(--nav-surface);color:var(--gold)}
 html .workspace{grid-template-columns:210px minmax(0,1fr);gap:42px}
-html .sidebar-shell{background:#202820;border:1px solid #394336;border-radius:12px;padding:16px 10px;align-self:start;position:sticky;top:24px}
+html .sidebar-shell{background:var(--nav-surface);border:1px solid var(--nav-line);border-radius:12px;padding:16px 10px;align-self:start;position:sticky;top:24px}
 html .sidebar{background:transparent}
-html .sidebar .nav-item{color:#c3c9bb;background:transparent;border:0;min-height:46px;font-size:13px}
-html .sidebar .nav-item.active{background:var(--gold);color:#29271f;box-shadow:none}
+html .sidebar .nav-item{color:var(--nav-text);background:transparent;border:0;min-height:46px;font-size:13px}
+html .sidebar .nav-item.active{background:var(--gold);color:var(--on-gold);box-shadow:none}
 html .sidebar .nav-item:hover:not(.active){background:#ffffff0d}
-html .sidebar .nav-caption,html .sidebar-note small{color:#b0b8a5}
-html .sidebar-note{border-color:#46513f;color:var(--gold)}
-html .nav-bottom{border-color:#46513f}
+html .sidebar .nav-caption,html .sidebar-note small{color:var(--nav-text)}
+html .sidebar-note{border-color:var(--nav-line);color:var(--gold)}
+html .nav-bottom{border-color:var(--nav-line)}
 html .main-content{min-width:0;background:transparent;color:var(--ink)}
 html .welcome{position:relative;padding:38px 0 26px;min-height:210px;border-color:var(--line)}
-html .welcome h1{font-family:Georgia,serif;color:var(--ink);font-size:clamp(36px,5vw,62px);font-weight:400;letter-spacing:-1.5px}
+html .welcome h1{font-family:var(--font-display);color:var(--ink);font-size:clamp(36px,5vw,62px);font-weight:400;letter-spacing:-1.5px}
 html .welcome-copy{color:var(--quiet);max-width:540px;line-height:1.7;font-size:14px}
 html .welcome:has(.mascot-companion){padding-right:180px}
 html .eyebrow,html .card-label{color:var(--accent)}
@@ -30,15 +90,15 @@ html .main-content :is(.entry-panel,.task-row,.project-card,.overview-card,.empt
 html .main-content :is(input,select,textarea){background:var(--paper);border:1px solid var(--line);color:var(--ink);font-size:14px;min-height:42px;border-radius:6px}
 html .main-content :is(input[type=checkbox],input[type=radio]){min-height:20px;width:20px;accent-color:var(--accent)}
 html .main-content :is(input,textarea)::placeholder{color:var(--quiet);opacity:.85}
-html .main-content .primary-action{background:var(--gold);color:#28251d;border:1px solid #b89a62;border-radius:6px;box-shadow:none;font-size:13px;min-height:44px}
-html .main-content .primary-action:hover:not(:disabled){background:#ecd3a8;box-shadow:none}
+html .main-content .primary-action{background:var(--gold);color:var(--on-gold);border:1px solid #b89a62;border-radius:6px;box-shadow:none;font-size:13px;min-height:44px}
+html .main-content .primary-action:hover:not(:disabled){background:var(--gold-hover);box-shadow:none}
 html .main-content :is(.text-action,.dashboard-link){color:var(--accent);font-size:12px;min-height:40px;background:transparent}
 html .main-content :is(.progress-track){background:var(--line)}
 html .main-content :is(.progress-track) span{background:var(--accent)}
 html .main-content .discipline-option.selected{border-color:var(--accent);background:color-mix(in srgb,var(--gold) 20%,var(--sheet))}
 html .workspace-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;margin:14px 0 24px;border-bottom:1px solid var(--line)}
 html .workspace-tabs button,html .appearance-picker button{border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--quiet);padding:11px 16px;min-height:44px;white-space:nowrap;font:inherit;cursor:pointer}
-html .workspace-tabs button[aria-current],html .appearance-picker button[aria-pressed=true]{background:var(--gold);border-color:#ad8b50;color:#28251d}
+html .workspace-tabs button[aria-current],html .appearance-picker button[aria-pressed=true]{background:var(--gold);border-color:#ad8b50;color:var(--on-gold)}
 .appearance-picker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:24px;font-size:12px}
 .appearance-picker>span{margin-right:10px;color:var(--quiet)}
 .mascot-companion{background:none;border:0;display:flex;align-items:center;flex-direction:column;color:var(--accent);cursor:pointer;padding:0 12px;font:inherit;font-size:11px}
@@ -49,7 +109,7 @@ html .workspace-tabs button[aria-current],html .appearance-picker button[aria-pr
 .assistant-introduction{display:flex;align-items:center;gap:30px;border:1px solid var(--line);background:var(--sheet);padding:20px;margin-bottom:24px;border-radius:12px}
 .assistant-introduction p{max-width:460px;line-height:1.8}
 .project-workspace-heading{padding:26px 0;border-bottom:1px solid var(--line)}
-.project-workspace-heading h2{font:36px Georgia,serif}
+.project-workspace-heading h2{font:36px var(--font-display)}
 .project-open{border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:8px 0;display:flex;gap:20px;align-items:center;min-height:44px}
 .project-open span{color:var(--accent)}
 .notes-workspace{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2.5fr);gap:22px}
@@ -78,28 +138,166 @@ html .workspace-tabs button[aria-current],html .appearance-picker button[aria-pr
 .mini-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;gap:2px}
 .mini-month-grid>span{color:var(--quiet);font-size:10px;padding:6px 0}
 .mini-month-grid button{border:0;background:transparent;color:var(--ink);min-height:32px;border-radius:4px;cursor:pointer;font-size:12px}
-.mini-month-grid button.has-events{background:var(--gold);color:#28251d;font-weight:700}
+.mini-month-grid button.has-events{background:var(--gold);color:var(--on-gold);font-weight:700}
 html .agenda-view-switch button{background:transparent;color:var(--quiet);min-height:44px}
-html .agenda-view-switch button.selected{background:var(--gold);color:#28251d}
+html .agenda-view-switch button.selected{background:var(--gold);color:var(--on-gold)}
 html .app-footer{border-color:var(--line)}
 html button:focus-visible,html a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 [hidden]{display:none!important}
 @keyframes alfred-breathe{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
 @keyframes alfred-greet{0%,100%{transform:rotate(0)}30%{transform:rotate(-5deg)}70%{transform:rotate(4deg)}}
 @media(max-width:900px){html .workspace{grid-template-columns:175px minmax(0,1fr);gap:22px}html .app-shell{width:calc(100% - 28px)}.calendar-year{grid-template-columns:repeat(2,minmax(0,1fr))}.calendar-week,.calendar-month{grid-template-columns:repeat(7,minmax(95px,1fr))}}
-@media(max-width:700px){html .workspace{display:block}html .sidebar-shell{display:none}html .app-shell{width:calc(100% - 28px)}html .welcome{padding-top:25px;min-height:175px}html .welcome:has(.mascot-companion){padding-right:115px}.mascot-companion img{width:95px;height:145px}.mascot-companion{font-size:9px;padding:0}.notes-workspace{grid-template-columns:1fr}.note-index{max-height:220px;overflow:auto}.calendar-year{gap:10px}.mini-month{padding:7px}.mini-month-grid button{min-height:34px;font-size:11px}.assistant-introduction{gap:15px;padding:12px}.assistant-introduction p{font-size:12px}html .mobile-tabbar{background:#202820;border-color:#46513f;box-shadow:none}html .mobile-tabbar .nav-item{color:#c3c9bb}html .mobile-tabbar .nav-item.active{background:#dfc596;color:#29271f}html .mobile-more-menu{background:#202820;border-color:#46513f}html .mobile-more-heading{color:#c3c9bb}html .main-content{padding-bottom:50px}}
+@media(max-width:700px){html .workspace{display:block}html .sidebar-shell{display:none}html .app-shell{width:calc(100% - 28px)}html .welcome{padding-top:25px;min-height:175px}html .welcome:has(.mascot-companion){padding-right:115px}.mascot-companion img{width:95px;height:145px}.mascot-companion{font-size:9px;padding:0}.notes-workspace{grid-template-columns:1fr}.note-index{max-height:220px;overflow:auto}.calendar-year{gap:10px}.mini-month{padding:7px}.mini-month-grid button{min-height:34px;font-size:11px}.assistant-introduction{gap:15px;padding:12px}.assistant-introduction p{font-size:12px}html .mobile-tabbar{background:var(--nav-surface);border-color:var(--nav-line);box-shadow:none}html .mobile-tabbar .nav-item{color:var(--nav-text)}html .mobile-tabbar .nav-item.active{background:var(--gold);color:var(--on-gold)}html .mobile-more-menu{background:var(--nav-surface);border-color:var(--nav-line)}html .mobile-more-heading{color:var(--nav-text)}html .main-content{padding-bottom:50px}}
 @media(prefers-reduced-motion:reduce){.mascot-companion img,.mascot-companion:hover img{animation:none}.mascot-companion:active img{transform:none}*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 /* Keep the existing feature layouts, with the same palette in every workspace. */
 html,html #root{background:var(--paper);color:var(--ink)}
-:root{--alfred-bg:var(--paper);--alfred-text:var(--ink);--alfred-panel:var(--sheet);--alfred-border:var(--line);--alfred-accent:var(--accent);--alfred-muted:var(--quiet)}
 html .main-content :is(.dashboard-stat,.dashboard-panel,.study-progress,.stored-file,.backup-preview,.weather-city-form,.study-quiz-filters,.study-performance-topic,.study-performance-empty,.study-performance-summary>div,.flashcard-card,.study-question,.study-quiz-question,.study-material-import,.assistant-conversation,.assistant-message,.assistant-command-form,.assistant-memory-panel,.assistant-memory-list li,.assistant-export-panel,.assistant-export-record,.assistant-export-preview,.assistant-export-controls,.assistant-export-audit,.assistant-export-result){background:var(--sheet);border-color:var(--line);box-shadow:none;color:var(--ink)}
 html .main-content :is(.dashboard-stat,.dashboard-panel,.study-progress,.stored-file,.assistant-module,.study-content) :is(h2,h3,strong){color:var(--ink)}
 html .main-content :is(.dashboard-stat,.dashboard-panel,.study-progress,.stored-file,.assistant-module,.study-content) :is(p,small,label,span:not(.appointment-type):not(.priority):not(.dashboard-priority)){color:var(--quiet)}
 html .main-content :is(.dashboard-stat>strong,.weather-temperature){color:var(--ink)}
 html .main-content :is(.dashboard-panel-heading h2,.list-heading h2){font-size:20px}
 html .main-content :is(.dashboard-empty,.stored-file-info span,.study-topic p,.discipline-option span){font-size:12px}
-html .main-content .welcome{padding-top:38px}
 html .main-content .study-topic p{white-space:pre-wrap}
-html .main-content .module-error{color:#ffb9b9}
+html .main-content .module-error{color:var(--danger)}
 html .main-content :is(.assistant-message p,.assistant-message.from-user p,.assistant-proposal,.assistant-capabilities span,.assistant-suggestion-list button,.assistant-memory-content,.assistant-export-record,.study-quiz-filters,.apple-calendar-picker){background:var(--paper);color:var(--ink);border-color:var(--line)}
 html .main-content .assistant-message p{font-size:13px}
+
+/* Shared typography for screens that still use the original component layout. */
+html :is(button, input, select, textarea, .mobile-more-menu) {
+  font-family: var(--font-body);
+}
+
+html :is(.brand-mark, .main-content h1, .main-content h2, .main-content .focus-clock,
+  .main-content .dashboard-stat > strong, .main-content .study-progress > strong,
+  .main-content .study-quiz-score) {
+  font-family: var(--font-display);
+}
+
+html .main-content :is(.list-heading h2, .entry-panel h2, .dashboard-panel-heading h2,
+  .agenda-toolbar h2, .assistant-heading h2) {
+  font-weight: 400;
+}
+
+html .main-content :is(.entry-panel, .dashboard-panel, .dashboard-stat,
+  .project-card, .task-row, .stored-file, .appointment-card, .discipline-option,
+  .study-topic, .assistant-panel, .study-flashcards, .study-question-bank,
+  .study-performance, .study-material-importer) {
+  border-radius: 10px;
+}
+
+/* Apply the same surfaces to nested panels, including empty and hover states. */
+html .main-content :is(.agenda-toolbar, .files-toolbar, .apple-calendar-panel,
+  .discipline-list, .study-content, .focus-card, .focus-history, .focus-side-card,
+  .assistant-heading, .assistant-remote-panel, .assistant-composer,
+  .study-flashcard, .study-quiz-card, .study-quiz-result, .study-question-form,
+  .study-question-item, .file-preview, .module-feedback) {
+  background: var(--sheet);
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html .main-content :is(.dashboard-focus-strip, .dashboard .dashboard-empty,
+  .dashboard .weather-empty, .agenda-view-switch, .focus-mode-switch,
+  .study-quiz-options label, .study-material-import-preview article,
+  .assistant-message.from-user p, .assistant-status) {
+  background: var(--soft);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+html .main-content :is(.dashboard-stat, .dashboard-panel, .project-card, .task-row,
+  .appointment-card, .stored-file, .study-topic, .discipline-option):hover {
+  background: var(--soft);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+html .main-content :is(.dashboard-stat, .focus-card, .assistant-panel)::after {
+  content: none;
+}
+
+html .main-content :is(.dashboard .dashboard-empty, .dashboard .weather-empty,
+  .agenda-module .appointment-card, .module-feedback)::before {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+html :is(.mobile-context-icon, .main-content .weather-symbol,
+  .main-content .dashboard-stat-icon, .main-content .stored-file-icon,
+  .main-content .focus-session-count, .main-content .study-flashcards-count,
+  .main-content .study-question-difficulty) {
+  background: var(--soft);
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--accent);
+}
+
+html .main-content :is(.secondary-action, .icon-action, .study-quiz-start,
+  .study-flashcard-actions button, .assistant-memory-actions button) {
+  background: var(--soft);
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--accent);
+}
+
+html .main-content :is(.secondary-action, .icon-action, .study-quiz-start,
+  .study-flashcard-actions button, .assistant-memory-actions button):hover:not(:disabled) {
+  background: var(--sheet);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+html .main-content :is(.agenda-view-switch button.selected,
+  .focus-mode-switch button.selected, .mini-calendar-day.is-today) {
+  background: var(--gold);
+  border-color: var(--accent);
+  box-shadow: none;
+  color: var(--on-gold);
+}
+
+html .main-content :is(.focus-mode-switch button:not(.selected), .focus-clock,
+  .appointment-time strong, .assistant-memory-toggle, .note-link) {
+  color: var(--ink);
+}
+
+html .main-content :is(.appointment-time span, .calendar-legend, .event-date,
+  .focus-session-count, .study-flashcard-meta, .assistant-message > span,
+  .assistant-suggestions-label, .assistant-disclaimer, .assistant-remote-status,
+  .apple-calendar-last-sync, .apple-calendar-option) {
+  color: var(--quiet);
+}
+
+html .main-content :is(.calendar-legend i, .calendar-legend span,
+  .focus-progress span, .focus-cycle span.done) {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+html .main-content :is(.focus-progress, .focus-cycle span:not(.done)) {
+  background: var(--line);
+}
+
+html .main-content :is(input, select, textarea):focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+html .main-content :is(.study-quiz-feedback.correct, .study-quiz-options label.correct) {
+  background: color-mix(in srgb, var(--success) 9%, var(--sheet));
+  border-color: var(--success);
+  color: var(--success);
+}
+
+html .main-content :is(.study-quiz-feedback.incorrect, .study-quiz-options label.incorrect,
+  .study-performance-error) {
+  background: color-mix(in srgb, var(--danger) 9%, var(--sheet));
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+html .mobile-tabbar .nav-item.active {
+  box-shadow: none;
+}
