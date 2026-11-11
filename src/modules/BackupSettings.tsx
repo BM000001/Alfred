@@ -6,7 +6,7 @@ type BackupPreview = ReturnType<typeof inspectBackup>;
 
 const labels: Record<string, string> = {
   tasks: 'Tarefas', projects: 'Projetos', appointments: 'Compromissos',
-  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo', focusSessions: 'Sessões Pomodoro', memories: 'Memórias do Alfred', files: 'Arquivos',
+  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo', studyFlashcards: 'Flashcards', studyQuestions: 'Questões', studyQuizAttempts: 'Tentativas de simulados', focusSessions: 'Sessões Pomodoro', memories: 'Memórias do Alfred', files: 'Arquivos',
 };
 
 function downloadJson(content: string, filename: string) {
@@ -91,7 +91,7 @@ export function BackupSettings() {
   }
 
   async function confirmRestore() {
-    if (!preview || !window.confirm('Atenção: a restauração substituirá todos os dados atuais do Alfred neste dispositivo. Essa ação não pode ser desfeita. Deseja continuar?')) return;
+    if (!preview || !window.confirm('Atenção: a restauração substituirá as categorias incluídas no arquivo. Histórico de mensagens, auditoria e configurações locais de privacidade serão preservados. Essa ação não pode ser desfeita. Deseja continuar?')) return;
     setBusy(true); setError(''); setFeedback('');
     try {
       await restoreBackup(preview.payload);
@@ -105,7 +105,7 @@ export function BackupSettings() {
     <article className="entry-panel">
       <span className="card-label">PROTEÇÃO DOS SEUS DADOS</span>
       <h2>Backup local</h2>
-      <p>Exporte tarefas, projetos, agenda, estudos, histórico Pomodoro, memórias e arquivos em um único documento. O Alfred não envia esses dados para um servidor. O histórico de mensagens não é incluído no backup e permanece neste dispositivo.</p>
+      <p>Exporte tarefas, projetos, agenda, estudos, histórico Pomodoro, memórias e arquivos em um único documento. O Alfred não envia esses dados para um servidor. O histórico de mensagens e a auditoria de saída não são exportados; as configurações locais de privacidade permanecem neste dispositivo.</p>
       <button className="primary-action" type="button" disabled={busy} onClick={() => void exportData()}>{busy ? 'Processando...' : 'Exportar backup JSON'}</button>
     </article>
     <article className="entry-panel">
@@ -121,7 +121,7 @@ export function BackupSettings() {
     <article className="entry-panel">
       <span className="card-label">RECUPERAÇÃO</span>
       <h2>Restaurar backup</h2>
-      <p>Selecione um backup JSON criado pelo Alfred. Backups criptografados pedem senha antes de mostrar a prévia. A restauração substitui os dados atuais deste dispositivo.</p>
+      <p>Selecione um backup JSON criado pelo Alfred. Backups criptografados pedem senha antes de mostrar a prévia. A restauração substitui apenas as categorias presentes no backup; histórico de mensagens, auditoria e configurações locais de privacidade são preservados.</p>
       <label className="file-upload-button">Selecionar backup<input type="file" accept="application/json,.json" aria-label="Selecionar arquivo de backup" onChange={selectBackup} disabled={busy} /></label>
       {encryptedRaw && <div className="backup-preview" aria-live="polite">
         <strong>Backup criptografado detectado</strong>
@@ -130,8 +130,9 @@ export function BackupSettings() {
         <button className="primary-action" type="button" disabled={busy || !encryptedPassword} onClick={() => void decryptSelectedBackup()}>{busy ? 'Descriptografando...' : 'Descriptografar e conferir'}</button>
       </div>}
       {preview && <div className="backup-preview" aria-live="polite">
-        <strong>Backup de {new Date(preview.createdAt).toLocaleString('pt-BR')}</strong>
-        <ul>{Object.entries(preview.counts).map(([key, count]) => <li key={key}>{labels[key]}: {count}</li>)}</ul>
+        <strong>Backup v{preview.version} de {new Date(preview.createdAt).toLocaleString('pt-BR')}</strong>
+        <ul>{Object.entries(preview.counts).map(([key, count]) => <li key={key}>{labels[key]}: {preview.version === 1 && ['studyFlashcards', 'studyQuestions', 'studyQuizAttempts'].includes(key) ? 'não incluído na versão 1' : count}</li>)}</ul>
+        {preview.version === 1 && <p>Este backup antigo não contém flashcards, questões ou tentativas de simulados. Esses dados existentes neste dispositivo serão preservados.</p>}
         <button className="primary-action danger-action" type="button" disabled={busy} onClick={() => void confirmRestore()}>Substituir dados e restaurar</button>
       </div>}
     </article>
