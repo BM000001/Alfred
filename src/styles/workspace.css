@@ -302,6 +302,80 @@ html .mobile-tabbar .nav-item.active {
   box-shadow: none;
 }
 
+/* Secondary controls and labels shared by the internal screens. */
+html .main-content :is(.agenda-module .agenda-controls, .filter-control,
+  .assistant-suggestion-list button:hover, .appointment-source-tag,
+  .appointment-origin-tag, .project-status, .priority,
+  .study-question-options-field, .study-quiz-history) {
+  background: var(--soft);
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+html .main-content :is(.agenda-module .agenda-date-label,
+  .assistant-module .assistant-capabilities, .assistant-module .assistant-remote-note,
+  .study-question-form label span, .study-quiz-history > div, .study-performance-meta) {
+  color: var(--quiet);
+}
+
+html .main-content :is(.assistant-module, .study-quiz-score) {
+  color: var(--ink);
+}
+
+html .main-content .assistant-module .assistant-export-warning {
+  color: var(--quiet) !important;
+}
+
+html .main-content :is(.assistant-module .assistant-suggestion-list button span,
+  .assistant-memory-toggle > span:last-child, .study-quiz-options label > span,
+  .study-material-import-preview article > span, .study-performance-topic-header span) {
+  color: var(--accent);
+}
+
+html .main-content :is(.productivity-module .focus-task-select,
+  .agenda-module .agenda-date-label input, .files-module input#file-search) {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+html .main-content :is(.productivity-module .focus-task-select,
+  .agenda-module .agenda-date-label input, .files-module input#file-search):focus-visible,
+html .main-content .file-upload-button:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+html .main-content :is(.file-upload-button, .files-module .file-upload-button) {
+  min-height: 44px;
+  border: 1px solid var(--accent);
+  background: var(--gold);
+  color: var(--on-gold);
+  font-family: var(--font-body);
+  box-shadow: none;
+}
+
+html .main-content :is(.file-upload-button, .files-module .file-upload-button):hover {
+  background: var(--gold-hover);
+  color: var(--on-gold);
+  box-shadow: none;
+}
+
+html .main-content :is(.appointment-type, .agenda-module .appointment-type,
+  .agenda-module .appointment-type[class*="type-"], .task-meta .priority,
+  .project-card .project-status) {
+  background: var(--soft);
+  border-color: var(--line);
+  color: var(--accent);
+}
+
+html .main-content :is(.task-meta .priority-high, .task-meta .overdue) {
+  color: var(--danger);
+}
+
 html .nav-item.active .nav-icon {
   color: currentColor;
   filter: none;
