@@ -87,9 +87,72 @@ html .topbar-caption,html .topbar-status,html .app-footer,html .mobile-page-cont
 html .main-content :is(h2,h3,h4,strong,label){color:var(--ink)}
 html .main-content :is(p,small,.task-meta,.progress-label,.field-label,.optional-label){color:var(--quiet)}
 html .main-content :is(.entry-panel,.task-row,.project-card,.overview-card,.empty-state,.appointment-card,.discipline-option,.study-topic,.study-flashcards,.study-question-bank,.study-material-importer,.study-performance,.backup-panel,.assistant-panel){background:var(--sheet);border:1px solid var(--line);box-shadow:none;color:var(--ink)}
-html .main-content :is(input,select,textarea){background:var(--paper);border:1px solid var(--line);color:var(--ink);font-size:14px;min-height:42px;border-radius:6px}
-html .main-content :is(input[type=checkbox],input[type=radio]){min-height:20px;width:20px;accent-color:var(--accent)}
-html .main-content :is(input,textarea)::placeholder{color:var(--quiet);opacity:.85}
+/* Override the original module styles for every field state. */
+html #root .main-content :is(input, select, textarea):not([type=file], [type=hidden], [type=checkbox], [type=radio]) {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  caret-color: var(--accent);
+  font-size: 14px;
+  min-height: 42px;
+  border-radius: 6px;
+}
+
+html #root .main-content :is(input[type=checkbox], input[type=radio]) {
+  min-height: 20px;
+  width: 20px;
+  accent-color: var(--accent);
+}
+
+html #root .main-content :is(input, textarea)::placeholder {
+  color: var(--quiet);
+  opacity: .85;
+}
+
+html #root .main-content :is(input, select, textarea):hover:not(:disabled, [type=file]) {
+  border-color: var(--accent);
+}
+
+html #root .main-content :is(input, select, textarea):focus:not([type=file]) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+html #root .main-content :is(input, select, textarea):focus-visible,
+html #root .main-content form :is(button, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+html #root .main-content :is(input, textarea):-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  box-shadow: inset 0 0 0 1000px var(--paper);
+}
+
+html #root .main-content :is(input, textarea):-webkit-autofill:focus {
+  box-shadow: inset 0 0 0 1000px var(--paper), 0 0 0 3px var(--focus-ring);
+}
+
+html #root .main-content :is(input, textarea)::selection {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+html .main-content .ical-import input::file-selector-button {
+  min-height: 40px;
+  margin-inline-end: 8px;
+  padding-inline: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: inherit;
+  cursor: pointer;
+}
+
+html #root .main-content :is(form label, form legend, .field-label) {
+  color: var(--ink);
+}
 html .main-content .primary-action{background:var(--gold);color:var(--on-gold);border:1px solid #b89a62;border-radius:6px;box-shadow:none;font-size:13px;min-height:44px}
 html .main-content .primary-action:hover:not(:disabled){background:var(--gold-hover);box-shadow:none}
 html .main-content :is(.text-action,.dashboard-link){color:var(--accent);font-size:12px;min-height:40px;background:transparent}
@@ -278,13 +341,6 @@ html .main-content :is(.focus-progress, .focus-cycle span:not(.done)) {
   background: var(--line);
 }
 
-html .main-content :is(input, select, textarea):focus-visible {
-  border-color: var(--accent);
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  box-shadow: none;
-}
-
 html .main-content :is(.study-quiz-feedback.correct, .study-quiz-options label.correct) {
   background: color-mix(in srgb, var(--success) 9%, var(--sheet));
   border-color: var(--success);
@@ -333,15 +389,6 @@ html .main-content :is(.assistant-module .assistant-suggestion-list button span,
   color: var(--accent);
 }
 
-html .main-content :is(.productivity-module .focus-task-select,
-  .agenda-module .agenda-date-label input, .files-module input#file-search) {
-  background: var(--paper);
-  border-color: var(--line);
-  color: var(--ink);
-}
-
-html .main-content :is(.productivity-module .focus-task-select,
-  .agenda-module .agenda-date-label input, .files-module input#file-search):focus-visible,
 html .main-content .file-upload-button:focus-within {
   border-color: var(--accent);
   outline: 2px solid var(--accent);
