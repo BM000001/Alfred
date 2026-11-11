@@ -78,9 +78,9 @@ html .sidebar .nav-caption,html .sidebar-note small{color:var(--nav-text)}
 html .sidebar-note{border-color:var(--nav-line);color:var(--gold)}
 html .nav-bottom{border-color:var(--nav-line)}
 html .main-content{min-width:0;background:transparent;color:var(--ink)}
-html .welcome{position:relative;padding:38px 0 26px;min-height:210px;border-color:var(--line)}
-html .welcome h1{font-family:var(--font-display);color:var(--ink);font-size:clamp(36px,5vw,62px);font-weight:400;letter-spacing:-1.5px}
-html .welcome-copy{color:var(--quiet);max-width:540px;line-height:1.7;font-size:14px}
+html .main-content > .welcome{position:relative;padding:38px 0 26px;min-height:210px;border-color:var(--line)}
+html .main-content > .welcome h1{font-family:var(--font-display);color:var(--ink);font-size:clamp(36px,5vw,62px);font-weight:400;letter-spacing:-1.5px}
+html .main-content > .welcome .welcome-copy{color:var(--quiet);max-width:540px;line-height:1.7;font-size:14px}
 html .welcome:has(.mascot-companion){padding-right:180px}
 html .eyebrow,html .card-label{color:var(--accent)}
 html .topbar-caption,html .topbar-status,html .app-footer,html .mobile-page-context{color:var(--quiet)}
@@ -224,7 +224,7 @@ html .main-content :is(.dashboard .dashboard-empty, .dashboard .weather-empty,
 }
 
 html :is(.mobile-context-icon, .main-content .weather-symbol,
-  .main-content .dashboard-stat-icon, .main-content .stored-file-icon,
+  .main-content .dashboard-stat .stat-icon, .main-content .stored-file-icon,
   .main-content .focus-session-count, .main-content .study-flashcards-count,
   .main-content .study-question-difficulty) {
   background: var(--soft);
@@ -300,4 +300,39 @@ html .main-content :is(.study-quiz-feedback.incorrect, .study-quiz-options label
 
 html .mobile-tabbar .nav-item.active {
   box-shadow: none;
+}
+
+html .nav-item.active .nav-icon {
+  color: currentColor;
+  filter: none;
+}
+
+html .sidebar-note {
+  background: color-mix(in srgb, var(--gold) 8%, var(--nav-surface));
+}
+
+html .sidebar-note-mark {
+  background: color-mix(in srgb, var(--gold) 12%, var(--nav-surface));
+  border-color: var(--nav-line);
+  color: var(--gold);
+}
+
+html .sidebar-note strong {
+  color: var(--nav-text);
+}
+
+html .main-content :is(.eyebrow, .dashboard-greeting .card-label,
+  .dashboard-panel-heading .card-label, .assistant-heading .card-label) {
+  color: var(--accent);
+}
+
+html .main-content .eyebrow::before {
+  background: var(--accent);
+}
+
+@media (max-width: 700px) {
+  html .main-content > .welcome {
+    padding-top: 25px;
+    min-height: 175px;
+  }
 }
