@@ -1,3 +1,4 @@
+import { CalendarGrid, type CalendarView } from './agenda/CalendarGrid';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { Appointment, AppointmentType } from './agenda/types';
 import { classifyImportedAppointment, findAppointmentConflicts, sortAppointmentsByStart } from './agenda/agendaRules';
@@ -7,7 +8,7 @@ import { ICalendarImport } from './ICalendarImport';
 import { connectAppleCalendar, isNativeAppleCalendarAvailable, syncAppleCalendar, type NativeCalendarInfo } from './agenda/nativeCalendarBridge';
 
 const agenda = createAgendaService(appointmentRepository);
-type ViewMode = 'day' | 'week' | 'month';
+type ViewMode = CalendarView;
 
 function localDateTime(date: Date): string {
   const offset = date.getTimezoneOffset();
@@ -227,6 +228,7 @@ export function Agenda() {
   const range = useMemo(() => {
     const selected = new Date(`${selectedDate}T12:00:00`);
     const start = startOfDay(selected);
+    if (view === 'year') return { start: new Date(selected.getFullYear(), 0, 1), end: new Date(selected.getFullYear() + 1, 0, 1) };
     if (view === 'day') return { start, end: new Date(start.getTime() + 86400000) };
     if (view === 'week') {
       start.setDate(start.getDate() - start.getDay());
@@ -240,7 +242,7 @@ export function Agenda() {
 
   const visibleItems = useMemo(() => items.filter((item) => {
     const date = new Date(item.startsAt);
-    return date >= range.start && date < range.end && item.status !== 'cancelled';
+    return new Date(item.endsAt) > range.start && date < range.end && item.status !== 'cancelled';
   }), [items, range]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -311,8 +313,15 @@ export function Agenda() {
     }
   }
 
+  function shiftPeriod(direction: number) {
+    const date = new Date(`${selectedDate}T12:00:00`);
+    if (view === 'year') { date.setDate(1); date.setFullYear(date.getFullYear() + direction); }
+    else if (view === 'month') { date.setDate(1); date.setMonth(date.getMonth() + direction); }
+    else date.setDate(date.getDate() + direction * (view === 'week' ? 7 : 1));
+    setSelectedDate(dateKey(date));
+  }
   const selectedLabel = new Date(`${selectedDate}T12:00:00`).toLocaleDateString('pt-BR', {
-    month: 'long',
+    ...(view !== 'year' ? { month: 'long' as const } : {}),
     year: 'numeric',
     ...(view === 'day' ? { day: 'numeric' as const } : {}),
   });
@@ -329,7 +338,7 @@ export function Agenda() {
         </button>
       </div>
 
-      <section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
+      <details className="calendar-integrations"><summary>Importar e conectar calendários</summary><section className="entry-panel apple-calendar-panel" aria-labelledby="apple-calendar-title">
         <div className="apple-calendar-heading"><div><span className="card-label">INTEGRAÇÃO COM APPLE</span><h3 id="apple-calendar-title">Conectar Calendário Apple</h3></div><span className={appleAvailable ? 'apple-calendar-indicator' : 'apple-calendar-unavailable'}><span /> {appleAvailable ? 'Disponível neste dispositivo' : 'Aguardando app iOS'}</span></div>
         {appleAvailable ? <>
           <p>Conecte o calendário do iPhone para trazer seus próximos 90 dias de eventos. A sincronização é somente leitura e não altera seus compromissos manuais. Eventos ausentes só são arquivados quando o iPhone confirma que a leitura foi completa.</p>
@@ -355,17 +364,20 @@ export function Agenda() {
           <p className="apple-calendar-note">A conexão direta está em preparação e ainda não pode ser ativada nesta página. Enquanto isso, você pode importar um arquivo .ics na seção abaixo.</p>
         </>}
       </section>
-      <ICalendarImport existing={items} onImported={refresh} />
+      <ICalendarImport existing={items} onImported={refresh} /></details>
 
       <div className="agenda-controls">
-        <label className="agenda-date-label">Data de referência<input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></label>
+        <label className="agenda-date-label">Data de referência<input type="date" value={selectedDate} onChange={(event) => { if (event.target.value) setSelectedDate(event.target.value); }} /></label>
         <div className="agenda-view-switch" aria-label="Visualização da agenda">
-          <button type="button" className={view === 'day' ? 'selected' : ''} onClick={() => setView('day')}>Dia</button>
-          <button type="button" className={view === 'week' ? 'selected' : ''} onClick={() => setView('week')}>Semana</button>
-          <button type="button" className={view === 'month' ? 'selected' : ''} onClick={() => setView('month')}>Mês</button>
+          <button type="button" aria-pressed={view === 'day'} className={view === 'day' ? 'selected' : ''} onClick={() => setView('day')}>Dia</button>
+          <button type="button" aria-pressed={view === 'week'} className={view === 'week' ? 'selected' : ''} onClick={() => setView('week')}>Semana</button>
+          <button type="button" aria-pressed={view === 'month'} className={view === 'month' ? 'selected' : ''} onClick={() => setView('month')}>Mês</button>
+          <button type="button" aria-pressed={view === 'year'} className={view === 'year' ? 'selected' : ''} onClick={() => setView('year')}>Ano</button>
         </div>
       </div>
 
+      <div className="calendar-step"><button type="button" className="text-action" onClick={() => shiftPeriod(-1)}>← Anterior</button><button type="button" className="text-action" onClick={() => setSelectedDate(dateKey(new Date()))}>Hoje</button><button type="button" className="text-action" onClick={() => shiftPeriod(1)}>Próximo →</button></div>
+      {!loading && <CalendarGrid date={selectedDate} view={view} items={items} onDate={(date, nextView) => { setSelectedDate(date); setView(nextView); }} onEvent={editAppointment} />}
       {showForm && (
         <form className="entry-panel agenda-form" onSubmit={handleSubmit}>
           <span className="card-label">{editingId ? 'EDITAR COMPROMISSO' : 'NOVO COMPROMISSO'}</span>

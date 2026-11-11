@@ -12,3 +12,7 @@ Dependências de runtime no navegador: nenhuma. O aplicativo usa apenas APIs nat
 Qualquer nova dependência precisa ser registrada aqui com a licença verificada antes de ser adicionada.
 
 - PDF.js (`pdfjs-dist`): Apache-2.0. Used locally in the browser to extract selectable text from PDF files; no document content is sent to a remote service.
+
+## Identidade visual do protótipo Alfred
+- Mascote: imagem fornecida/aprovada pelo proprietário no protótipo Alfred, reutilizada em `src/assets/alfred.png`.
+- Fontes Noto localmente hospedadas: arquivos e licença original em `src/assets/fonts/`. Não há carregamento de fontes pelo Google Fonts nesta interface.
