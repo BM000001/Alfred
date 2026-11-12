@@ -51,3 +51,7 @@ Para testar localmente, sirva a pasta `site/` por qualquer servidor estático. P
 ## Licença
 
 **Pendente de decisão.** Veja `docs/decisoes.md`.
+
+## Google Agenda na versão web
+
+A Agenda oferece conexão Google somente leitura, seleção de calendários e sincronização manual dos próximos 90 dias. Esta integração consulta diretamente os serviços oficiais do Google após autorização; não envia eventos para um servidor do Alfred ou para IA. Tokens ficam somente em memória. A configuração OAuth e os limites de sessão estão em [Integração de calendários](docs/integracao-calendarios.md#etapa-google-segunda).

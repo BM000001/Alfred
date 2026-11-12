@@ -43,7 +43,24 @@ O projeto Xcode pode ser gerado a partir da especificação XcodeGen. A compila�
 
 ## Etapa Google (segunda)
 
-Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code + PKCE e escopos mínimos de leitura. Tokens devem ficar no armazenamento seguro do sistema nativo (Keychain no iOS), nunca em código-fonte ou localStorage. Consultar a Google Calendar API e normalizar os eventos para o mesmo formato interno usado pela integração Apple.
+A versão web implementa “Conectar Google Agenda” com o **Google Identity Services Token Model**, apropriado para a hospedagem estática do GitHub Pages. Não usa Client Secret, backend, refresh token nem armazenamento persistente do access token: o token permanece somente em memória e expira. É necessário reconectar após recarregar a página ou expirar a sessão. Authorization Code + PKCE/Keychain permanece uma opção para o aplicativo nativo futuro, não o fluxo desta versão web.
+
+A autorização solicita somente `calendar.calendarlist.readonly` e `calendar.events.readonly`. A biblioteca oficial é carregada após tocar em conectar; depois, “Continuar com Google” abre a autorização diretamente no gesto do usuário, evitando perder a ativação do popup durante o carregamento no Safari. O usuário seleciona os calendários explicitamente e aciona “Sincronizar selecionados”. A seleção fica na sessão do painel; atualizar a lista preserva a seleção existente. Não há leitura automática em segundo plano.
+
+A leitura inclui todas as páginas de resultados, expande ocorrências recorrentes e abrange hoje até 90 dias adiante. Título, datas, dia inteiro, recorrência, origem e local são importados; notas, convidados e anexos não são consultados. As identidades incluem o calendário e o ID do evento Google, com namespace separado dos eventos Apple e manuais. Somente após ler e validar todos os calendários selecionados começa a gravação local/reconciliação. Se houver erro de rede, permissão ou dados inválidos durante a leitura, nenhuma gravação ou reconciliação é iniciada. Falhas de armazenamento durante a gravação podem deixar uma atualização parcial, recuperável repetindo a sincronização.
+
+Desconectar limpa o token local e tenta revogar a autorização no Google; eventos já importados são mantidos. Se a revogação falhar, a interface orienta removê-la nas permissões da Conta Google. Editar/cancelar um evento importado altera somente a cópia local e pode ser sobrescrito na próxima sincronização.
+
+### Configuração Google Cloud
+
+1. Criar/selecionar um projeto no Google Cloud e habilitar **Google Calendar API**.
+2. Configurar a tela de consentimento OAuth, público e usuários de teste. Em produção, cumprir a verificação que o Google exigir para os escopos solicitados.
+3. Criar credencial OAuth do tipo **Aplicativo da Web** e cadastrar as origens JavaScript autorizadas: `https://bm000001.github.io` e, para desenvolvimento, `http://localhost:5173`. Origem não inclui `/Alfred/`. Não é necessário redirect URI para o popup do Token Model.
+4. Configurar o Client ID **público** em `VITE_GOOGLE_CALENDAR_CLIENT_ID` antes do build. O deploy Pages lê a variável de repositório `GOOGLE_CALENDAR_CLIENT_ID`. Sem configuração de build, o painel oferece configuração manual do Client ID público, mantida apenas na memória da página. Nunca informar Client Secret, senha ou token.
+5. Abrir Agenda → Conectar Google Agenda → autorizar as duas permissões → selecionar calendários → Sincronizar selecionados.
+6. Validar em Safari/iPhone e PWA, incluindo bloqueio de popups, permissão parcial, sessão expirada, revogação e reconexão com outra conta.
+
+A configuração de um projeto OAuth real não foi realizada automaticamente. Testes com respostas simuladas não comprovam consentimento real do Google nem funcionamento em Safari.
 
 ## Modelo comum e sincronização
 
@@ -76,4 +93,5 @@ Adicionar “Conectar Google Agenda” com OAuth 2.0 usando Authorization Code +
 - [x] Identidade estável adicional para detectar eventos movidos e ocorrências recorrentes sem fundi-las.
 - [x] Atualização automática da Agenda aberta após notificações de mudança do EventKit e retorno do app ao primeiro plano.
 - [ ] Sincronização em segundo plano com o app suspenso e testes em dispositivo real.
-- [ ] Integração Google Agenda via OAuth.
+- [x] Integração web Google Agenda via OAuth (Token Model), seleção, paginação e sincronização manual somente leitura.
+- [ ] Configurar Client ID real, consentimento e validar Google/Safari/PWA com conta autorizada.
