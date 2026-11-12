@@ -107,3 +107,9 @@
 - Pendências: configurar projeto Google Cloud, habilitar Calendar API, consentimento/usuários de teste e Client ID Web; variável pública de repositório `GOOGLE_CALENDAR_CLIENT_ID`, origem autorizada `https://bm000001.github.io`. Sem essa variável, configuração manual do Client ID público no painel. Nenhuma credencial foi cadastrada nesta sessão.
 - Limites: sincronização manual enquanto página aberta; sem background/refresh token; edição local de importados pode ser sobrescrita; falha de armazenamento durante gravação pode deixar atualização parcial recuperável repetindo sincronização. App iOS/Apple permanece adiado.
 - Próximo passo: revisar PR/CI, configurar OAuth e validar consentimento real em Safari/PWA antes de publicar a integração para uso diário.
+
+### Ajuste de retorno à Agenda no mesmo checkpoint
+
+- O Client ID público informado manualmente é preservado somente em memória durante a sessão, permitindo atualizar a lista após sair e voltar à Agenda sem precisar desconectar. Token continua sem persistência.
+- Adicionados três testes do painel: retorno à Agenda, preservação da seleção e bloqueio de escrita/reconciliação após erro de leitura. Os 10 testes específicos Google (cliente + painel) e TypeScript passaram neste ambiente; navegador mobile simulado repetido incluindo navegação de saída/retorno passou.
+- PR: https://github.com/BM000001/Alfred/pull/120. Primeira execução oficial Alfred CI `43239224992` estava na fila durante a sessão; conferir o resultado mais recente antes de integrar/publicar. O commit inicial `7414088` foi enviado e confirmado no remoto; este ajuste segue na mesma branch.

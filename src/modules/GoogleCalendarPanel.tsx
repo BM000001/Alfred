@@ -6,9 +6,10 @@ import { appointmentRepository } from '../storage/repositories';
 const client = createGoogleCalendarClient();
 const agenda = createAgendaService(appointmentRepository);
 const configuredClientId: string = import.meta.env.VITE_GOOGLE_CALENDAR_CLIENT_ID ?? '';
+let sessionClientId = configuredClientId;
 
 export function GoogleCalendarPanel({ onImported }: { onImported: () => Promise<void> }) {
-  const [clientId, setClientId] = useState(configuredClientId);
+  const [clientId, setClientId] = useState(() => sessionClientId);
   const [identityReady, setIdentityReady] = useState(Boolean(window.google?.accounts.oauth2));
   const [connected, setConnected] = useState(client.connected());
   const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
@@ -78,7 +79,10 @@ export function GoogleCalendarPanel({ onImported }: { onImported: () => Promise<
           if (active.current) { setIdentityReady(true); setMessage('Conexão preparada. Toque em “Continuar com Google” para abrir a autorização.'); }
           return;
         }
-        if (!client.connected()) await client.connect(clientId);
+        if (!client.connected()) {
+          await client.connect(clientId);
+          sessionClientId = clientId;
+        }
         await listCalendars();
       })}>{busy ? 'Aguarde...' : connected ? 'Atualizar lista de calendários' : identityReady ? 'Continuar com Google' : 'Conectar Google Agenda'}</button>
       {connected && <>
