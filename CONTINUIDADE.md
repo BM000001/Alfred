@@ -1,5 +1,16 @@
 # Continuidade do Alfred
 
+## Central de Comando — branch isolada (15/11/2026)
+- O proprietário decidiu manter o **código da Central de Comando no repositório Alfred**, em uma branch independente, sem ocupar o Laboratory com o desenvolvimento contínuo desse site.
+- Branch de trabalho: `feat/central-comando-site-20261115`, criada a partir da `main` do Alfred. Arquivo do protótipo: `public/central/index.html`.
+- Fonte: protótipo inicial preparado no Laboratory, branch `ia/44-central-comando-prototipo-20261115`; requisitos aprovados documentados em https://github.com/BM000001/Alfred-Laboratory/issues/44.
+- Estado confirmado: o protótipo HTML está versionado nesta branch, com três visões (Ativas, Ideias futuras, Arquivados), sete tarefas **explicitamente fictícias**, busca, marcos de entrega e detalhes navegáveis. Nenhum dado real sincronizado.
+- **Não há site independente publicado, Google Sign-In, backend, notificações, automações de desenvolvimento nem atualização de dados reais.** Não utilizar cartões fictícios para relatar situação do projeto.
+- A publicação GitHub Pages existente do Alfred é acionada pela `main` e publica o aplicativo Alfred; não altera automaticamente o endereço público ao criar esta branch. Não modificar a origem do Pages nem fazer merge para publicar o painel sem aprovação específica e planejamento para preservar o app.
+- Verificação realizada: leitura de volta do arquivo pela API GitHub; conteúdo equivalente ao protótipo de origem. Testes do aplicativo, build e Safari físico **não executados nesta transferência**; não confundir transferência com homologação.
+- Próxima etapa: definir uma implantação permanente separada do aplicativo com autenticação Google e autorização real, sem expor dados privados ou tokens em HTML público; depois conectar leitura verificável a Issues/PRs/checks, validar iPhone e solicitar aprovação antes de integrar.
+- O `BM000001/Alfred` na `main` e o site publicado atual seguem sem alterações.
+
 ## Estado atual — 2026-11-04 (atualizado após PR #63)
 - PR #58 — remoção da dependência da Vercel e manutenção da arquitetura local-first — integrada à `main` por squash merge; commit `ad5b47feb357bdf92a08df3b4e5af26e8c50c40d`.
 - PR #59 — atualização deste documento após a remoção da Vercel — integrada; CI aprovado.
