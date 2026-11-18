@@ -3,6 +3,8 @@ import type { FlashcardRating, StudyFlashcard, CreateFlashcardInput } from './fl
 
 type Options = { createId?: () => string; now?: () => Date };
 const DAY = 24 * 60 * 60 * 1000;
+const MAX_REVIEW_HISTORY = 200;
+const MAX_INTERVAL_DAYS = 365;
 
 export function createFlashcardService(repository: EntityRepository<StudyFlashcard>, options: Options = {}) {
   const createId = options.createId ?? (() => crypto.randomUUID());
@@ -16,7 +18,7 @@ export function createFlashcardService(repository: EntityRepository<StudyFlashca
       if (!front || !back) throw new Error('Preencha a pergunta e a resposta.');
       if (front.length > 500 || back.length > 2000) throw new Error('A pergunta aceita até 500 caracteres e a resposta até 2.000.');
       const timestamp = now().toISOString();
-      const card: StudyFlashcard = { id: createId(), disciplineId: input.disciplineId, front, back, createdAt: timestamp, nextReviewAt: timestamp, intervalDays: 0, reviewCount: 0 };
+      const card: StudyFlashcard = { id: createId(), disciplineId: input.disciplineId, front, back, createdAt: timestamp, nextReviewAt: timestamp, intervalDays: 0, reviewCount: 0, ...(input.topicId ? { topicId: input.topicId } : {}), ...(input.sourceFileId ? { sourceFileId: input.sourceFileId } : {}), ...(input.sourceFileName ? { sourceFileName: input.sourceFileName } : {}), ...(input.subject ? { subject: input.subject } : {}) };
       await repository.save(card);
       return card;
     },
@@ -27,13 +29,33 @@ export function createFlashcardService(repository: EntityRepository<StudyFlashca
       const previous = card.intervalDays;
       const intervals: Record<FlashcardRating, number> = {
         again: 0,
-        hard: Math.max(1, Math.round(previous ? previous * 1.2 : 1)),
-        good: previous ? Math.max(3, Math.round(previous * 2)) : 3,
-        easy: previous ? Math.max(7, Math.round(previous * 2.5)) : 7,
+        hard: Math.min(MAX_INTERVAL_DAYS, Math.max(1, Math.round(previous ? previous * 1.2 : 1))),
+        good: Math.min(MAX_INTERVAL_DAYS, previous ? Math.max(3, Math.round(previous * 2)) : 3),
+        easy: Math.min(MAX_INTERVAL_DAYS, previous ? Math.max(7, Math.round(previous * 2.5)) : 7),
       };
       const intervalDays = intervals[rating];
       const nextReview = new Date(reviewedAt.getTime() + (rating === 'again' ? 10 * 60 * 1000 : intervalDays * DAY));
-      const updated: StudyFlashcard = { ...card, lastReviewedAt: reviewedAt.toISOString(), nextReviewAt: nextReview.toISOString(), intervalDays, reviewCount: card.reviewCount + 1 };
+      const ratedAt = reviewedAt.toISOString();
+      const nextReviewAt = nextReview.toISOString();
+      const reviewEvent = { ratedAt, rating, intervalDays, nextReviewAt };
+      const updated: StudyFlashcard = {
+        ...card,
+        lastReviewedAt: ratedAt,
+        nextReviewAt,
+        intervalDays,
+        reviewCount: card.reviewCount + 1,
+        reviewHistory: [...(card.reviewHistory ?? []), reviewEvent].slice(-MAX_REVIEW_HISTORY),
+      };
+      await repository.save(updated);
+      return updated;
+    },
+    async update(id: string, changes: { front: string; back: string }) {
+      const card = await repository.getById(id);
+      if (!card) throw new Error('Flashcard não encontrado.');
+      const front = changes.front.trim(), back = changes.back.trim();
+      if (!front || !back) throw new Error('Preencha a pergunta e a resposta.');
+      if (front.length > 500 || back.length > 2000) throw new Error('A pergunta aceita até 500 caracteres e a resposta até 2.000.');
+      const updated = { ...card, front, back };
       await repository.save(updated);
       return updated;
     },

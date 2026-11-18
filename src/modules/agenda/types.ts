@@ -12,16 +12,22 @@ export interface Appointment {
   isAllDay?: boolean;
   isRecurring?: boolean;
   location?: string;
+  projectId?: string;
   createdAt: string;
   importedUid?: string;
   importedStableUid?: string;
   importedCalendarId?: string;
   importedCalendarName?: string;
+  externalProvider?: 'google';
+  externalAccountId?: string;
+  externalCalendarId?: string;
+  externalEventId?: string;
+  externalEtag?: string;
 }
 
 export type CreateAppointmentInput = Pick<Appointment, 'title' | 'type' | 'startsAt' | 'endsAt'> &
-  Partial<Pick<Appointment, 'description' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedStableUid'>>;
+  Partial<Pick<Appointment, 'description' | 'location' | 'projectId' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedStableUid' | 'externalProvider' | 'externalAccountId' | 'externalCalendarId' | 'externalEventId' | 'externalEtag'>>;
 
 export type UpdateAppointmentInput = Partial<
-  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'isAllDay' | 'isRecurring' | 'importedCalendarName'>
+  Pick<Appointment, 'title' | 'description' | 'type' | 'status' | 'startsAt' | 'endsAt' | 'location' | 'projectId' | 'isAllDay' | 'isRecurring' | 'importedCalendarName' | 'importedUid' | 'importedStableUid' | 'importedCalendarId' | 'importedCalendarName' | 'externalProvider' | 'externalAccountId' | 'externalCalendarId' | 'externalEventId' | 'externalEtag'>
 >;
