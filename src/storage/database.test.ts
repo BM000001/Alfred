@@ -60,3 +60,49 @@ it('preserva dados quando uma abertura v13 tenta acessar um banco v14 com stores
     expect(await runStoreRequest(reopened, 'aiTasks', 'readonly', (store) => store.get(task.id))).toEqual(task);
   } finally { reopened.close(); }
 });
+
+it('migra o schema da produção v10 para v13 sem perder registros dos stores existentes', async () => {
+  const factory = new IDBFactory();
+  const legacyStoreNames = [
+    STORE_NAMES.tasks,
+    STORE_NAMES.projects,
+    STORE_NAMES.appointments,
+    STORE_NAMES.disciplines,
+    STORE_NAMES.studyTopics,
+    STORE_NAMES.studyFlashcards,
+    STORE_NAMES.studyQuestions,
+    STORE_NAMES.studyQuizAttempts,
+    STORE_NAMES.files,
+    STORE_NAMES.focusSessions,
+    STORE_NAMES.assistantMessages,
+    STORE_NAMES.memories,
+    STORE_NAMES.egressAudit,
+    STORE_NAMES.egressSettings,
+  ];
+  const legacyRows = Object.fromEntries(legacyStoreNames.map((name) => [
+    name,
+    { id: `v10-${name}`, sentinel: `preserve-${name}` },
+  ]));
+  const old = await openVersion(factory, 10, legacyStoreNames);
+  try {
+    for (const [name, row] of Object.entries(legacyRows)) {
+      await runStoreRequest(old, name, 'readwrite', (store) => store.add(row));
+    }
+  } finally { old.close(); }
+
+  const migrated = await openAlfredDatabase(factory);
+  try {
+    expect(migrated.version).toBe(13);
+    expect([...migrated.objectStoreNames].sort()).toEqual(Object.values(STORE_NAMES).sort());
+    for (const [name, row] of Object.entries(legacyRows)) {
+      expect(await runStoreRequest(migrated, name, 'readonly', (store) => store.get(row.id))).toEqual(row);
+    }
+    for (const name of [
+      STORE_NAMES.studyLearningProgress,
+      STORE_NAMES.calendarSyncStates,
+      STORE_NAMES.pendingGoogleCalendarOperations,
+    ]) {
+      expect(await runStoreRequest(migrated, name, 'readonly', (store) => store.count())).toBe(0);
+    }
+  } finally { migrated.close(); }
+});
