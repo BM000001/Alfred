@@ -7,6 +7,18 @@ export function gradeStudyAnswer(question: Pick<StudyQuestion, 'correctOptionInd
   return selectedOptionIndex !== null && selectedOptionIndex === question.correctOptionIndex;
 }
 
+export function getQuestionSnapshot(answer: StudyQuizAnswer, disciplineId: string): StudyQuestion | undefined {
+  const snapshot = answer.questionSnapshot;
+  if (!snapshot || (snapshot.id !== undefined && snapshot.id !== answer.questionId)
+    || (snapshot.disciplineId !== undefined && snapshot.disciplineId !== disciplineId)
+    || typeof snapshot.prompt !== 'string' || !Array.isArray(snapshot.options)
+    || !snapshot.options.every((option) => typeof option === 'string')
+    || !Number.isInteger(snapshot.correctOptionIndex)
+    || snapshot.correctOptionIndex < 0 || snapshot.correctOptionIndex >= snapshot.options.length
+    || (snapshot.explanation !== undefined && typeof snapshot.explanation !== 'string')) return;
+  return { ...snapshot, id: answer.questionId, disciplineId, createdAt: snapshot.createdAt ?? '' };
+}
+
 export function summarizeQuiz(answers: StudyQuizAnswer[]) {
   const correct = answers.filter((answer) => answer.isCorrect).length;
   return { total: answers.length, correct, incorrect: answers.length - correct, percentage: answers.length ? Math.round(correct / answers.length * 100) : 0 };
@@ -44,6 +56,9 @@ export function createQuestionService(
         ...(explanation ? { explanation } : {}),
         difficulty: input.difficulty,
         createdAt: now().toISOString(),
+        ...(input.sourceFileId ? { sourceFileId: input.sourceFileId } : {}),
+        ...(input.sourceFileName ? { sourceFileName: input.sourceFileName } : {}),
+        ...(input.subject ? { subject: input.subject } : {}),
       };
       await questions.save(question);
       return question;

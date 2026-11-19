@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ActionProposal, ApprovalDecision, AssistantMessage, ToolDefinition } from './assistant/contracts';
-import './assistant/assistant.css';
+import { AlfredMascot } from '../components/AlfredMascot';
 import { ActionApprovalError, executeApprovedProposal } from './assistant/actionApproval';
 import { prepareTaskCompletion } from './assistant/actionProposals';
 import { prepareTaskCreation } from './assistant/taskCreationProposals';
@@ -10,8 +10,6 @@ import { prepareTaskDescriptionUpdate } from './assistant/taskDescriptionProposa
 import type { Task, TaskPriority } from './tasks/types';
 import { LocalAssistantProvider } from './assistant/localAssistant';
 import { Brain } from './brain';
-import { AssistantMemoryPanel } from './AssistantMemoryPanel';
-import { ManualExportPanel } from './ManualExportPanel';
 import { appointmentRepository, assistantMessageRepository, memoryRepository, studyTopicRepository, taskRepository } from '../storage/repositories';
 
 function createMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
@@ -25,7 +23,9 @@ type PendingTaskProposal =
   | { action: 'due-date'; task: Task; dueDate: string; proposal: ActionProposal }
   | { action: 'description'; task: Task; description: string; proposal: ActionProposal };
 
-export function Assistant() {
+export function Assistant({ showMascot = true, conversationId, onHistoryChanged }: {
+  showMascot?: boolean; conversationId?: string; onHistoryChanged?: () => void;
+} = {}) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [historyReady, setHistoryReady] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -34,25 +34,22 @@ export function Assistant() {
   const [approving, setApproving] = useState(false);
   const [pendingProposal, setPendingProposal] = useState<PendingTaskProposal | null>(null);
   const [error, setError] = useState('');
-  const endRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef<HTMLDivElement>(null);
+  const promptRef = useRef<HTMLInputElement>(null);
   const recentTaskIdRef = useRef<string | null>(null);
+  const persistedIds = useRef(new Set<string>());
   const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
 
-  const welcomeMessage = 'À sua disposição. Posso consultar suas tarefas pendentes, próximos compromissos e progresso dos estudos, além de preparar propostas para criar, concluir, ajustar prioridades, definir prazos e editar descrições de tarefas. Nenhuma alteração será feita sem sua confirmação explícita.';
+  const welcomeMessage = 'À sua disposição. O que você quer consultar ou organizar hoje?';
 
   useEffect(() => {
     let active = true;
-    assistantMessageRepository.getAll().then(async (saved) => {
+    assistantMessageRepository.getAll().then((saved) => {
       if (!active) return;
-      const ordered = saved.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-      const retained = ordered.slice(-200);
-      const expired = ordered.slice(0, Math.max(0, ordered.length - retained.length));
-      await Promise.all(expired.map((message) => assistantMessageRepository.delete(message.id)));
-      if (!active) return;
-      setMessages(retained.length ? [
-        ...retained,
-        createMessage('assistant', 'Conversa anterior recuperada. Propostas de alteração que estavam aguardando confirmação não são retomadas após recarregar a página; se necessário, solicite-as novamente.'),
-      ] : [createMessage('assistant', welcomeMessage)]);
+      const thread = saved.filter((message) => message.conversationId === conversationId)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      persistedIds.current = new Set(thread.map(({ id }) => id));
+      setMessages(thread.length ? thread : [createMessage('assistant', welcomeMessage)]);
       setHistoryReady(true);
     }).catch(() => {
       if (!active) return;
@@ -61,17 +58,25 @@ export function Assistant() {
       setError('Não foi possível recuperar o histórico local. Você pode continuar, mas a conversa desta sessão talvez não seja salva.');
     });
     return () => { active = false; };
-  }, []);
+  }, [conversationId]);
 
   useEffect(() => {
     if (!historyReady || messages.length === 0) return;
-    const retained = messages.slice(-200);
-    persistenceQueueRef.current = persistenceQueueRef.current
-      .then(async () => { await Promise.all(retained.map((message) => assistantMessageRepository.save(message))); })
-      .catch(() => setError('Não foi possível salvar o histórico da conversa neste dispositivo.'));
-  }, [messages, historyReady]);
+    persistenceQueueRef.current = persistenceQueueRef.current.then(async () => {
+      const pending = messages.filter(({ id }) => !persistedIds.current.has(id));
+      if (!pending.length) return;
+      await Promise.all(pending.map(async (message) => {
+        await assistantMessageRepository.save(conversationId ? { ...message, conversationId } : message);
+        persistedIds.current.add(message.id);
+      }));
+      onHistoryChanged?.();
+    }).catch(() => setError('Não foi possível salvar o histórico da conversa neste dispositivo.'));
+  }, [messages, historyReady, conversationId, onHistoryChanged]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, loading, pendingProposal]);
+  useEffect(() => {
+    const conversation = conversationRef.current;
+    if (conversation) conversation.scrollTop = conversation.scrollHeight;
+  }, [messages, loading]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -351,7 +356,10 @@ export function Assistant() {
     if (!confirmClear || loading || approving || pendingProposal) return;
     try {
       await persistenceQueueRef.current;
-      await assistantMessageRepository.clear();
+      const stored = await assistantMessageRepository.getAll();
+      await Promise.all(stored.filter((message) => message.conversationId === conversationId)
+        .map((message) => assistantMessageRepository.delete(message.id)));
+      persistedIds.current.clear();
       recentTaskIdRef.current = null;
       setMessages([createMessage('assistant', welcomeMessage)]);
       setConfirmClear(false);
@@ -370,79 +378,77 @@ export function Assistant() {
 
   return (
     <section className="assistant-module" aria-label="Assistente Alfred">
-      <header className="assistant-heading">
-        <div><span className="card-label">ALFRED · ASSISTENTE</span><h2>Como posso ajudar?</h2><p>Modo local: seus dados permanecem neste dispositivo. Para usar uma IA externa, utilize a exportação manual após revisar e autorizar o conteúdo.</p></div>
-        <div className="assistant-heading-actions">
-          <span className="assistant-status"><i aria-hidden="true" /> Local</span>
-          <button type="button" className="secondary-action" onClick={() => setConfirmClear(true)} disabled={!historyReady || loading || approving || pendingProposal !== null}>Limpar conversa</button>
+      <aside className="assistant-sidebar">
+        <header className={showMascot ? "assistant-heading with-mascot" : "assistant-heading"}>
+          {showMascot && <AlfredMascot mood={error ? 'warning' : pendingProposal ? 'curious' : loading || approving ? 'thinking' : 'idle'} />}
+          <div><span className="assistant-status"><i aria-hidden="true" /> Assistente local</span><h1>Alfred</h1><p>Tarefas, agenda e estudos neste dispositivo.</p></div>
+        </header>
+      </aside>
+      <div className="assistant-stage">
+        <div className="section-heading assistant-session">
+          <h2>Conversa</h2>
+          <button type="button" className="text-action" onClick={() => setConfirmClear(true)} disabled={!historyReady || loading || approving || pendingProposal !== null}>Limpar conversa</button>
         </div>
-      </header>
-      <AssistantMemoryPanel />
-      <ManualExportPanel />
-      {!historyReady && <p className="assistant-loading" role="status">Recuperando conversa local…</p>}
-      <div className="assistant-capabilities" aria-label="Consultas disponíveis">
-        <span>Tarefas pendentes</span><span>Próximos compromissos</span><span>Progresso dos estudos</span><span>Criar tarefa com confirmação</span><span>Concluir tarefa com confirmação</span><span>Alterar prioridade com confirmação</span><span>Definir prazos com confirmação</span><span>Editar descrições com confirmação</span>
-      </div>
-      {messages.length === 1 && (
-        <div className="assistant-suggestions" aria-label="Sugestões para começar">
-          <span className="assistant-suggestions-label">EXPERIMENTE PERGUNTAR</span>
-          <div className="assistant-suggestion-list">
-            {[
-              'Quais tarefas estão pendentes?',
-              'Quais são meus próximos compromissos?',
-              'Como está meu progresso nos estudos?',
-              'O que você lembra sobre mim?',
-            ].map((suggestion) => (
-              <button key={suggestion} type="button" onClick={() => setInput(suggestion)} disabled={loading || approving}>
-                <span aria-hidden="true">↗</span>{suggestion}
-              </button>
-            ))}
-          </div>
+        {!historyReady && <p className="assistant-loading" role="status">Recuperando conversa local…</p>}
+        <div className="assistant-conversation" ref={conversationRef} role="log" aria-label="Histórico da conversa" aria-live="polite" aria-relevant="additions">
+          {messages.map((message) => (
+            <article className={`assistant-message ${message.role === 'user' ? 'from-user' : 'from-alfred'}`} key={message.id}>
+              <span>{message.role === 'user' ? 'Você' : 'Alfred'}</span>
+              <p>{message.content}</p>
+            </article>
+          ))}
+          {loading && <p className="assistant-loading" role="status">Consultando seus dados locais…</p>}
         </div>
-      )}
-      <div className="assistant-conversation" role="log" aria-live="polite" aria-relevant="additions">
-        {messages.map((message) => (
-          <article className={`assistant-message ${message.role === 'user' ? 'from-user' : 'from-alfred'}`} key={message.id}>
-            <span>{message.role === 'user' ? 'Você' : 'Alfred'}</span>
-            <p>{message.content}</p>
-          </article>
-        ))}
-        {loading && <p className="assistant-loading" role="status">Consultando seus dados locais…</p>}
-        <div ref={endRef} />
+        {confirmClear && (
+          <section className="assistant-proposal" aria-labelledby="assistant-clear-title">
+            <span className="card-label">AÇÃO DE PRIVACIDADE</span>
+            <h3 id="assistant-clear-title">Apagar histórico desta conversa?</h3>
+            <p>As mensagens armazenadas neste dispositivo serão apagadas. Isso não altera tarefas, compromissos, estudos ou arquivos.</p>
+            <div className="assistant-proposal-actions">
+              <button type="button" className="secondary-action" onClick={() => setConfirmClear(false)}>Manter histórico</button>
+              <button type="button" className="primary-action" onClick={clearConversation}>Apagar histórico</button>
+            </div>
+          </section>
+        )}
+        {pendingProposal && (
+          <section className="assistant-proposal" aria-labelledby="assistant-proposal-title" aria-describedby="assistant-proposal-description">
+            <span className="card-label">CONFIRMAÇÃO NECESSÁRIA</span>
+            <h3 id="assistant-proposal-title">{pendingProposal.proposal.title}</h3>
+            <p id="assistant-proposal-description">{pendingProposal.proposal.explanation}</p>
+            <div className="assistant-proposal-record"><span>{pendingProposal.action === 'create' ? 'Nova tarefa' : 'Tarefa afetada'}</span><strong>{pendingProposal.action === 'create' ? pendingProposal.taskTitle : pendingProposal.task.title}</strong></div>
+            {pendingProposal.action === 'due-date' && <div className="assistant-proposal-record"><span>Novo prazo</span><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(pendingProposal.dueDate + 'T00:00:00Z'))}</strong></div>}
+            {pendingProposal.action === 'description' && <div className="assistant-proposal-record"><span>Nova descrição</span><strong>{pendingProposal.description}</strong></div>}
+            <p className="assistant-proposal-warning">Nada será alterado até você selecionar “Confirmar alteração”.</p>
+            <div className="assistant-proposal-actions">
+              <button type="button" className="secondary-action" onClick={cancelProposal} disabled={approving}>Cancelar</button>
+              <button type="button" className="primary-action" onClick={approveProposal} disabled={approving || loading}>{approving ? 'Salvando…' : 'Confirmar alteração'}</button>
+            </div>
+          </section>
+        )}
+        {error && <p className="module-error" role="alert">{error}</p>}
+        <form className="assistant-composer" onSubmit={submit}>
+          <label className="sr-only" htmlFor="assistant-prompt">Mensagem para Alfred</label>
+          <input ref={promptRef} id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
+          <button type="submit" className="primary-action" disabled={!historyReady || loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
+        </form>
+        {messages.length === 1 && (
+          <div className="assistant-suggestions" aria-label="Sugestões para começar">
+            <span className="assistant-suggestions-label">Sugestões</span>
+            <div className="assistant-suggestion-list">
+              {[
+                'Quais tarefas estão pendentes?',
+                'Quais são meus próximos compromissos?',
+                'Como está meu progresso nos estudos?',
+                'O que você lembra sobre mim?',
+              ].map((suggestion) => (
+                <button key={suggestion} type="button" onClick={() => { setInput(suggestion); promptRef.current?.focus(); }} disabled={!historyReady || loading || approving || pendingProposal !== null}>
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-      {confirmClear && (
-        <section className="assistant-proposal" aria-labelledby="assistant-clear-title">
-          <span className="card-label">AÇÃO DE PRIVACIDADE</span>
-          <h3 id="assistant-clear-title">Apagar histórico desta conversa?</h3>
-          <p>As mensagens armazenadas neste dispositivo serão apagadas. Isso não altera tarefas, compromissos, estudos ou arquivos.</p>
-          <div className="assistant-proposal-actions">
-            <button type="button" className="secondary-action" onClick={() => setConfirmClear(false)}>Manter histórico</button>
-            <button type="button" className="primary-action" onClick={clearConversation}>Apagar histórico</button>
-          </div>
-        </section>
-      )}
-      {pendingProposal && (
-        <section className="assistant-proposal" aria-labelledby="assistant-proposal-title" aria-describedby="assistant-proposal-description">
-          <span className="card-label">CONFIRMAÇÃO NECESSÁRIA</span>
-          <h3 id="assistant-proposal-title">{pendingProposal.proposal.title}</h3>
-          <p id="assistant-proposal-description">{pendingProposal.proposal.explanation}</p>
-          <div className="assistant-proposal-record"><span>{pendingProposal.action === 'create' ? 'Nova tarefa' : 'Tarefa afetada'}</span><strong>{pendingProposal.action === 'create' ? pendingProposal.taskTitle : pendingProposal.task.title}</strong></div>
-          {pendingProposal.action === 'due-date' && <div className="assistant-proposal-record"><span>Novo prazo</span><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(pendingProposal.dueDate + 'T00:00:00Z'))}</strong></div>}
-          {pendingProposal.action === 'description' && <div className="assistant-proposal-record"><span>Nova descrição</span><strong>{pendingProposal.description}</strong></div>}
-          <p className="assistant-proposal-warning">Nada será alterado até você selecionar “Confirmar alteração”.</p>
-          <div className="assistant-proposal-actions">
-            <button type="button" className="secondary-action" onClick={cancelProposal} disabled={approving}>Cancelar</button>
-            <button type="button" className="primary-action" onClick={approveProposal} disabled={approving || loading}>{approving ? 'Salvando…' : 'Confirmar alteração'}</button>
-          </div>
-        </section>
-      )}
-      {error && <p className="module-error" role="alert">{error}</p>}
-      <form className="assistant-composer" onSubmit={submit}>
-        <label className="sr-only" htmlFor="assistant-prompt">Mensagem para Alfred</label>
-        <input id="assistant-prompt" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ex.: Quais tarefas estão pendentes?" maxLength={500} disabled={!historyReady || loading || approving || pendingProposal !== null} />
-        <button type="submit" className="primary-action" disabled={!historyReady || loading || approving || pendingProposal !== null || !input.trim()}>Enviar</button>
-      </form>
-      <p className="assistant-disclaimer">O modo local consulta somente dados deste dispositivo. Nenhuma mensagem é enviada automaticamente para serviços externos. Para usar outro modelo de IA, utilize a exportação manual, revise o conteúdo e faça o envio por sua própria conta. Alterações em tarefas continuam exigindo confirmação explícita.</p>
     </section>
   );
 }

@@ -47,3 +47,20 @@ jobs:
 
       - name: Build application
         run: npm run build
+
+      - name: Build and verify GitHub Pages output
+        env:
+          ALFRED_PAGES_BASE: /Alfred/
+          VITE_GOOGLE_APPS_SCRIPT_URL: ${{ vars.VITE_GOOGLE_APPS_SCRIPT_URL }}
+          VITE_GOOGLE_CALENDAR_CLIENT_ID: ${{ vars.VITE_GOOGLE_CALENDAR_CLIENT_ID }}
+        run: |
+          npm run build:pages
+          test -s dist/index.html
+          test -s dist/manifest.webmanifest
+          test -s dist/sw.js
+          test -s dist/apple-touch-icon-180.png
+          test -s dist/icon-192.png
+          test -s dist/icon-512.png
+          test -s dist/icon-maskable-512.png
+          grep -Fq 'href="/Alfred/manifest.webmanifest"' dist/index.html
+          grep -Fq 'src="/Alfred/assets/' dist/index.html

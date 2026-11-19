@@ -2,15 +2,25 @@ import { useState, type ChangeEvent } from 'react';
 import { createBackup, inspectBackup, restoreBackup } from './backup/backupService';
 import { decryptBackup, encryptBackup, isEncryptedBackup } from './backup/encryptedBackup';
 
+const MAX_BACKUP_BYTES = 100 * 1024 * 1024;
+
+function assertBackupSize(size: number) {
+  if (size > MAX_BACKUP_BYTES) throw new Error('O backup excede o limite de 100 MiB.');
+}
+
 type BackupPreview = ReturnType<typeof inspectBackup>;
 
 const labels: Record<string, string> = {
   tasks: 'Tarefas', projects: 'Projetos', appointments: 'Compromissos',
-  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo', focusSessions: 'Sessões Pomodoro', memories: 'Memórias do Alfred', files: 'Arquivos',
+  disciplines: 'Disciplinas', studyTopics: 'Conteúdos de estudo',
+  studyFlashcards: 'Flashcards', studyQuestions: 'Questões de simulados',
+  studyQuizAttempts: 'Tentativas de simulados', studyLearningProgress: 'Progresso de aprendizagem',
+  focusSessions: 'Sessões Pomodoro', memories: 'Memórias do Alfred', files: 'Arquivos',
 };
 
 function downloadJson(content: string, filename: string) {
   const blob = new Blob([content], { type: 'application/json' });
+  assertBackupSize(blob.size);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -65,7 +75,7 @@ export function BackupSettings() {
     setPreview(null); setEncryptedRaw(null); setEncryptedPassword(''); setError(''); setFeedback('');
     if (!file) return;
     try {
-      if (file.size > 100 * 1024 * 1024) throw new Error('O backup excede o limite de 100 MB.');
+      assertBackupSize(file.size);
       const raw = await file.text();
       if (isEncryptedBackup(raw)) {
         setEncryptedRaw(raw);
@@ -91,7 +101,11 @@ export function BackupSettings() {
   }
 
   async function confirmRestore() {
-    if (!preview || !window.confirm('Atenção: a restauração substituirá todos os dados atuais do Alfred neste dispositivo. Essa ação não pode ser desfeita. Deseja continuar?')) return;
+    if (!preview) return;
+    const warning = preview.legacyStudyData
+      ? 'Este backup antigo não inclui flashcards, questões, tentativas de simulados ou progresso de aprendizagem. Se a restauração remover vínculos dos registros de estudo preservados, ela será bloqueada. Exporte primeiro um backup atual.'
+      : 'As coleções incluídas no backup serão substituídas, inclusive flashcards, questões, tentativas e progresso de aprendizagem.';
+    if (!window.confirm('Atenção: a restauração substituirá os dados cobertos pelo backup neste dispositivo. ' + warning + ' A operação não pode ser desfeita. Deseja continuar?')) return;
     setBusy(true); setError(''); setFeedback('');
     try {
       await restoreBackup(preview.payload);
@@ -105,7 +119,7 @@ export function BackupSettings() {
     <article className="entry-panel">
       <span className="card-label">PROTEÇÃO DOS SEUS DADOS</span>
       <h2>Backup local</h2>
-      <p>Exporte tarefas, projetos, agenda, estudos, histórico Pomodoro, memórias e arquivos em um único documento. O Alfred não envia esses dados para um servidor. O histórico de mensagens não é incluído no backup e permanece neste dispositivo.</p>
+      <p>Exporte tarefas, projetos, agenda, disciplinas, flashcards, questões, tentativas de simulados, progresso de aprendizagem, histórico Pomodoro, memórias e arquivos em um único documento. O Alfred não envia esses dados para um servidor. O histórico de mensagens não é incluído no backup e permanece neste dispositivo.</p>
       <button className="primary-action" type="button" disabled={busy} onClick={() => void exportData()}>{busy ? 'Processando...' : 'Exportar backup JSON'}</button>
     </article>
     <article className="entry-panel">
@@ -121,7 +135,7 @@ export function BackupSettings() {
     <article className="entry-panel">
       <span className="card-label">RECUPERAÇÃO</span>
       <h2>Restaurar backup</h2>
-      <p>Selecione um backup JSON criado pelo Alfred. Backups criptografados pedem senha antes de mostrar a prévia. A restauração substitui os dados atuais deste dispositivo.</p>
+      <p>Selecione um backup JSON criado pelo Alfred. Backups criptografados pedem senha antes de mostrar a prévia. A restauração substitui as coleções incluídas no backup; registros locais não exportados continuam no dispositivo.</p>
       <label className="file-upload-button">Selecionar backup<input type="file" accept="application/json,.json" aria-label="Selecionar arquivo de backup" onChange={selectBackup} disabled={busy} /></label>
       {encryptedRaw && <div className="backup-preview" aria-live="polite">
         <strong>Backup criptografado detectado</strong>
@@ -132,6 +146,7 @@ export function BackupSettings() {
       {preview && <div className="backup-preview" aria-live="polite">
         <strong>Backup de {new Date(preview.createdAt).toLocaleString('pt-BR')}</strong>
         <ul>{Object.entries(preview.counts).map(([key, count]) => <li key={key}>{labels[key]}: {count}</li>)}</ul>
+        {preview.legacyStudyData && <p role="alert">Atenção: backup antigo sem coleções completas de estudo. Ele não recupera flashcards, questões, tentativas ou progresso omitidos do arquivo. A restauração será bloqueada se remover vínculos dos registros de estudo preservados. Exporte seu backup atual antes de restaurar.</p>}
         <button className="primary-action danger-action" type="button" disabled={busy} onClick={() => void confirmRestore()}>Substituir dados e restaurar</button>
       </div>}
     </article>
